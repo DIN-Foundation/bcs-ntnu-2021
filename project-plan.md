@@ -24,6 +24,14 @@
 
 ## 4.2 Plan for statusmøter og beslutningspunkter i perioden
 
+We have planned 2 weekly meetings, 1 with supervisor and 1 with product owner.
+
+- Product owner meeting: Tuesdays @ 12:30
+- Supervisor meeting: Tuesdays @ 13:00
+
+Participants of these meetings have received invites by email, to make it easy to add the scheduled meetings to their respective calendars.
+
+
 # 5. Organisering av kvalitetssikring
 
 ## 5.1 Dokumentasjon, standardbruk og kildekode
