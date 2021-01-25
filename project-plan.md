@@ -40,9 +40,9 @@ The proof-of-concept should implement the following parts of an SSI-workflow:
 
 A limited set of ledgers and wallets should be investigated:
 
-**TODO List of wallets to investigate**
+**@TODO Make list of wallets to investigate**
 
-**TODO List of ledgers to investigate**
+**@TODO Make list of ledgers to investigate**
 
 ## 2.3 Oppgavebeskrivelse
 
@@ -144,9 +144,11 @@ This is a very useful tool to document interfaces in the code bases. Either inte
 
 Some high-level documentation will be required to explain the architecture of the entire solution, using diagrams.
 
-### Testing of the API interface
+### Testing of API's
 
 There will be an interface to control the proof-of-concept app. Most of the testing we do should focus heavily on testing this interface, be it a CLI or a HTTP API or both or something else. How this interface will look is TBD.
+
+**@TODO: Define API of proof-of-concept app**
 
 ### Linting and formatting using community defaults and best practices
 
@@ -166,14 +168,14 @@ The project starts in Week 5 (01.feb - 07.feb) and ends in Week 20 (17.may - 23.
 - 78 weekdays
 - 624 weekdayhours (8 hours per weekday)
 
-### Milestones Gantt chart
+### Deliverables Gantt chart
 
-| Milestone            |Week 5|Week 6|Week 7|Week 8|Week 9|Week 10|Week 11|Week 12|Week 13|Week 14|Week 15|Week 16|Week 17|Week 18|Week 19|Week 20|
-|----------------------|------|------|------|------|------|-------|-------|-------|-------|-------|-------|-------|-------|-------|-------|-------|
-| Proof of concept app |  +   |  -   |  -   |   -  |  -   |   -   |   -   |   -   |   -   |   -   |   -   |   \|  |       |       |       |       |
-| Ledger comparison    |      |      |      |      |      |       |       |       |   +   |   -   |   -   |   -   |   \|  |       |       |       |
-| Wallet comparison    |      |      |      |      |      |       |       |       |       |   +   |   -   |   -   |   -   |  \|   |       |       |
-| Report               |  +   |  -   |  -   |   -  |  -   |   -   |   -   |   -   |   -   |   -   |   -   |   -   |   -   |  -    |   -   |   \|  |
+| Deliverable               |Week 5|Week 6|Week 7|Week 8|Week 9|Week 10|Week 11|Week 12|Week 13|Week 14|Week 15|Week 16|Week 17|Week 18|Week 19|Week 20|
+|---------------------------|------|------|------|------|------|-------|-------|-------|-------|-------|-------|-------|-------|-------|-------|-------|
+| Proof of concept app      |  +   |  -   |  -   |   -  |  -   |   -   |   -   |   -   |   -   |   -   |   -   |   \|  |       |       |       |       |
+| Ledger interop comparison |      |      |      |      |      |       |       |       |   +   |   -   |   -   |   -   |   \|  |       |       |       |
+| Wallet interop comparison |      |      |      |      |      |       |       |       |       |   +   |   -   |   -   |   -   |  \|   |       |       |
+| Report                    |  +   |  -   |  -   |   -  |  -   |   -   |   -   |   -   |   -   |   -   |   -   |   -   |   -   |  -    |   -   |   \|  |
 
 *Legend: `+` is start of milestone. `-` is ongoing work on a milestone. `|` is the milestone deadline.*
 
