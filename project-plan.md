@@ -64,8 +64,9 @@ Statens Vegvesen wants the application to follow open standards which will enabl
 ### Deliverables
 
 - Proof-of-concept SSI application which implements the user-story
-- A comparison matrix of ledger compability
-- A comparison matrix of wallet compability
+- A comparison matrix of ledger interoperability
+- A comparison matrix of wallet interoperability
+- Project report
 
 # 3. Prosjektorganisering
 
@@ -134,8 +135,23 @@ Participants of these meetings have received invites by email, to make it easy t
 ## 5.3 Risikoanalyse (identifisere, analysere, tiltak, oppfølging)
 
 # 6. Plan for gjennomføring
-- Gant skjema
-- Milepæler og beslutningspunkter
-- Aktiviteter (Work Breakdown Structure)
-- Evt. tids- og ressursplan.
+
+The project starts in Week 5 (01.feb - 07.feb) and ends in Week 20 (17.may - 23.may). The deadline for delivering the project is 20.may.
+
+### Timespan
+- 15 weeks and 3 days
+- 108 days
+- 78 weekdays
+- 624 weekdayhours (8 hours per weekday)
+
+### Milestones Gantt chart
+
+| Milestone            |Week 5|Week 6|Week 7|Week 8|Week 9|Week 10|Week 11|Week 12|Week 13|Week 14|Week 15|Week 16|Week 17|Week 18|Week 19|Week 20|
+|----------------------|------|------|------|------|------|-------|-------|-------|-------|-------|-------|-------|-------|-------|-------|-------|
+| Proof of concept app |  +   |  -   |  -   |   -  |  -   |   -   |   -   |   -   |   -   |   -   |   -   |   \|  |       |       |       |       |
+| Ledger comparison    |      |      |      |      |      |       |       |       |   +   |   -   |   -   |   -   |   \|   |       |       |       |
+| Wallet comparison    |      |      |      |      |      |       |       |       |       |   +   |   -   |   -   |   -   |  \|    |       |       |
+| Report               |  +   |  -   |  -   |   -  |  -   |   -   |   -   |   -   |   -   |   -   |   -   |   -   |   -   |  -    |   -   |   \|   |
+
+*Legend: `+` is start of milestone. `-` is ongoing work on a milestone. `|` is the milestone deadline.*
 
