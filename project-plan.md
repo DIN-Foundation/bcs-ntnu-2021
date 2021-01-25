@@ -61,6 +61,12 @@ The proof-of-concept may demonstrate that a driver license as a verifiable crede
 Statens Vegvesen wants the application to follow open standards which will enable the application to be agnostic about where and how credentials are issued, stored and verified. In other words Statens Vegvesen want to avoid the application to be locked to a specific ledger and a specific wallet.
 
 
+### Deliverables
+
+- Proof-of-concept SSI application which implements the user-story
+- A comparison matrix of ledger compability
+- A comparison matrix of wallet compability
+
 # 3. Prosjektorganisering
 
 ## 3.1 Ansvarsforhold og roller
