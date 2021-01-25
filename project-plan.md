@@ -131,6 +131,28 @@ Participants of these meetings have received invites by email, to make it easy t
 # 5. Organisering av kvalitetssikring
 
 ## 5.1 Dokumentasjon, standardbruk og kildekode
+
+The language used to develop the proof-of-concept app as not been decided yet, but we would like to use a language with mature tools for documentation, testing, linting, formatting. These tools should be run by the CI on every commit to the source-tree to ensure consistent quality.
+
+Here are some key areas of quality control, which can be expected:
+
+### API documentation generated from code docstrings
+
+This is a very useful tool to document interfaces in the code bases. Either interfaces between different modules in the code-base, or external interfaces like a CLI or HTTP API etc.
+
+### High level visual documentation
+
+Some high-level documentation will be required to explain the architecture of the entire solution, using diagrams.
+
+### Testing of the API interface
+
+There will be an interface to control the proof-of-concept app. Most of the testing we do should focus heavily on testing this interface, be it a CLI or a HTTP API or both or something else. How this interface will look is TBD.
+
+### Linting and formatting using community defaults and best practices
+
+Programming communities have standards and default practices regarding how to write code. Automated tools like a linter should run in the CI environment to ensure that these best practices are being followed.
+
+
 ## 5.2 Konfigurasjonsstyring
 ## 5.3 Risikoanalyse (identifisere, analysere, tiltak, oppfølging)
 
@@ -149,9 +171,9 @@ The project starts in Week 5 (01.feb - 07.feb) and ends in Week 20 (17.may - 23.
 | Milestone            |Week 5|Week 6|Week 7|Week 8|Week 9|Week 10|Week 11|Week 12|Week 13|Week 14|Week 15|Week 16|Week 17|Week 18|Week 19|Week 20|
 |----------------------|------|------|------|------|------|-------|-------|-------|-------|-------|-------|-------|-------|-------|-------|-------|
 | Proof of concept app |  +   |  -   |  -   |   -  |  -   |   -   |   -   |   -   |   -   |   -   |   -   |   \|  |       |       |       |       |
-| Ledger comparison    |      |      |      |      |      |       |       |       |   +   |   -   |   -   |   -   |   \|   |       |       |       |
-| Wallet comparison    |      |      |      |      |      |       |       |       |       |   +   |   -   |   -   |   -   |  \|    |       |       |
-| Report               |  +   |  -   |  -   |   -  |  -   |   -   |   -   |   -   |   -   |   -   |   -   |   -   |   -   |  -    |   -   |   \|   |
+| Ledger comparison    |      |      |      |      |      |       |       |       |   +   |   -   |   -   |   -   |   \|  |       |       |       |
+| Wallet comparison    |      |      |      |      |      |       |       |       |       |   +   |   -   |   -   |   -   |  \|   |       |       |
+| Report               |  +   |  -   |  -   |   -  |  -   |   -   |   -   |   -   |   -   |   -   |   -   |   -   |   -   |  -    |   -   |   \|  |
 
 *Legend: `+` is start of milestone. `-` is ongoing work on a milestone. `|` is the milestone deadline.*
 
