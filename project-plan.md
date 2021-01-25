@@ -72,24 +72,24 @@ Statens Vegvesen wants the application to follow open standards which will enabl
 
 ## 3.1 Ansvarsforhold og roller
 
-| Navn        | Role                                               |
-|-------------|----------------------------------------------------|
-| Jonas       | Developer     (Service Delivery Manager in Kanban) |
-| Snorre      | Client        (Service Request Manager in Kanban)  |
-| Mariusz     | Domain expert 1                                    |
-| Abylay      | Domain expert 2                                    |
-| Deepti      | Academic supervisor                                |
+| Navn        | Role                                                            |
+|-------------|-----------------------------------------------------------------|
+| Jonas       | Developer                  (Service Delivery Manager in Kanban) |
+| Snorre      | Client and domain expert 1 (Service Request Manager in Kanban)  |
+| Mariusz     | Domain expert 2                                                 |
+| Abylay      | Domain expert 3                                                 |
+| Deepti      | Academic supervisor                                             |
 
 ## 3.2 Rutiner og regler i gruppa
 
 ### Developer rules
 
-1. To keep the project moving at all times, work on the project every day of the week. Minimum 5 minutes, maximum 8 hours.
-2. Average 30 hours each week.
-3. Respond to NTNU-mail, Discord-messages, Github-comments, Phone-calls, SMS in less than 24 hours.
-4. Write meeting-notes for every meeting.
-5. Log all hours in Toggl under these 5 categories: [Meeting, Organizing, Writing, Coding, Researching]
-6. All documents relevant to the project, should be found in the Github repository, unless it contains sensitive/private information.
+- Rule 1: To keep the project moving at all times, work on the project every day of the week. Minimum 5 minutes, maximum 8 hours.
+- Rule 2: Average 30 hours each week.
+- Rule 3: Respond to NTNU-mail, Discord-messages, Github-comments, Phone-calls, SMS in less than 24 hours.
+- Rule 4: Write meeting-notes for every meeting.
+- Rule 5: Log all hours in Toggl under these 5 categories: [Meeting, Organizing, Writing, Coding, Researching]
+- Rule 6: All documents relevant to the project, should be found in the Github repository, unless it contains sensitive/private information.
 
 # 4. Planlegging, oppfølging og rapporter
 
@@ -156,7 +156,15 @@ Programming communities have standards and default practices regarding how to wr
 
 
 ## 5.2 Konfigurasjonsstyring
+
+**@TODO**
+
 ## 5.3 Risikoanalyse (identifisere, analysere, tiltak, oppfølging)
+
+### Risk 1: Proof-of-concept app development-cost unpredictability
+
+There is a big risk that the time it takes to develop the proof-of-concept app will be very unpredictable. Most of the development happens in an area of programming which is completely new to the developer of the app. This makes the learning curve steep, and the time-estimate more upredictable. Hopefully the developer will draw from his experience of working in other fields, and adapt quickly, but it is hard to know exactly how much time will be spent to adapt to the new development environment.
+
 
 # 6. Plan for gjennomføring
 
@@ -168,9 +176,9 @@ The project starts in Week 5 (01.feb - 07.feb) and ends in Week 20 (17.may - 23.
 - 78 weekdays
 - 624 weekdayhours (8 hours per weekday)
 
-### Deliverables Gantt chart
+### Deliverable milestones Gantt chart
 
-| Deliverable               |Week 5|Week 6|Week 7|Week 8|Week 9|Week 10|Week 11|Week 12|Week 13|Week 14|Week 15|Week 16|Week 17|Week 18|Week 19|Week 20|
+| Milestones                |Week 5|Week 6|Week 7|Week 8|Week 9|Week 10|Week 11|Week 12|Week 13|Week 14|Week 15|Week 16|Week 17|Week 18|Week 19|Week 20|
 |---------------------------|------|------|------|------|------|-------|-------|-------|-------|-------|-------|-------|-------|-------|-------|-------|
 | Proof of concept app      |  +   |  -   |  -   |   -  |  -   |   -   |   -   |   -   |   -   |   -   |   -   |   \|  |       |       |       |       |
 | Ledger interop comparison |      |      |      |      |      |       |       |       |   +   |   -   |   -   |   -   |   \|  |       |       |       |
