@@ -44,11 +44,9 @@ A limited set of ledgers and wallets should be investigated:
 
 **TODO List of ledgers to investigate**
 
-
 ## 2.3 Oppgavebeskrivelse
 
 *See [project-description.md](./project-description.md)*
-
 
 ### User story
 
@@ -58,7 +56,7 @@ The norwegian driver license issuer, Statens Vegvesen, is considering to start i
 
 What Statens Veivesen want is a proof-of-concept SSI-application which will issue, hold and verify driver-licenses. They are hoping that this will bootstrap SSI in Norway, as this will enable other individuals and organizations to start experimenting with holding and verifying a serious credential which actually is useful.
 
-The proof-of-concept demonstrate why a driver license as a verifiable credential should be considered on par, legally speaking, with traditional driver licenses.
+The proof-of-concept may demonstrate that a driver license as a verifiable credential could be considered on par, legally speaking, with traditional driver licenses.
 
 Statens Vegvesen wants the application to follow open standards which will enable the application to be agnostic about where and how credentials are issued, stored and verified. In other words Statens Vegvesen want to avoid the application to be locked to a specific ledger and a specific wallet.
 
@@ -67,26 +65,61 @@ Statens Vegvesen wants the application to follow open standards which will enabl
 
 ## 3.1 Ansvarsforhold og roller
 
-
+| Navn        | Role                                               |
+|-------------|----------------------------------------------------|
+| Jonas       | Developer     (Service Delivery Manager in Kanban) |
+| Snorre      | Client        (Service Request Manager in Kanban)  |
+| Mariusz     | Domain expert 1                                    |
+| Abylay      | Domain expert 2                                    |
+| Deepti      | Academic supervisor                                |
 
 ## 3.2 Rutiner og regler i gruppa
+
+### Developer rules
+
+1. To keep the project moving at all times, work on the project every day of the week. Minimum 5 minutes, maximum 8 hours.
+2. Average 30 hours each week.
+3. Respond to NTNU-mail, Discord-messages, Github-comments, Phone-calls, SMS in less than 24 hours.
+4. Write meeting-notes for every meeting.
+5. Log all hours in Toggl under these 5 categories: [Meeting, Organizing, Writing, Coding, Researching]
+6. All documents relevant to the project, should be found in the Github repository, unless it contains sensitive/private information.
 
 # 4. Planlegging, oppfølging og rapporter
 
 ## 4.1 Hovedinndeling av prosjektet
-- Valg av systemutviklingsmodell
-- Valg av metode og tilnærming
-- Beskrive gruppa sin måte å følge modellen på
+
+The project is loosely driven forward by the Kanban framework. To keep track of progress in a Kanban project the Kanban board is essential. See the board here: https://github.com/DIN-Foundation/bsc-ntnu-2020/projects/1.
+
+The Kanban board has 5 columns:
+
+**1. Backlog**
+
+List of tasks which have been thought of, but is lacking details like what needs to be done and when the implementation is supposed to happen.
+
+**2. Todo**
+
+List of tasks that are planned to be implemented in the near future, and have enough details ironed out to make it possible to start the implementation.
+
+**3. In Progress**
+
+List of tasks that are in progress. A developer have written words or code. These tasks should ideally be linked to an open Pull Request on Github with a WIP label on it.
+
+**4. In Review**
+
+List of tasks where the developer has implemented the task, and is waiting to get a stamp of approval from a second pair of eyes. Approval could be given by the client, supervisor or any of the domain experts. The developer will request review from the specific person which is considered best suited to review the pull request. This specific person will be notified about this on Discord, and via email if necessary.
+
+**5. Done**
+
+List of task where the pull request linked to the task has been approved in merged into the main branch of the git source tree.
 
 ## 4.2 Plan for statusmøter og beslutningspunkter i perioden
 
-We have planned 2 weekly meetings, 1 with supervisor and 1 with product owner.
+We have planned 2 weekly meetings, 1 with supervisor and 1 with client and domain experts.
 
-- Product owner meeting: Tuesdays @ 12:30
-- Supervisor meeting: Tuesdays @ 13:00
+- Client and Domain experts meeting: Tuesdays @ 12:30
+- Academic supervisor meeting: Tuesdays @ 13:00
 
 Participants of these meetings have received invites by email, to make it easy to add the scheduled meetings to their respective calendars.
-
 
 # 5. Organisering av kvalitetssikring
 

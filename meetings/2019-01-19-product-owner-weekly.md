@@ -17,7 +17,7 @@ Assumption: To drive the project forward we need a story to tell. Solving a conc
 
 ### Project story (sketch)
 
-The norwegian driver license issuer, Statens Vegvesen, is considering to start issuing it's driver licenses as verifiable credentials. Statens Vegvesen is not sure if verifiable credentials is the future yet, but are willing to try and dip it's toes in the water. Statens vegvesen will still issue credentials in the traditional way for the forseeable future.
+The norwegian driver license issuer, Statens Vegvesen, is considering to start issuing it's driver licenses as verifiable credentials (VCs). Statens Vegvesen is not sure if verifiable credentials is the future yet, but are willing to try and dip it's toes in the water. Statens vegvesen will still issue credentials in the traditional way for the forseeable future.
 
 What Statens Vegevesen is hoping is that if they start issuing drivers licenses as digital Verifiable Credentials, individuals and other institutions will be able to start experiment with using these VC's to verify claims from an individual if they are eligble to operate a given vehicle.
 
