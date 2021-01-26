@@ -23,28 +23,21 @@ Jonas S12:41 PM
 github.com/.well-known/did-web.json
 
 Jonas S12:45 PM
-- Maybe talk about did-method instead of ledger 
+- Maybe talk about did-method instead of ledger, because did-method !== ledger.
+- Example: Github as a did-method, but not a ledger.
 - Did-comm interop?
 
 Jonas S12:46 PM
-- Did-comm (wallet interop)
+- Did-comm (wallet/agent interop)
 
 Snorre 12:54 PM
 https://trinsic.id/trinsic-commitment-to-interoperability-ahead-of-iiw/
 
 Jonas S12:54 PM
 - Comparison matrix possible the most difficult part to get right.. hmm. Need input from the community/experts
-did:ares ?
-did:hyperledger ?
-
-Jonas S12:55 PM
-did:sovereign !
 
 Abylay Satybaldy12:56 PM
 did:sovryn
-
-Jonas S12:56 PM
-Thanks 
 
 Jonas S12:58 PM
 - Don't want to build from scratch
