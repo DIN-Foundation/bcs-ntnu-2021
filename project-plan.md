@@ -9,8 +9,8 @@
 Develop a proof-of-concept SSI application, and use the proof-of-concept to discover and present strengths and weaknesses of the current SSI infrastructure, with a focus on interoperability. 
 
 There are two key areas of interoperability:
-1. Interoperability between different ledgers - where DIDs and VCs are stored.
-2. Interoperability between different wallets - where the ownership of DIDs and VCs are prooved.
+1. Interoperability between different did-methods - How and where DIDs are stored.
+2. Interoperability between different wallets/agents - Where ownership of DIDs are prooved and where VCs are issued, stored, communicated and verified.
 
 ## 1.3 Rammer
 
