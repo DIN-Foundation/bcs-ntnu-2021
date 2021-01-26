@@ -25,7 +25,14 @@ See https://www.din.foundation/ for more info about the DIN-foundation.
 
 ## 2.1 Fagområde
 
-The project is developed within the field of Self-sovereign-identity, aka SSI.
+The project is developed within the field of Self-sovereign-identity - SSI.
+
+Here are some links to get started:
+- DIDs (Decentralized identifiers) by W3C: https://www.w3.org/TR/did-core/
+- VC (Verifiable credentials) by W3C: https://www.w3.org/TR/vc-data-model/
+- Working standards under DIF working groups: https://identity.foundation/#wgs
+
+Also see [project-description.md](./project-description.md#Background) for more info.
 
 ## 2.2 Avgrensing
 
