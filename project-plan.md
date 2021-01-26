@@ -18,7 +18,7 @@ The BSc project runs between `01.feb.2021` and `20.may.2021`.
 
 The BSc project will be developed as an open source project on the DIN-Foundation's Github page here: https://github.com/DIN-Foundation/bsc-ntnu-2020/. 
 
-See https://www.din.foundation/ for more info.
+See https://www.din.foundation/ for more info about the DIN-foundation.
 
 
 # 2. Omfang
