@@ -98,7 +98,7 @@ Statens Vegvesen wants the application to follow open standards which will enabl
 - Rule 2: Average 30 hours each week.
 - Rule 3: Respond to NTNU-mail, Discord-messages, Github-comments, Phone-calls, SMS in less than 24 hours.
 - Rule 4: Write meeting-notes for every meeting.
-- Rule 5: Log all hours in Toggl under these 5 categories: [Meeting, Organizing, Writing, Coding, Researching]
+- Rule 5: Log all hours in Toggl under these 5 labels: [Meeting, Organizing, Writing, Coding, Researching]. These labels is not based on any standard, and is just something the author has found useful based on experience.
 - Rule 6: All documents relevant to the project, should be found in the Github repository, unless it contains sensitive/private information.
 
 # 4. Planlegging, oppfølging og rapporter
