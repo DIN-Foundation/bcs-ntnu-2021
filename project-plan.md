@@ -36,14 +36,17 @@ Also see [project-description.md](./project-description.md#Background) for more 
 
 ## 2.2 Avgrensing
 
-The project is looking at interoperability of the current SSI-infrastructure. More specifically interoperability between wallets, and interoperability between ledgers.
+The project is looking at interoperability of the current SSI-infrastructure. More specifically interoperability between wallets, and interoperability between DID-methods.
 
 To understand interoperability a proof-of-concept application will be developed. The proof-of-concept will implement one specific use-case of SSI. 
 
 The proof-of-concept should implement the following parts of an SSI-workflow:
-- Issuing a credential to a ledger
-- Hold the credential in a wallet
-- Proove ownership of a credential to a 3rd party.
+- Create an issuing-agent linked to a DID.
+- Create a holder-agent linked to a DID.
+- Create a verifying-agent linked to a DID.
+- Issue a credential to a holder.
+- Enable holder to present credential to a verifier.
+- Enable verifier to verify credential presented by holder.
 
 A limited set of ledgers and wallets should be investigated:
 
