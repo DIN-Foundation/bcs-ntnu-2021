@@ -175,6 +175,7 @@ Programming communities have standards and default practices regarding how to wr
 
 There is a big risk that the time it takes to develop the proof-of-concept app will be very unpredictable. Most of the development happens in an area of programming which is completely new to the developer of the app. This makes the learning curve steep, and the time-estimate more upredictable. Hopefully the developer will draw from his experience of working in other fields, and adapt quickly, but it is hard to know exactly how much time will be spent to adapt to the new development environment.
 
+**@TODO: Risk mitigation strategy**
 
 # 6. Plan for gjennomføring
 
