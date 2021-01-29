@@ -184,21 +184,19 @@ The proof-of-concept application will most likely be a mix between an CLI and a 
 
 A list of tools required participate in the project:
 
-- Git (version control)
-- Github (host files, issues, pull-requests)
-- Discord - Direct messaging
-- Google Meet - For domain expert meeting
-- MS Teams - For academic supervisor meeting
+- [Git](https://git-scm.com/) (version control)
+- [Github](https://github.com/) (host files, issues, pull-requests)
+- [Discord](https://discord.com/) - Direct messaging
+- [Google Meet](https://meet.google.com/) - For domain expert meeting
+- [MS Teams](https://www.microsoft.com/en/microsoft-teams/group-chat-software) - For academic supervisor meeting
 
 ### [TBD] Development environment, programming languages, frameworks
 
-The initial phase of the project will be spent trying to figure out this part, together with the overall architecture of the application.
+The initial phase of the project will be spent trying to figure out this part, together with the overall architecture of the application. A general principle here is that we want to build on top of an existing codebase. We do not want to start from scratch.
 
-Hyperledger Aries has a nice overview over different frameworks that can be used to develop SSI-agents in different languages. See: https://github.com/hyperledger/aries#aries-agent-frameworks.
+- Hyperledger Aries has a nice overview over different frameworks that can be used to develop SSI-agents in different languages. See: https://github.com/hyperledger/aries#aries-agent-frameworks.
+- Trinsic also mentions `Sidetree`, `Universal Resolver` and `KERI` in their overview, under the DIF codebases section. See: https://trinsic.id/open-source-ssi-codebases/.
 
-Trinsic also mentions `Sidetree`, `Universal Resolver` and `KERI` in their overview, under the DIF codebases section. See: https://trinsic.id/open-source-ssi-codebases/.
-
-A general principle here is that we want to build on top of an existing codebase. We do not want to start from scratch.
 
 ## 5.3 Risikoanalyse (identifisere, analysere, tiltak, oppfølging)
 
