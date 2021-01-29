@@ -247,7 +247,7 @@ The project starts in Week 5 (01.feb - 07.feb) and ends in Week 20 (17.may - 23.
 - 78 weekdays
 - 624 weekdayhours (8 hours per weekday)
 
-### Gantt chart
+### Milestones Gantt chart
 
 | Milestones                          |Week 5|Week 6|Week 7|Week 8|Week 9|Week 10|Week 11|Week 12|Week 13|Week 14|Week 15|Week 16|Week 17|Week 18|Week 19|Week 20|
 |-------------------------------------|------|------|------|------|------|-------|-------|-------|-------|-------|-------|-------|-------|-------|-------|-------|
@@ -257,4 +257,35 @@ The project starts in Week 5 (01.feb - 07.feb) and ends in Week 20 (17.may - 23.
 | DID-method interop investigation    |      |      |      |      |      |       |       |   x   |   x   |   x   |   x   |       |       |       |       |       |
 | Wallet interop investigation        |      |      |      |      |      |       |       |       |   x   |   x   |   x   |   x   |       |       |       |       |
 | Research SSI                        |  x   |  x   |  x   |   x  |  x   |   x   |   x   |   x   |   x   |   x   |   x   |   x   |   x   |       |       |       |
-| Bachelor Report                     |  x   |  x   |  x   |   x  |  x   |   x   |   x   |   x   |   x   |   x   |   x   |   x   |   x   |  x    |   x   |   x   |
+| Writing Bachelor Report                     |  x   |  x   |  x   |   x  |  x   |   x   |   x   |   x   |   x   |   x   |   x   |   x   |   x   |  x    |   x   |   x   |
+
+
+### Milestones description
+
+**High-level design doc (1-2 week)**
+
+A document which will lay out the design/architecture of the proof-of-concept application. This high-level design document will be used to kick-start the implementation. The implementation is expected to iterate on the high-level design, and if there are significant changes, this document needs to be kept up to date throughout the process. The document should be checked into git, and available on Github.
+
+**Learn devenv (1-2 weeks)**
+
+Once the initial high-level design has been completed, it is time to get to know the frameworks, languages, tools. It is time to get familiar with the development environment. Of course this is a process that is expected to continue throughout the project, but 1 week has been scheduled dedicated to this milestone.
+
+**Proof-of-concept app implementation (9 weeks)**
+
+This milestone is when the coding will start to happen. Time to get our hands dirty. Common tasks expected here, is coding, testing, updating documentation, deploying. There will be frequent iteration, testing out ideas in practice, and quickly turn around and go in different directions, if required. This phase is expected to take up most of the time of the project spanning 9 weeks.
+
+**DID-method interop investigation (4 weeks)**
+
+To contribute to the community, we want to complete an investigation into how the proof-of-concept application will work across multiple DID-methods. During this period of 4 weeks, some sort of overview in the form of a matrix comparing different methods will be produced.
+
+**DID-agent interop investigation (4 weeks)**
+
+The same milestone as above, but investigating different agents/wallets from different vendors. TODO: Figure out if there is some overlap between this milestone and the one above, and if they can be merged to a single milestone.
+
+**Research SSI (13 weeks)**
+
+Expected to be something which will be done most of the project, but should be kept to a minimal the last 2 weeks of the project, to leave room to focus on writing the bachelor report. Research includes reading papers, watching vidoes, crawling Github projects, reading w3c-specifications, talking to community members, etc.
+
+**Writing bachelor report (15 weeks)**
+
+This should be the first thing we start doing, and the last thing we stop doing. Always keep an eye on the progress of the bachelor report. The 3 last weeks of the bachelor project is left exclusively to work on this milestone.
