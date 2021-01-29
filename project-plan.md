@@ -113,9 +113,16 @@ Our Kanban-board has 5 columns:
 
 List of tasks which have been thought of, but is lacking details like what needs to be done and when the implementation is supposed to happen.
 
+Tasks in backlog
+
 **2. Todo**
 
 List of tasks that are planned to be implemented in the near future, and have enough details ironed out to make it possible to start the implementation.
+
+Tasks are moved from Backlog to TODO:
+- After the weekly domain-experts meeting.
+- **or** after an ad-hoc meeting dedicated to a specific task.
+- **or** after the developer has researched/learned something which makes a task "obviously implementable".
 
 **3. In Progress**
 
@@ -139,6 +146,7 @@ Since the developer-team consist of only 1 person, Scrum is considered too much 
 Scrum has a focus on delivering something every sprint. Kanban does not say anything about how often something should be delivered. Since this project is research-heavy, there is still a big question-mark about what should be made, and when something should be made. Of course it would be possible to schedule a demo every 2 weeks to show... something. The feeling here is that we need more flexibility than that. 
 
 A demo will be held on the weekly meetings showcasing what has been done the last week, if something worth showing has been done. This would be similar to having a sprint of 1 week in Scrum. It could be safe to say that we are having Kanban with 1 week sprints. But the scheduling of new tasks and demonstration of completed tasks happens in the same meeting VS being 2 separate meetings (often on 2 separate days - Demo-meeting on last day of sprint and planning-meeting on first day of sprint) in Scrum.
+
 
 
 ## 4.2 Plan for statusmøter og beslutningspunkter i perioden
@@ -169,8 +177,6 @@ Some high-level documentation will be required to explain the architecture of th
 **Testing of API's**
 
 There will be an interface to control the proof-of-concept app. Most of the testing we do should focus heavily on testing this interface, be it a CLI or a HTTP API or both or something else. How this interface will look is TBD.
-
-**@TODO: Define API of proof-of-concept app**
 
 **Linting and formatting using community defaults and best practices**
 
