@@ -132,11 +132,13 @@ List of task where the pull request linked to the task has been approved in merg
 
 ### Why Kanban instead of Scrum?
 
-Kanban is a lightweight/low-overhead framework. Since the developer-team consist of only 1 person, Scrum is considered too much overhead, since all the Scrum rituals has to be organized and executed by a single person.
+Most Scrum projects implements a Kanban-board, and I would argue that Scrum could be considered a superset of Kanban, but they are really orthogonal concepts. It is not either or. You could have a Kanban-only, Kanban+Scrum or Scrum-only project.
+
+Since the developer-team consist of only 1 person, Scrum is considered too much overhead, since all the Scrum rituals has to be organized and executed by a single person. Kanban is lower overhead, by requiring fewer meetings, fewer roles, fewer rituals, making Kanban more flexible but also less structured than Scrum.
 
 Scrum has a focus on delivering something every sprint. Kanban does not say anything about how often something should be delivered. Since this project is research-heavy, there is still a big question-mark about what should be made, and when something should be made. Of course it would be possible to schedule a demo every 2 weeks to show... something. The feeling here is that we need more flexibility than that. 
 
-A demo will be held on the weekly meetings showcasing what has been done the last week, if something worth showing has been done. This would be similar to having a sprint of 1 week in Scrum. It could be safe to say that we are having Kanban with 1 week sprints. But the scheduling of new tasks and demonstration of completed tasks happens in the same meeting VS being 2 separate meetings (often on 2 separate days - Demo-meeting on last day of sprint, planning-meeting on first day of next sprint) in Scrum.
+A demo will be held on the weekly meetings showcasing what has been done the last week, if something worth showing has been done. This would be similar to having a sprint of 1 week in Scrum. It could be safe to say that we are having Kanban with 1 week sprints. But the scheduling of new tasks and demonstration of completed tasks happens in the same meeting VS being 2 separate meetings (often on 2 separate days - Demo-meeting on last day of sprint and planning-meeting on first day of sprint) in Scrum.
 
 
 ## 4.2 Plan for statusmøter og beslutningspunkter i perioden
