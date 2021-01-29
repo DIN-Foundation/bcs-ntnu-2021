@@ -165,8 +165,22 @@ The whole Kanban vs Scrum discussion, in our case, could be boiled down to flexi
 
 We have planned 2 weekly meetings, 1 with supervisor and 1 with client and domain experts.
 
-- Client and Domain experts meeting: Tuesdays @ 12:30
-- Academic supervisor meeting: Tuesdays @ 13:00
+**Agenda for domain experts meeting: Tuesdays @ 12:30**
+
+Walk the Kanban-board backwards, from left to right:
+
+- Present completed tasks the last week, if any.
+- Discuss in-review tasks.
+- Discuss in-progress tasks.
+- Discuss todo tasks.
+- Discuss backlog, if there is any time left.
+
+If we are short on time, focus on the most important tasks first.
+
+**Academic supervisor meeting: Tuesdays @ 13:00**
+
+- Discuss updates to execution plan, if any, and explain why the update was necessary.
+- Discuss the progress on the report. 
 
 Participants of these meetings have received invites by email, to make it easy to add the scheduled meetings to their respective calendars.
 
