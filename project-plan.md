@@ -218,14 +218,14 @@ The project starts in Week 5 (01.feb - 07.feb) and ends in Week 20 (17.may - 23.
 - 78 weekdays
 - 624 weekdayhours (8 hours per weekday)
 
-### Deliverable milestones Gantt chart
+### Gantt chart
 
-| Milestones                |Week 5|Week 6|Week 7|Week 8|Week 9|Week 10|Week 11|Week 12|Week 13|Week 14|Week 15|Week 16|Week 17|Week 18|Week 19|Week 20|
-|---------------------------|------|------|------|------|------|-------|-------|-------|-------|-------|-------|-------|-------|-------|-------|-------|
-| Proof of concept app      |  +   |  -   |  -   |   -  |  -   |   -   |   -   |   -   |   -   |   -   |   -   |   \|  |       |       |       |       |
-| Ledger interop comparison |      |      |      |      |      |       |       |       |   +   |   -   |   -   |   -   |   \|  |       |       |       |
-| Wallet interop comparison |      |      |      |      |      |       |       |       |       |   +   |   -   |   -   |   -   |  \|   |       |       |
-| Report                    |  +   |  -   |  -   |   -  |  -   |   -   |   -   |   -   |   -   |   -   |   -   |   -   |   -   |  -    |   -   |   \|  |
-
-*Legend: `+` is start of milestone. `-` is ongoing work on a milestone. `|` is the milestone deadline.*
-
+| Milestones                          |Week 5|Week 6|Week 7|Week 8|Week 9|Week 10|Week 11|Week 12|Week 13|Week 14|Week 15|Week 16|Week 17|Week 18|Week 19|Week 20|
+|-------------------------------------|------|------|------|------|------|-------|-------|-------|-------|-------|-------|-------|-------|-------|-------|-------|
+| High-level design doc               |  x   |  x   |      |      |      |       |       |       |       |       |       |       |       |       |       |       |
+| Learn devenv                        |      |  x   |  x   |      |      |       |       |       |       |       |       |       |       |       |       |       |
+| Proof of concept app implementation |      |      |  x   |   x  |  x   |   x   |   x   |   x   |   x   |   x   |       |       |       |       |       |       |
+| DID-method interop investigation    |      |      |      |      |      |       |       |   x   |   x   |   x   |   x   |       |       |       |       |       |
+| Wallet interop investigation        |      |      |      |      |      |       |       |       |   x   |   x   |   x   |   x   |       |       |       |       |
+| Research SSI                        |  x   |  x   |  x   |   x  |  x   |   x   |   x   |   x   |   x   |   x   |   x   |   x   |   x   |       |       |       |
+| Bachelor Report                     |  x   |  x   |  x   |   x  |  x   |   x   |   x   |   x   |   x   |   x   |   x   |   x   |   x   |  x    |   x   |   x   |
