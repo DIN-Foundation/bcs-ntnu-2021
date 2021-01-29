@@ -107,7 +107,7 @@ Statens Vegvesen wants the application to follow open standards which will enabl
 
 The project is loosely driven forward by the Kanban framework. To keep track of progress in a Kanban project the Kanban board is essential. See the board here: https://github.com/DIN-Foundation/bsc-ntnu-2020/projects/1.
 
-The Kanban board has 5 columns:
+Our Kanban-board has 5 columns:
 
 **1. Backlog**
 
@@ -129,6 +129,16 @@ List of tasks where the developer has implemented the task, and is waiting to ge
 
 List of task where the pull request linked to the task has been approved in merged into the main branch of the git source tree.
 
+
+### Why Kanban instead of Scrum?
+
+Kanban is a lightweight/low-overhead framework. Since the developer-team consist of only 1 person, Scrum is considered too much overhead, since all the Scrum rituals has to be organized and executed by a single person.
+
+Scrum has a focus on delivering something every sprint. Kanban does not say anything about how often something should be delivered. Since this project is research-heavy, there is still a big question-mark about what should be made, and when something should be made. Of course it would be possible to schedule a demo every 2 weeks to show... something. The feeling here is that we need more flexibility than that. 
+
+A demo will be held on the weekly meetings showcasing what has been done the last week, if something worth showing has been done. This would be similar to having a sprint of 1 week in Scrum. It could be safe to say that we are having Kanban with 1 week sprints. But the scheduling of new tasks and demonstration of completed tasks happens in the same meeting VS being 2 separate meetings (often on 2 separate days - Demo-meeting on last day of sprint, planning-meeting on first day of next sprint) in Scrum.
+
+
 ## 4.2 Plan for statusmøter og beslutningspunkter i perioden
 
 We have planned 2 weekly meetings, 1 with supervisor and 1 with client and domain experts.
@@ -146,21 +156,21 @@ The language used to develop the proof-of-concept app as not been decided yet, b
 
 Here are some key areas of quality control, which can be expected:
 
-### API documentation generated from code docstrings
+**API documentation generated from code docstrings**
 
 This is a very useful tool to document interfaces in the code bases. Either interfaces between different modules in the code-base, or external interfaces like a CLI or HTTP API etc.
 
-### High level visual documentation
+**High level visual documentation**
 
 Some high-level documentation will be required to explain the architecture of the entire solution, using diagrams.
 
-### Testing of API's
+**Testing of API's**
 
 There will be an interface to control the proof-of-concept app. Most of the testing we do should focus heavily on testing this interface, be it a CLI or a HTTP API or both or something else. How this interface will look is TBD.
 
 **@TODO: Define API of proof-of-concept app**
 
-### Linting and formatting using community defaults and best practices
+**Linting and formatting using community defaults and best practices**
 
 Programming communities have standards and default practices regarding how to write code. Automated tools like a linter should run in the CI environment to ensure that these best practices are being followed.
 
