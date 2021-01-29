@@ -134,7 +134,7 @@ List of tasks where the developer has implemented the task, and is waiting to ge
 
 **5. Done**
 
-List of task where the pull request linked to the task has been approved in merged into the main branch of the git source tree.
+List of task where the pull request linked to the task has been approved and merged into the main branch of the git source tree.
 
 
 ### Why Kanban instead of Scrum?
@@ -145,9 +145,19 @@ Since the developer-team consist of only 1 person, Scrum is considered too much 
 
 Scrum has a focus on delivering something every sprint. Kanban does not say anything about how often something should be delivered. Since this project is research-heavy, there is still a big question-mark about what should be made, and when something should be made. Of course it would be possible to schedule a demo every 2 weeks to show... something. The feeling here is that we need more flexibility than that. 
 
-A demo will be held on the weekly meetings showcasing what has been done the last week, if something worth showing has been done. This would be similar to having a sprint of 1 week in Scrum. It could be safe to say that we are having Kanban with 1 week sprints. But the scheduling of new tasks and demonstration of completed tasks happens in the same meeting VS being 2 separate meetings (often on 2 separate days - Demo-meeting on last day of sprint and planning-meeting on first day of sprint) in Scrum.
+A demo will be held on the weekly meetings showcasing what has been done the last week, if something worth showing has been done. This would be similar to having 1 week sprints in Scrum. Maybe we are having Kanban with 1 week sprints?
 
+Scrum is very strict about when new tasks should be scheduled - Sprint planning meeting - but we want more flexibility than that. We don't want a dedicated meeting only for planning.
 
+Scrum is very strict about when completed tasks should be demoed - Sprint review meeting - but we want more flexibility. We don't want a dedicated Sprint review meeting.
+
+Scrum splits it's process into sprints of equal length, with a defined start, and end, and duration. We want more flexibility about when something starts and when something ends, and endures.
+
+Scrum requires a daily meeting - Daily Scrum. Since we are all working remotely, and everyone but the single developer, has other projects as their main focus, requiring a daily meeting for this project, is considered impractical.
+
+The whole Kanban vs Scrum discussion, in our case, could be boiled down to flexibility vs structure. Given the current state of this project, we are valuing flexibility over structure. This could change as the project evolves, which leaves the door open for Scrum to do a comeback down the line. 
+
+*See: [The 4 Scrum Ceremonies Made Simple: A Quick Guide To Scrum Meetings](https://medium.com/ideas-by-crema/the-4-scrum-ceremonies-made-simple-a-quick-guide-to-scrum-meetings-ea91fe604d88)*
 
 ## 4.2 Plan for statusmøter og beslutningspunkter i perioden
 
@@ -189,11 +199,11 @@ Programming communities have standards and default practices regarding how to wr
 
 The proof-of-concept application will most likely be a mix between an CLI and a Web-app - TBD. The details of the app architecture is yet to be figured out. As a general principle, we should try to be cross-browser and cross-shell, which will in turn make us cross-OS. This is in the spirit of the project, as we are trying to measure interoperability in the SSI-space. Practice as you preach.
 
-**Shells to support:**
+Shells to support:
 - [zsh](https://en.wikipedia.org/wiki/Z_shell) - Default shell on MacOS
 - [bash](https://en.wikipedia.org/wiki/Bash_(Unix_shell)) - Default shell on most Linux distributions
 
-**Browsers to support:**
+Browsers to support:
 - Chromium (Chrome, IE, Opera, Brave, etc.) - Most used browser technology in the world
 - Firefox - Default browser on most Linux distributions
 - Safari - Default browser on MacOS
