@@ -172,22 +172,22 @@ Programming communities have standards and default practices regarding how to wr
 The proof-of-concept application will most likely be a mix between an CLI and a Web-app - TBD. The details of the app architecture is yet to be figured out. As a general principle, we should try to be cross-browser and cross-shell, which will in turn make us cross-OS. This is in the spirit of the project, as we are trying to measure interoperability in the SSI-space. Practice as you preach.
 
 **Shells to support:**
-- zsh - https://en.wikipedia.org/wiki/Z_shell
-- bash - https://en.wikipedia.org/wiki/Bash_(Unix_shell)
+- [zsh](https://en.wikipedia.org/wiki/Z_shell) - Default shell on MacOS
+- [bash](https://en.wikipedia.org/wiki/Bash_(Unix_shell)) - Default shell on most Linux distributions
 
 **Browsers to support:**
-- Chromium (Chrome, IE, Opera, Brave, etc.)
-- Firefox
-- Safari
+- Chromium (Chrome, IE, Opera, Brave, etc.) - Most used browser technology in the world
+- Firefox - Default browser on most Linux distributions
+- Safari - Default browser on MacOS
 
 ### Collaboration Tools
 
 A list of tools required participate in the project:
 
-- [Git](https://git-scm.com/) (version control)
-- [Github](https://github.com/) (host files, issues, pull-requests)
+- [Git](https://git-scm.com/) - Version control
+- [Github](https://github.com/) - Host files, issues, pull-requests
 - [Discord](https://discord.com/) - Direct messaging
-- [Google Meet](https://meet.google.com/) - For domain expert meeting
+- [Google Meet](https://meet.google.com/) - For domain experts meeting
 - [MS Teams](https://www.microsoft.com/en/microsoft-teams/group-chat-software) - For academic supervisor meeting
 
 ### [TBD] Development environment, programming languages, frameworks
