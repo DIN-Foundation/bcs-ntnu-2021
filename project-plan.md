@@ -73,10 +73,12 @@ Statens Vegvesen wants the application to follow open standards which will enabl
 
 ### Deliverables
 
-- Proof-of-concept SSI application which implements the user-story
-- A comparison matrix of ledger interoperability
-- A comparison matrix of wallet interoperability
-- Project report
+- High-level design document.
+- Source code of a proof-of-concept SSI application.
+- Deployment of a proof-of-concept SSI application.
+- A comparison matrix of ledger interoperability.
+- A comparison matrix of wallet interoperability.
+- Bachelor project report.
 
 # 3. Prosjektorganisering
 
