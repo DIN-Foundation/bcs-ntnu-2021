@@ -113,16 +113,16 @@ Our Kanban-board has 5 columns:
 
 List of tasks which have been thought of, but is lacking details like what needs to be done and when the implementation is supposed to happen.
 
-Tasks in backlog
+Tasks in backlog are created whenever someone feels like it. There are no requirements to put something in the backlog. The treshold should be as low as possible. Eqaully, the treshold for deleting a backlog-task should be equally low.
 
 **2. Todo**
 
 List of tasks that are planned to be implemented in the near future, and have enough details ironed out to make it possible to start the implementation.
 
-Tasks are moved from Backlog to TODO:
-- After the weekly domain-experts meeting.
-- **or** after an ad-hoc meeting dedicated to a specific task.
-- **or** after the developer has researched/learned something which makes a task "obviously implementable".
+Tasks are moved from `Backlog` to `Todo`:
+- After being discussed in the weekly domain-experts meeting.
+- **or** after an ad-hoc meeting dedicated to discussing a specific task.
+- **or** after the developer has researched/learned something which makes a task "obviously implementable". If a developer does this, it should be clearly communicated in the next weekly domain-experts meeting.
 
 **3. In Progress**
 
