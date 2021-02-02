@@ -1,6 +1,7 @@
 # Supervisor Weekly - 2021-01-26 @ 13:00-13:30
 
 *Attendees: Jonas, Deepti*
+*Location: MS Teams*
 
 ## Agenda
 
