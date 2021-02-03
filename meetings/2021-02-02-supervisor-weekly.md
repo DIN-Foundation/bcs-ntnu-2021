@@ -18,7 +18,7 @@
 - Focus for next week: Get in contact with the DIF-community.
 - https://identity.foundation/ 
 - https://identity.foundation/join/
-​
+
 ​**[1:17 PM] Jonas Johan Solsvik**
 - Focus for next week: Experiment with tech. Get hands dirty.
 - Example: https://spruceid.dev/docs/
