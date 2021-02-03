@@ -1,0 +1,36 @@
+{
+    "@context": [
+        "https://www.w3.org/2018/credentials/v1"
+    ],
+    "id": "http://example.org/presentations/3731",
+    "type": [
+        "VerifiablePresentation"
+    ],
+    "verifiableCredential": {
+        "@context": "https://www.w3.org/2018/credentials/v1",
+        "id": "http://example.org/credentials/3731",
+        "type": [
+            "VerifiableCredential"
+        ],
+        "credentialSubject": {
+            "id": "did:key:z6MkhGnMCdeecmBiQWbpF3SjHEPRCdFfkQf99tPUbgHQXaHv"
+        },
+        "issuer": "did:key:z6Mkf74ey6ENMU94fLmVdCSHQmHAYjaHEzVoPDCAnWU4vdpK",
+        "issuanceDate": "2021-02-03T15:28:00Z",
+        "proof": {
+            "type": "Ed25519Signature2018",
+            "proofPurpose": "assertionMethod",
+            "verificationMethod": "did:key:z6Mkf74ey6ENMU94fLmVdCSHQmHAYjaHEzVoPDCAnWU4vdpK#z6Mkf74ey6ENMU94fLmVdCSHQmHAYjaHEzVoPDCAnWU4vdpK",
+            "created": "2021-02-03T14:36:59.528Z",
+            "jws": "eyJhbGciOiJFZERTQSIsImNyaXQiOlsiYjY0Il0sImI2NCI6ZmFsc2V9..JGo4rJlBjGPRqpg8w9_EusNVdJH841Jsa9YUlThrsAR7NDz7AVjL9UYZWMvGchEn6jkelRvnbR98UzlkfE89BA"
+        }
+    },
+    "proof": {
+        "type": "Ed25519Signature2018",
+        "proofPurpose": "authentication",
+        "verificationMethod": "did:key:z6MkhGnMCdeecmBiQWbpF3SjHEPRCdFfkQf99tPUbgHQXaHv#z6MkhGnMCdeecmBiQWbpF3SjHEPRCdFfkQf99tPUbgHQXaHv",
+        "created": "2021-02-03T15:04:20.380Z",
+        "jws": "eyJhbGciOiJFZERTQSIsImNyaXQiOlsiYjY0Il0sImI2NCI6ZmFsc2V9..3dXQelBl3YV3PGjHB2rNIU0XxvbMsJ9qdhuqTpNABOLoGxB3_VGddiAlT6FTiL3aqMLaOMduIXyafgBIlw_hBA"
+    },
+    "holder": "did:key:z6MkhGnMCdeecmBiQWbpF3SjHEPRCdFfkQf99tPUbgHQXaHv"
+}
