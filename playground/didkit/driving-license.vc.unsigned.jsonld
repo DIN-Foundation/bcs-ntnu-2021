@@ -1,0 +1,12 @@
+{
+    "@context": "https://www.w3.org/2018/credentials/v1",
+    "id": "http://example.org/credentials/3731",
+    "type": [
+        "VerifiableCredential"
+    ],
+    "issuer": "did:key:z6Mkf74ey6ENMU94fLmVdCSHQmHAYjaHEzVoPDCAnWU4vdpK",
+    "issuanceDate": "2021-02-03T15:28:00Z",
+    "credentialSubject": {
+        "id": "did:key:z6MkhGnMCdeecmBiQWbpF3SjHEPRCdFfkQf99tPUbgHQXaHv"
+    }
+}
