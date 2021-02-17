@@ -1,8 +1,6 @@
 # The Great Internet Reset
 
-## 1 Background
-
-### 1.1 A Window of opportunity
+### A Window of opportunity
 
 In 2020 the economic powers of the world gathered once again in Davos, to do its outmost to shape the future our global economy. The title of the agenda this time around was rather striking - "The Great Reset" - reflecting the ongoing turmoil created by the Covid-19 crisis, and the opportunities it has brought about. There is no doubt that the pandemic was used as a catalyst, to create urgency in making progress and co-operation in areas were too little has been done before - to facilitate change.
 
@@ -11,7 +9,7 @@ In areas like health, finance, energy, education and sustainable development, su
 >"As we enter a unique window of opportunity to shape the recovery, this initiative will offer insights to help inform all those determining the future state of global relations, the direction of national economies, the priorities of societies, the nature of business models and the management of a global commons." [[1]](#1)
 
 
-### 1.2 There is something wrong...
+### There is something wrong...
 
 Because there is something wrong with our economy. Like any complex system, it is difficult to pin-point what exactly is wrong, but we can feel it, see the effects of it. Every year differences in wealth increase. People have to work more. Wages stagnate while cost of living continues to rise. The ongoing pandemic as done nothing but widen the gap even more between those who suffers and those who profits.
 
