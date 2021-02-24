@@ -1,5 +1,7 @@
 # Architecture
 
+This document should not be a top-down perfect description of the architecture, because we don't know the architecture before we tried something. This is just to get started...
+
 ## One application
 
 We need a single application, which implements all the features. The application will implement an agent, an SSI-agent. We cannot know which agent will take on which role upfront, so all agents needs all capabilities.
