@@ -8,12 +8,12 @@ fn main() {
     let args: Vec<String> = std::env::args().collect();
 
     let config = minigrep::Config::new(&args).unwrap_or_else(|err| {
-        println!("Config::new(&args) failed: {}", err);
+        eprintln!("Config::new(&args) failed: {}", err);
         std::process::exit(1);
     });
 
     if let Err(err) = minigrep::run(config) {
-        println!("run(config) failed: {}", err);
+        eprintln!("run(config) failed: {}", err);
         std::process::exit(2);
     }
 }
