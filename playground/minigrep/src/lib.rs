@@ -22,6 +22,10 @@ pub fn run(config: Config) -> Result<(), Box<dyn std::error::Error>> {
     Ok(())    
 }
 
+pub fn search<'a>(query: &str, file: &'a str) -> Vec<&'a str> {
+    vec![]
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
