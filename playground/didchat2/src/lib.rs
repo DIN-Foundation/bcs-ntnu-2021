@@ -56,8 +56,10 @@ pub fn run(config: Config) -> Result<(), std::io::Error> {
         CMD::Send => println!("Sending message"),
         CMD::Receive => println!("Receiving message"),
         CMD::Help => println!("
-Didchat
-    Usage: cargo run <login|connect|send|receive|help>
+    Usage: 
+
+        cargo run <login|connect|send|receive|help>
+        didchat   <login|connect|send|receive|help>
 ")
     }
 
