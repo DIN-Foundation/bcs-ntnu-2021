@@ -4,7 +4,7 @@
 *Location: https://meet.google.com/usf-xcei-ssr*
 
 ## Agenda
-- Rust programming, and how to attack scary problems.
+- Rust programming, and how to attack scary problems, battling with procrastination.
 
 ## Log
 
