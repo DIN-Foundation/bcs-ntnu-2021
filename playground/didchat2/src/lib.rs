@@ -13,23 +13,20 @@ custom_derive! {
         Login,
         Connect,
         Send,
-        Receive,
+        Read,
         Help
     }
 }
 
 
 pub struct Config {
-    cmd: CMD, // login | connect | send | receive | help
+    cmd: CMD, // login | connect | send | read | help
 }
 
 impl Config {
-    pub fn new(args: &[String]) -> Result<Config, Box<dyn std::error::Error>> {
+    pub fn new(args: &[String]) -> Result<Config, std::io::Error> {
 
-        //
-        // Parse <cmd>
-        //
-        let valid_cmds = vec!["help", "login", "connect", "send", "receive"];
+        let valid_cmds = vec!["help", "login", "connect", "send", "read"];
         let default_cmd = String::from("help");
         let cmd = args.get(1).unwrap_or(&default_cmd);
 
@@ -49,22 +46,46 @@ impl Config {
 
 
 pub fn run(config: Config) -> Result<(), std::io::Error> {
-
     match config.cmd {
-        CMD::Login => println!("Login to user"),
-        CMD::Connect => println!("Connecting to friend"),
-        CMD::Send => println!("Sending message"),
-        CMD::Receive => println!("Receiving message"),
-        CMD::Help => println!("
-    Usage: 
-
-        cargo run <login|connect|send|receive|help>
-        didchat   <login|connect|send|receive|help>
-")
+        CMD::Login => login(),
+        CMD::Connect => connect(),
+        CMD::Send => send(),
+        CMD::Read => read(),
+        CMD::Help => help()
     }
+}
 
+fn login() -> Result<(), std::io::Error> {
+    println!("Login to user");
     Ok(())
 }
+
+fn connect() -> Result<(), std::io::Error> {
+    println!("Connecting to friend");
+    Ok(())
+}
+
+fn send() -> Result<(), std::io::Error> {
+    println!("Sending message");
+    Ok(())
+}
+
+fn read() -> Result<(), std::io::Error> {
+    println!("Reading message");
+    Ok(())
+}
+
+fn help() -> Result<(), std::io::Error> {
+    println!("
+    Usage: 
+
+        cargo run <login|connect|send|read|help>
+        didchat   <login|connect|send|read|help>
+");
+    Ok(())
+}
+
+
 
 // @see https://stackoverflow.com/a/38406885
 fn uppercase_first_letter(s: &str) -> String {
