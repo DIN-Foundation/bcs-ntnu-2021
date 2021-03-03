@@ -1,4 +1,4 @@
-# Domain experts weekly - 2021-02-02 @ 12:30
+# Domain experts weekly - 2021-03-02 @ 12:30
 
 *Attendees: Jonas, Snorre, Mariusz, Abylay*
 *Location: https://meet.google.com/usf-xcei-ssr*
