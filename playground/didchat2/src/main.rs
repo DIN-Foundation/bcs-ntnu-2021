@@ -6,8 +6,10 @@ fn main() {
         std::process::exit(1);
     });
 
-    if let Err(err) = didchat2::run(config) {
+    let output = didchat2::run(config).unwrap_or_else(|err| {
         eprintln!("run(config) failed: {}", err);
         std::process::exit(2);
-    }
+    });
+
+    println!("{}", output);
 }

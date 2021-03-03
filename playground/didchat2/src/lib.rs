@@ -39,18 +39,14 @@ impl Config {
     }
 }
 
-
-pub fn run(config: Config) -> Result<(), std::io::Error> {
-    let output = match config.cmd {
+pub fn run(config: Config) -> Result<String, std::io::Error> {
+    match config.cmd {
         CMD::Login => login(),
         CMD::Connect => connect(),
         CMD::Send => send(),
         CMD::Read => read(),
         CMD::Help => help()
-    }?;
-
-    println!("{}", output);
-    Ok(())
+    }
 }
 
 fn login() -> Result<String, std::io::Error> {
