@@ -1,45 +1,42 @@
-Deg
-12:32
-meeting starts
+# Domain experts weekly - 2021-02-02 @ 12:30
 
-Deg
-12:36
-Good start this week
+*Attendees: Jonas, Snorre, Mariusz, Abylay*
+*Location: https://meet.google.com/usf-xcei-ssr*
 
-Deg
-12:39
-John Martin Furseth, NAV attended DIN meeting
-https://docs.google.com/document/d/1JmPh7X1-MNl_EuIVUodf1hWHTrt4vLvFT1N_lAjfoEQ/edit#
+## Agenda
+- Rust programming, and how to attack scary problems.
 
-Deg
-12:42
-Rust book documentation is really usefull
-Currently practicing small Rust examples
-Surprised by how different Rust is from the legacy systems languages like C, C++, Java, etc. 
+## Log
 
-Deg
-12:43
-And how similar the legacy languages are
+**Jonas 12:32 **
+- Meeting starts
 
-Deg
-12:46
-oopt lib ? Rust course will talk about patterns and enums next week.
-Rust course youtube - https://www.youtube.com/playlist?list=PL17KQCa8hhvDoNjRh7f-M5fq7lZN21NhZ
-Rust course zoom - https://ntnu.zoom.us/j/98283690515?pwd=SytlWFp5Q3dsTXFOOWxvTTZLNTVRdz09#success
+**Jonas 12:36 **
+- Good start this week. Already have 5 hours clocked in, and it is just tuesday morning. 5 hours has been the average weekly clocking.
 
-Deg
-12:54
-So whats next? After learning Rust
+**Jonas 12:39 **
+- John Martin Furseth, NAV attended DIN meeting. https://docs.google.com/document/d/1JmPh7X1-MNl_EuIVUodf1hWHTrt4vLvFT1N_lAjfoEQ/edit#
 
-Deg
-12:56
-- make key
+**Jonas 12:42 **
+- Rust book documentation is really useful. Currently practicing small Rust examples. Surprised by how different Rust is from the legacy systems languages like C, C++, Java, etc.
+
+**Mariusz 12:46**
+- Rust course will talk about patterns and enums next week.
+- Rust course youtube - https://www.youtube.com/playlist?list=PL17KQCa8hhvDoNjRh7f-M5fq7lZN21NhZ
+- Rust course zoom - https://ntnu.zoom.us/j/98283690515?pwd=SytlWFp5Q3dsTXFOOWxvTTZLNTVRdz09#success
+
+**Snorre 12:54**
+- So whats next? After learning Rust?
+
+**Snorre 12:56**
+- Make key
 - Establish connection
 - Chapter 10 in  the book: "Make a CLI"
-Deg
-13:01
+
+**Jonas 13:01**
 - CLI that makes connections. Understand connections. Write section in the paper about connections.
-0.1
-Deg
-13:02
-Reqest review from Abylay
+- 0.1
+
+**Jonas 13:02 **
+- Reqest review from Abylay on github.
+- Mariusz not sure how often he will be able to review, but still wants review-requests on github.
