@@ -1,18 +1,12 @@
-// @see https://stackoverflow.com/a/39070533
-#[macro_use]
-extern crate custom_derive;
-#[macro_use]
-extern crate enum_derive;
-custom_derive! {
-    #[derive(Debug, EnumFromStr)]
-    enum CMD {
-        Login,
-        Connect,
-        Send,
-        Read,
-        Help
-    }
+#[derive(Debug)]
+enum CMD {
+    Login{ username: String },
+    Connect,
+    Send,
+    Read,
+    Help
 }
+
 
 
 pub struct Config {
@@ -31,9 +25,19 @@ impl Config {
             default_cmd.clone()
         };
 
-        // Uppercase first letter before mapping to enum.
-        let cmd = uppercase_first_letter(&cmd);
-        let cmd: CMD = cmd.parse().unwrap();
+
+        let cmd: CMD = match &cmd[..] {
+            "login" => {
+                let default_name = String::from("anon");
+                let name = args.get(2).unwrap_or(&default_name);
+                CMD::Login{ username: name.clone()}
+            },
+            "connect" => CMD::Connect,
+            "send" => CMD::Send,
+            "read" => CMD::Read,
+            "help" => CMD::Help,
+            &_ => CMD::Help,
+        };
 
         Ok(Config { cmd })
     }
@@ -41,16 +45,39 @@ impl Config {
 
 pub fn run(config: Config) -> Result<String, std::io::Error> {
     match config.cmd {
-        CMD::Login => login(),
+        CMD::Login{ username } => login(&username),
         CMD::Connect => connect(),
         CMD::Send => send(),
         CMD::Read => read(),
         CMD::Help => help()
     }
 }
+use std::io::Write;
 
-fn login() -> Result<String, std::io::Error> {
-    Ok(String::from("Login to user"))
+/**
+ * Login - Creates a public/private key-pair if does not already exists, linked to the given name.
+ */ 
+fn login(username: &String) -> Result<String, std::io::Error> {
+    let key_private_path = format!(".didchat/user/{}.private", username);
+    let key_public_path = format!(".didchat/user/{}.public", username);
+
+    if !std::fs::metadata(".didchat/user/").is_ok() {
+        std::fs::create_dir_all(".didchat/user/").unwrap_or_default();
+    }
+
+    if !std::fs::metadata(&key_private_path).is_ok() || 
+    !std::fs::metadata(&key_public_path).is_ok() {
+
+        let key_private = x25519_dalek::StaticSecret::new(rand_core::OsRng);
+        let mut file = std::fs::File::create(key_private_path).unwrap();
+        file.write_all(&key_private.to_bytes()).unwrap();
+
+        let key_public  = x25519_dalek::PublicKey::from(&key_private);
+        let mut file = std::fs::File::create(key_public_path).unwrap();
+        file.write_all(&key_public.to_bytes()).unwrap();
+    }
+
+    Ok(format!("Login to {} successful", username))
 }
 
 fn connect() -> Result<String, std::io::Error> {
@@ -71,16 +98,7 @@ fn help() -> Result<String, std::io::Error> {
 
         cargo run <login|connect|send|read|help>
         didchat   <login|connect|send|read|help>
+
+        didchat login <username>
 "))
-}
-
-// @see https://stackoverflow.com/a/38406885
-fn uppercase_first_letter(s: &str) -> String {
-    let lowercase = s.to_lowercase();
-    let mut c = lowercase.chars();
-
-    match c.next() {
-        None => String::new(),
-        Some(f) => f.to_uppercase().collect::<String>() + c.as_str(),
-    }
 }
