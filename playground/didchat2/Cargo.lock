@@ -211,10 +211,13 @@ dependencies = [
 name = "didchat2"
 version = "0.1.0"
 dependencies = [
+ "base64",
  "custom_derive",
  "didcomm-rs",
  "enum_derive",
  "rand_core 0.5.1",
+ "serde",
+ "serde_json",
  "x25519-dalek",
 ]
 

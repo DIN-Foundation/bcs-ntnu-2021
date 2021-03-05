@@ -54,30 +54,54 @@ pub fn run(config: Config) -> Result<String, std::io::Error> {
 }
 use std::io::Write;
 
+
+/**
+ * https://tools.ietf.org/html/draft-ietf-jose-cfrg-curves-06#section-2
+ */
+#[derive(serde::Serialize, serde::Deserialize, Debug)]
+struct Ed25519JWK {
+    kty: String, // Must be "OKP"
+    crv: String, // Must be "Ed25519"
+    x: String,   // base64 encoded public key
+    d: String,   // base64 encoded private key
+}
+
+impl Ed25519JWK {
+    fn new() -> Ed25519JWK {
+        let key_private = x25519_dalek::StaticSecret::new(rand_core::OsRng);
+        let key_public  = x25519_dalek::PublicKey::from(&key_private);
+
+        let bytes = key_private.to_bytes();
+        let x = base64::encode(bytes);
+
+        let bytes = key_public.to_bytes();
+        let d = base64::encode(bytes);
+        
+        Ed25519JWK { kty: String::from("OKP"), crv: String::from("Ed25519"), x, d }
+    }
+
+    fn as_json_string(&self) -> Result<String, serde_json::Error> {
+        Ok(serde_json::to_string(self)?)
+    }
+}
 /**
  * Login - Creates a public/private key-pair if does not already exists, linked to the given name.
  */ 
 fn login(username: &String) -> Result<String, std::io::Error> {
-    let key_private_path = format!(".didchat/user/{}.private", username);
-    let key_public_path = format!(".didchat/user/{}.public", username);
-
     if !std::fs::metadata(".didchat/user/").is_ok() {
         std::fs::create_dir_all(".didchat/user/").unwrap_or_default();
     }
 
-    if !std::fs::metadata(&key_private_path).is_ok() || 
-    !std::fs::metadata(&key_public_path).is_ok() {
+    let jwk_path = format!(".didchat/user/{}.jwk", username);
 
-        let key_private = x25519_dalek::StaticSecret::new(rand_core::OsRng);
-        let mut file = std::fs::File::create(key_private_path).unwrap();
-        file.write_all(&key_private.to_bytes()).unwrap();
-
-        let key_public  = x25519_dalek::PublicKey::from(&key_private);
-        let mut file = std::fs::File::create(key_public_path).unwrap();
-        file.write_all(&key_public.to_bytes()).unwrap();
+    if !std::fs::metadata(&jwk_path).is_ok() {
+        let jwk = Ed25519JWK::new();
+        let jwk_string = jwk.as_json_string().unwrap();
+        let mut file = std::fs::File::create(jwk_path).unwrap();
+        file.write(jwk_string.as_bytes()).unwrap();
     }
 
-    Ok(format!("Login to {} successful", username))
+    Ok(format!("Login {} successful", username))
 }
 
 fn connect() -> Result<String, std::io::Error> {
