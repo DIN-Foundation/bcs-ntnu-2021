@@ -54,20 +54,19 @@ pub fn run(config: Config) -> Result<String, std::io::Error> {
 }
 use std::io::Write;
 
-
 /**
  * https://tools.ietf.org/html/draft-ietf-jose-cfrg-curves-06#section-2
  */
 #[derive(serde::Serialize, serde::Deserialize, Debug)]
-struct Ed25519JWK {
+struct X25519JWK {
     kty: String, // Must be "OKP"
     crv: String, // Must be "Ed25519"
     x: String,   // base64 encoded public key
     d: String,   // base64 encoded private key
 }
 
-impl Ed25519JWK {
-    fn new() -> Ed25519JWK {
+impl X25519JWK {
+    fn new() -> X25519JWK {
         let key_private = x25519_dalek::StaticSecret::new(rand_core::OsRng);
         let key_public  = x25519_dalek::PublicKey::from(&key_private);
 
@@ -77,13 +76,14 @@ impl Ed25519JWK {
         let bytes = key_public.to_bytes();
         let d = base64::encode(bytes);
         
-        Ed25519JWK { kty: String::from("OKP"), crv: String::from("Ed25519"), x, d }
+        X25519JWK { kty: String::from("OKP"), crv: String::from("X25519"), x, d }
     }
 
     fn as_json_string(&self) -> Result<String, serde_json::Error> {
         Ok(serde_json::to_string(self)?)
     }
 }
+
 /**
  * Login - Creates a public/private key-pair if does not already exists, linked to the given name.
  */ 
@@ -92,10 +92,10 @@ fn login(username: &String) -> Result<String, std::io::Error> {
         std::fs::create_dir_all(".didchat/user/").unwrap_or_default();
     }
 
-    let jwk_path = format!(".didchat/user/{}.jwk", username);
+    let jwk_path = format!(".didchat/user/{}.jwk.json", username);
 
     if !std::fs::metadata(&jwk_path).is_ok() {
-        let jwk = Ed25519JWK::new();
+        let jwk = X25519JWK::new();
         let jwk_string = jwk.as_json_string().unwrap();
         let mut file = std::fs::File::create(jwk_path).unwrap();
         file.write(jwk_string.as_bytes()).unwrap();
