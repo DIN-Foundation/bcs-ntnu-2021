@@ -6,9 +6,9 @@
 
 ## 2.1 Core protocols
 
-### 2.1.1 Decentralised identifiers (DID)
+### 2.1.1 Decentralized identifiers (DID)
 
-### 2.1.2 DID-comm
+### 2.1.2 DID-comm (v2)
 
 ### 2.1.3 Verifiable Credentials (VC)
 
@@ -39,7 +39,9 @@
 
 ### 2.3.3 QR codes
 
-### 2.3.4 Other
+### 2.3.4 STDIN/STDOUT
+
+### 2.3.5 Other
 
 
 
