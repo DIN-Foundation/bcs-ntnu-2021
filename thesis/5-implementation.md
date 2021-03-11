@@ -38,8 +38,11 @@
 
 ## 5.2 Universal resolver
 
+- Test deployment: https://dev.uniresolver.io/
 - github.com: https://github.com/decentralized-identity/universal-resolver
 
+
+#### Example build and resolve locally from the README.md
 ```
 git clone https://github.com/decentralized-identity/universal-resolver
 cd universal-resolver/
