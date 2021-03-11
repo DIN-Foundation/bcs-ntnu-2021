@@ -8,7 +8,6 @@ enum CMD {
 }
 
 
-
 pub struct Config {
     cmd: CMD, // login | connect | send | read | help
 }
@@ -65,25 +64,6 @@ struct X25519JWK {
     d: String,   // base64 encoded private key
 }
 
-impl X25519JWK {
-    fn new() -> X25519JWK {
-        let key_private = x25519_dalek::StaticSecret::new(rand_core::OsRng);
-        let key_public  = x25519_dalek::PublicKey::from(&key_private);
-
-        let bytes = key_private.to_bytes();
-        let x = base64::encode(bytes);
-
-        let bytes = key_public.to_bytes();
-        let d = base64::encode(bytes);
-        
-        X25519JWK { kty: String::from("OKP"), crv: String::from("X25519"), x, d }
-    }
-
-    fn as_json_string(&self) -> Result<String, serde_json::Error> {
-        Ok(serde_json::to_string(self)?)
-    }
-}
-
 /**
  * Login - Creates a public/private key-pair if does not already exists, linked to the given name.
  */ 
@@ -92,13 +72,16 @@ fn login(username: &String) -> Result<String, std::io::Error> {
         std::fs::create_dir_all(".didchat/user/").unwrap_or_default();
     }
 
-    let jwk_path = format!(".didchat/user/{}.jwk.json", username);
+    let seed_path = format!(".didchat/user/{}.ed25519.seed", username);
 
-    if !std::fs::metadata(&jwk_path).is_ok() {
-        let jwk = X25519JWK::new();
-        let jwk_string = jwk.as_json_string().unwrap();
-        let mut file = std::fs::File::create(jwk_path).unwrap();
-        file.write(jwk_string.as_bytes()).unwrap();
+    if !std::fs::metadata(&seed_path).is_ok() {
+
+        let mut csprng = rand_core::OsRng{};
+        let secret = ed25519_dalek::SecretKey::generate(&mut csprng);
+        let bytes = secret.as_bytes();
+
+        let mut file = std::fs::File::create(seed_path).unwrap();
+        file.write(bytes).unwrap();
     }
 
     Ok(format!("Login {} successful", username))
