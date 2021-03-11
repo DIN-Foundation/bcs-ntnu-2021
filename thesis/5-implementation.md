@@ -42,7 +42,7 @@
 - github.com: https://github.com/decentralized-identity/universal-resolver
 
 
-#### Example build and resolve locally from the README.md
+#### Example from the README.md - Build, run and resolve on local machine
 ```
 git clone https://github.com/decentralized-identity/universal-resolver
 cd universal-resolver/
