@@ -1,6 +1,6 @@
 #[derive(Debug)]
 enum CMD {
-    Login{ username: String },
+    Login,
     Connect,
     Send,
     Read,
@@ -24,13 +24,8 @@ impl Config {
             default_cmd.clone()
         };
 
-
         let cmd: CMD = match &cmd[..] {
-            "login" => {
-                let default_name = String::from("anon");
-                let name = args.get(2).unwrap_or(&default_name);
-                CMD::Login{ username: name.clone()}
-            },
+            "login" => CMD::Login,
             "connect" => CMD::Connect,
             "send" => CMD::Send,
             "read" => CMD::Read,
@@ -44,7 +39,7 @@ impl Config {
 
 pub fn run(config: Config) -> Result<String, std::io::Error> {
     match config.cmd {
-        CMD::Login{ username } => login(&username),
+        CMD::Login => login(),
         CMD::Connect => connect(),
         CMD::Send => send(),
         CMD::Read => read(),
@@ -67,24 +62,23 @@ struct X25519JWK {
 /**
  * Login - Creates a public/private key-pair if does not already exists, linked to the given name.
  */ 
-fn login(username: &String) -> Result<String, std::io::Error> {
-    if !std::fs::metadata(".didchat/user/").is_ok() {
-        std::fs::create_dir_all(".didchat/user/").unwrap_or_default();
+fn login() -> Result<String, std::io::Error> {
+    if !std::fs::metadata(".didchat/").is_ok() {
+        std::fs::create_dir_all(".didchat/").unwrap_or_default();
     }
 
-    let seed_path = format!(".didchat/user/{}.ed25519.seed", username);
+    let seed_path = format!(".didchat/seed");
 
     if !std::fs::metadata(&seed_path).is_ok() {
-
         let mut csprng = rand_core::OsRng{};
-        let secret = ed25519_dalek::SecretKey::generate(&mut csprng);
-        let bytes = secret.as_bytes();
-
+        let seed = ed25519_dalek::SecretKey::generate(&mut csprng);
+        let seed_bytes = seed.as_bytes();
         let mut file = std::fs::File::create(seed_path).unwrap();
-        file.write(bytes).unwrap();
+        file.write(seed_bytes).unwrap();
+        Ok(format!("New user signed in."))
+    } else {
+        Ok(format!("Existing user already signed in."))
     }
-
-    Ok(format!("Login {} successful", username))
 }
 
 fn connect() -> Result<String, std::io::Error> {
