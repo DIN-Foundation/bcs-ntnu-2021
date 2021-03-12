@@ -3,9 +3,9 @@ enum CMD {
     New,
     Doc,
     Did,
-    Add{ name: String, did: String },
-    Send,
-    Read,
+    Add{ alias: String, did: String },
+    Send{ alias: String, message: String },
+    Read{ alias: String, message: String },
     Help
 }
 
@@ -30,7 +30,7 @@ impl Config {
             "doc" => CMD::Doc,
             "new" => CMD::New,
             "add" => {
-                let name = (match args.get(2) {
+                let alias = (match args.get(2) {
                     Some(arg) => arg,
                     None => return Ok(Config{ cmd: CMD::Help }),
                 }).clone();
@@ -40,10 +40,34 @@ impl Config {
                     None => return Ok(Config{ cmd: CMD::Help }),
                 }).clone();
 
-                CMD::Add{ name, did }
+                CMD::Add{ alias, did }
             },
-            "send" => CMD::Send,
-            "read" => CMD::Read,
+            "send" => {
+                let alias = (match args.get(2) {
+                    Some(arg) => arg,
+                    None => return Ok(Config{ cmd: CMD::Help }),
+                }).clone();
+
+                let message = (match args.get(3) {
+                    Some(arg) => arg,
+                    None => return Ok(Config{ cmd: CMD::Help }),
+                }).clone();
+
+                CMD::Send{ alias, message }
+            },
+            "read" => {
+                let alias = (match args.get(2) {
+                    Some(arg) => arg,
+                    None => return Ok(Config{ cmd: CMD::Help }),
+                }).clone();
+
+                let message = (match args.get(3) {
+                    Some(arg) => arg,
+                    None => return Ok(Config{ cmd: CMD::Help }),
+                }).clone();
+
+                CMD::Read{ alias, message }
+            },
             "help" => CMD::Help,
             &_ => CMD::Help,
         };
@@ -57,9 +81,9 @@ pub fn run(config: Config) -> Result<String, std::io::Error> {
         CMD::New => new(),
         CMD::Doc => doc(),
         CMD::Did => did(),
-        CMD::Add{ name, did } => add(&name, &did),
-        CMD::Send => send(),
-        CMD::Read => read(),
+        CMD::Add{ alias, did } => add(&alias, &did),
+        CMD::Send{ alias, message } => send(&alias, &message),
+        CMD::Read{ alias, message } => read(&alias, &message),
         CMD::Help => help()
     }
 }
@@ -124,25 +148,27 @@ fn did() -> Result<String, std::io::Error> {
     Ok(format!("{}", did))
 }
 
-fn add(name: &str, did: &str) -> Result<String, std::io::Error> {
+fn add(alias: &str, did: &str) -> Result<String, std::io::Error> {
     use std::io::Write;
 
     if !std::fs::metadata(".didchat/dids/").is_ok() {
         std::fs::create_dir_all(".didchat/dids/").unwrap_or_default();
     }
 
-    let friend_path = format!(".didchat/dids/{}.did", name);
+    let friend_path = format!(".didchat/dids/{}.did", alias);
     let mut file = std::fs::File::create(friend_path).unwrap();
     file.write(did.as_bytes()).unwrap();
 
-    Ok(format!(".didchat/dids/{}.did", name))
+    Ok(format!(".didchat/dids/{}.did", alias))
 }
 
-fn send() -> Result<String, std::io::Error> {
+fn send(_alias: &str, _message: &str) -> Result<String, std::io::Error> {
+
     Ok(String::from("Sending message"))
 }
 
-fn read() -> Result<String, std::io::Error> {
+fn read(_alias: &str, _message: &str) -> Result<String, std::io::Error> {
+
     Ok(String::from("Reading message"))
 }
 
@@ -152,7 +178,8 @@ fn help() -> Result<String, std::io::Error> {
 
         didchat   <new|doc|did|add|send|read|help>
 
-        didchat new
         didchat add <alias> <did:key:etc....>
+        didchat send <alias> <message>
+        didchat read <alias> <message>
 "))
 }
