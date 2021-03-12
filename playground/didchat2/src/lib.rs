@@ -1,9 +1,9 @@
 #[derive(Debug)]
 enum CMD {
+    New,
     Doc,
     Did,
-    Login,
-    Friend,
+    Add{ name: String, did: String },
     Send,
     Read,
     Help
@@ -15,7 +15,7 @@ pub struct Config {
 
 impl Config {
     pub fn new(args: &[String]) -> Result<Config, std::io::Error> {
-        let valid_cmds = vec!["help", "did", "doc", "login", "friend", "send", "read"];
+        let valid_cmds = vec!["help", "did", "doc", "new", "add", "send", "read"];
         let default_cmd = String::from("help");
         let cmd = args.get(1).unwrap_or(&default_cmd);
 
@@ -28,8 +28,20 @@ impl Config {
         let cmd: CMD = match &cmd[..] {
             "did" => CMD::Did,
             "doc" => CMD::Doc,
-            "login" => CMD::Login,
-            "friend" => CMD::Friend,
+            "new" => CMD::New,
+            "add" => {
+                let name = (match args.get(2) {
+                    Some(arg) => arg,
+                    None => return Ok(Config{ cmd: CMD::Help }),
+                }).clone();
+
+                let did = (match args.get(3) {
+                    Some(arg) => arg,
+                    None => return Ok(Config{ cmd: CMD::Help }),
+                }).clone();
+
+                CMD::Add{ name, did }
+            },
             "send" => CMD::Send,
             "read" => CMD::Read,
             "help" => CMD::Help,
@@ -42,10 +54,10 @@ impl Config {
 
 pub fn run(config: Config) -> Result<String, std::io::Error> {
     match config.cmd {
-        CMD::Login => login(),
+        CMD::New => new(),
         CMD::Doc => doc(),
         CMD::Did => did(),
-        CMD::Friend => friend(),
+        CMD::Add{ name, did } => add(&name, &did),
         CMD::Send => send(),
         CMD::Read => read(),
         CMD::Help => help()
@@ -53,9 +65,9 @@ pub fn run(config: Config) -> Result<String, std::io::Error> {
 }
 
 /**
- * Login - Creates a public/private key-pair if does not already exists, linked to the given name.
+ * new - Creates a public/private key-pair if does not already exists, effectively creating a new chat.
  */ 
-fn login() -> Result<String, std::io::Error> {
+fn new() -> Result<String, std::io::Error> {
     use std::io::Write;
 
     if !std::fs::metadata(".didchat/").is_ok() {
@@ -112,9 +124,18 @@ fn did() -> Result<String, std::io::Error> {
     Ok(format!("{}", did))
 }
 
+fn add(name: &str, did: &str) -> Result<String, std::io::Error> {
+    use std::io::Write;
 
-fn friend() -> Result<String, std::io::Error> {
-    Ok(String::from("Added friend"))
+    if !std::fs::metadata(".didchat/dids/").is_ok() {
+        std::fs::create_dir_all(".didchat/dids/").unwrap_or_default();
+    }
+
+    let friend_path = format!(".didchat/dids/{}.did", name);
+    let mut file = std::fs::File::create(friend_path).unwrap();
+    file.write(did.as_bytes()).unwrap();
+
+    Ok(format!(".didchat/dids/{}.did", name))
 }
 
 fn send() -> Result<String, std::io::Error> {
@@ -129,9 +150,9 @@ fn help() -> Result<String, std::io::Error> {
     Ok(String::from("
     Usage: 
 
-        cargo run <login|doc|friend|send|read|help>
-        didchat   <login|doc|friend|send|read|help>
+        didchat   <new|doc|did|add|send|read|help>
 
-        didchat login <username>
+        didchat new
+        didchat add <alias> <did:key:etc....>
 "))
 }
