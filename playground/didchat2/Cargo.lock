@@ -378,7 +378,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "didchat2"
+name = "didchat"
 version = "0.1.0"
 dependencies = [
  "base64",

@@ -1,5 +1,5 @@
 [package]
-name = "didchat2"
+name = "didchat"
 version = "0.1.0"
 authors = ["Jonas Johan Solsvik <jonasjso@protonmail.com>"]
 edition = "2018"
