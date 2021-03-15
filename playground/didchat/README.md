@@ -1,1 +1,0 @@
-didchat - first failed attempt at a didcomm-rs based CLI chat app.
