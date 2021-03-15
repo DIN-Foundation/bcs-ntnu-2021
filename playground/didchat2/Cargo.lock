@@ -381,7 +381,6 @@ dependencies = [
 name = "didchat"
 version = "0.1.0"
 dependencies = [
- "base64",
  "custom_derive",
  "did-key",
  "didcomm-rs",
