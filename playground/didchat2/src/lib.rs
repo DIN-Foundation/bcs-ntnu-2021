@@ -105,9 +105,11 @@ fn write(to: &str, message: &str) -> Result<String, std::io::Error> {
     let shared_secret = from_key.key_exchange(&to_key);
 
     // 3. Construct didcomm message
+    let to_vec = vec![&to_did[..]];
+    
     let message = didcomm_rs::Message::new()
         .from(&from_did)
-        .to(vec![&to_did])
+        .to(&to_vec[..])
         .timed(Some(3600))
         .body(message.as_bytes())
         .as_jwe(&didcomm_rs::crypto::CryptoAlgorithm::XC20P);

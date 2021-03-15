@@ -393,11 +393,12 @@ dependencies = [
 
 [[package]]
 name = "didcomm-rs"
-version = "0.2.3"
+version = "0.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5acd0a0212deeb12a9388846bae3a957d44f9d6157c45b4e12f7a160f09ff92b"
+checksum = "a1f82a320b2e1b671fe8fc712daf248f897656cff365ba251bdc730ab0ad5bac"
 dependencies = [
  "aes-gcm",
+ "arrayref",
  "base64-url",
  "chacha20poly1305",
  "ed25519-dalek",
@@ -408,6 +409,7 @@ dependencies = [
  "serde",
  "serde_json",
  "thiserror",
+ "x25519-dalek",
 ]
 
 [[package]]
