@@ -154,9 +154,9 @@ fn help() -> Result<String, std::io::Error> {
 
         didchat   <init|doc|did|add|write|read|help>
 
-        didchat add   <name>  <did>
-        didchat write <to>    <message>
-        didchat read  <from>  <didcomm message>
+        didchat add   <name>       <did>
+        didchat write <to name>    <message>
+        didchat read  <from name>  <didcomm message>
 "))
 }
 
