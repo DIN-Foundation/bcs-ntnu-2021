@@ -153,11 +153,11 @@ fn help() -> Result<String, std::io::Error> {
     Ok(String::from("
     Usage: 
 
-        didchat   <init|doc|did|add|send|receive>
+        didchat <init|doc|did>
 
-        didchat add     <name>    <did>
-        didchat send    <to name> <plaintext>
-        didchat receive <didcomm encrypted message>
+        didchat add     <name>  <did>
+        didchat send    <name>  <message>            -->   <didcomm encrypted message>
+        didchat receive <didcomm encrypted message>  -->   <message>
 "))
 }
 
