@@ -5,28 +5,26 @@ pub fn run(config: Config) -> Result<String, std::io::Error> {
         CMD::Did{ path } => did(&path),
         CMD::Connect{ path, name, did } => connect(&path, &name, &did),
         CMD::Send{ path, name, message } => send(&path, &name, &message),
-        CMD::Receive{ path, encrypted_message } => receive(&path, &encrypted_message),
+        CMD::Open{ path, encrypted_message } => open(&path, &encrypted_message),
         CMD::Help => help()
     }
 }
 
-/**
- * new - Creates a public/private key-pair if does not already exists, effectively creating a new chat.
- */ 
 fn init(path: &str) -> Result<String, std::io::Error> {
     use std::io::Write;
 
     // 1. Create empty folders
     if !std::fs::metadata(root_path(path)).is_ok() {
-        std::fs::create_dir_all(path).unwrap_or_default();
+        std::fs::create_dir_all(root_path(path)).unwrap_or_default();
     }
-
     if !std::fs::metadata(names_path(path)).is_ok() {
         std::fs::create_dir_all(names_path(path)).unwrap_or_default();
     }
-
     if !std::fs::metadata(dids_path(path)).is_ok() {
         std::fs::create_dir_all(dids_path(path)).unwrap_or_default();
+    }
+    if !std::fs::metadata(messages_path(path)).is_ok() {
+        std::fs::create_dir_all(messages_path(path)).unwrap_or_default();
     }
 
     if !std::fs::metadata(seed_path(path)).is_ok() {
@@ -95,6 +93,7 @@ fn send(path: &str, name: &str, message: &str) -> Result<String, std::io::Error>
     use did_key::Ecdh;
     use did_key::KeyMaterial;
     use did_key::DIDCore;
+    use std::io::Write;
 
     // 1. Read from and to x25519 keys from file
     let from_seed = std::fs::read(seed_path(path)).unwrap();
@@ -125,19 +124,24 @@ fn send(path: &str, name: &str, message: &str) -> Result<String, std::io::Error>
         .seal(&shared_secret)
         .unwrap();
 
+    // 5. Log encrypted message to file, to keep the message history
+    let mut file = std::fs::File::create(message_path(path)).unwrap();
+    file.write(encrypted_message.as_bytes()).unwrap();
+    
     Ok(format!("{}", &encrypted_message))
 }
 
-fn receive(path: &str, encrypted_message: &str) -> Result<String, std::io::Error> {
+fn open(path: &str, encrypted_message: &str) -> Result<String, std::io::Error> {
     use did_key::Ecdh;
     use did_key::KeyMaterial;
+    use std::io::Write;
 
     // 1. Read "to"-key from file
     let to_seed = std::fs::read(seed_path(path)).unwrap();
     let to_key = did_key::Ed25519KeyPair::from_seed(&to_seed);
     let to_key = to_key.get_x25519();
 
-    // 2. Read "from"-key from "dcem" header.
+    // 2. Read "from"-key from "dcem"-header.
     let jwe: didcomm_rs::Jwe = serde_json::from_str(encrypted_message).unwrap();
     let from_did = jwe.from().as_ref().unwrap();
     let from_key = did_key::resolve(&from_did).unwrap();
@@ -148,15 +152,19 @@ fn receive(path: &str, encrypted_message: &str) -> Result<String, std::io::Error
     let shared_secret = to_key.key_exchange(&from_key);
 
     // 4. Decrypt message
-    let received = didcomm_rs::Message::receive(encrypted_message, Some(&shared_secret), None);
-    let received = received.unwrap(); // @unwrap!
-    let received = String::from_utf8(received.body).unwrap(); // @unwrap!
+    let opened = didcomm_rs::Message::receive(encrypted_message, Some(&shared_secret), None);
+    let opened = opened.unwrap(); // @unwrap!
+    let opened = String::from_utf8(opened.body).unwrap(); // @unwrap!
 
-    // 5. Map did to name
+    // 5. Map did to name, if exists
     let from_name = std::fs::read_to_string(did_path(path, from_did))
         .unwrap_or(from_did.clone());
 
-    Ok(format!("{} > {}", from_name, received))
+    // 6. Log encrypted message to file, to keep the message history
+    let mut file = std::fs::File::create(message_path(path)).unwrap();
+    file.write(encrypted_message.as_bytes()).unwrap();
+
+    Ok(format!("{} > {}", from_name, opened))
 }
 
 fn help() -> Result<String, std::io::Error> {
@@ -168,23 +176,23 @@ fn help() -> Result<String, std::io::Error> {
 
         didchat <path> connect <name> <did>
 
-        didchat <path> send    <name> <message>      -->  <encrypted message>
-        didchat <path> receive <encrypted message>   -->  <name> > <message>
+        didchat <path> send <name> <message>      -->  <encrypted message>
+        didchat <path> open <encrypted message>   -->  <name> > <message>
 
-    Example - Talk to self:
+    Example - Send to self:
         didchat . init
         didchat . connect self $(didchat . did)
-        didchat . receive $(didchat . send self \"Hello self!\")
+        didchat . open $(didchat . send self \"Hello self!\")
 
-    Example - Talk to peer:
+    Example - Send to peer:
         didchat jonas init
         didchat snorre init
         
         didchat snorre connect jonas $(didchat jonas did)
         didchat jonas connect snorre $(didchat snorre did)
 
-        didchat jonas receive $(didchat snorre send jonas \"Hello Jonas. How are you?\")
-        didchat snorre receive $(didchat jonas send snorre \"Hi Snorre:) I have seen better days.\")
+        didchat jonas open $(didchat snorre send jonas \"Hello Jonas. How are you?\")
+        didchat snorre open $(didchat jonas send snorre \"Hi Snorre:) I have seen better days.\")
 "))
 }
 
@@ -196,7 +204,7 @@ enum CMD {
     Did{ path: String },
     Connect{ path: String, name: String, did: String },
     Send{ path: String, name: String, message: String },
-    Receive{ path: String, encrypted_message: String },
+    Open{ path: String, encrypted_message: String },
     Help
 }
 
@@ -206,7 +214,7 @@ pub struct Config {
 
 impl Config {
     pub fn new(args: &[String]) -> Result<Config, std::io::Error> {
-        let valid_cmds = vec!["help", "did", "doc", "init", "connect", "send", "receive"];
+        let valid_cmds = vec!["help", "did", "doc", "init", "connect", "send", "open"];
         let default_cmd = String::from("help");
         
         let path = args.get(1).unwrap_or(&default_cmd);
@@ -258,13 +266,13 @@ impl Config {
 
                 CMD::Send{ path, name, message }
             },
-            "receive" => {
+            "open" => {
                 let encrypted_message = (match args.get(3) {
                     Some(arg) => arg,
                     None => return Ok(Config{ cmd: CMD::Help }),
                 }).clone();
 
-                CMD::Receive{ path, encrypted_message }
+                CMD::Open{ path, encrypted_message }
             },
             "help" => CMD::Help,
             &_ => CMD::Help,
@@ -286,14 +294,28 @@ fn names_path(path: &str) -> String {
     format!("{}/.didchat/names", path)
 }
 
-fn name_path(path: &str, name: &str) -> String {
-    format!("{}/.didchat/names/{}", path, name)
-}
-
 fn dids_path(path: &str) -> String {
     format!("{}/.didchat/dids", path)
+}
+
+fn messages_path(path: &str) -> String {
+    format!("{}/.didchat/messages", path)
+}
+
+fn message_path(path: &str) -> String {
+    let start = std::time::SystemTime::now();
+    let since_the_epoch = start
+        .duration_since(std::time::UNIX_EPOCH)
+        .expect("Time went backwards");
+
+    format!("{}/.didchat/messages/{}.dcem", path, since_the_epoch.as_nanos())
+}
+
+fn name_path(path: &str, name: &str) -> String {
+    format!("{}/.didchat/names/{}", path, name)
 }
 
 fn did_path(path: &str, did: &str) -> String {
     format!("{}/.didchat/dids/{}", path, did)
 }
+
