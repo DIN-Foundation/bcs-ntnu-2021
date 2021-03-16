@@ -5,7 +5,7 @@ pub fn run(config: Config) -> Result<String, std::io::Error> {
         CMD::Did => did(),
         CMD::Add{ name, did } => add(&name, &did),
         CMD::Send{ to, message } => send(&to, &message),
-        CMD::Receive{ didcomm_message } => receive(&didcomm_message),
+        CMD::Receive{ didcomm_encrypted_message } => receive(&didcomm_encrypted_message),
         CMD::Help => help()
     }
 }
@@ -115,14 +115,14 @@ fn send(to: &str, message: &str) -> Result<String, std::io::Error> {
         .as_jwe(&didcomm_rs::crypto::CryptoAlgorithm::XC20P);
 
     // 4. Seal/encrypt message using shared secret
-    let sealed_message = message
+    let didcomm_encrypted_message = message
         .seal(&shared_secret)
         .unwrap();
 
-    Ok(format!("{:?}", &sealed_message))
+    Ok(format!("{:?}", &didcomm_encrypted_message))
 }
 
-fn receive(didcomm_message: &str) -> Result<String, std::io::Error> {
+fn receive(didcomm_encrypted_message: &str) -> Result<String, std::io::Error> {
     use did_key::Ecdh;
     use did_key::KeyMaterial;
 
@@ -132,7 +132,7 @@ fn receive(didcomm_message: &str) -> Result<String, std::io::Error> {
     let to_key = to_key.get_x25519();
 
     // 2. Read "from"-key from "dcem" header.
-    let jwe: didcomm_rs::Jwe = serde_json::from_str(didcomm_message).unwrap();
+    let jwe: didcomm_rs::Jwe = serde_json::from_str(didcomm_encrypted_message).unwrap();
     let from_did = jwe.from().as_ref().unwrap();
     let from_key = did_key::resolve(&from_did).unwrap();
     let from_key = did_key::Ed25519KeyPair::from_public_key(&from_key.public_key_bytes());
@@ -142,7 +142,7 @@ fn receive(didcomm_message: &str) -> Result<String, std::io::Error> {
     let shared_secret = to_key.key_exchange(&from_key);
 
     // 4. Decrypt message
-    let received = didcomm_rs::Message::receive(didcomm_message, Some(&shared_secret), None);
+    let received = didcomm_rs::Message::receive(didcomm_encrypted_message, Some(&shared_secret), None);
     let received = received.unwrap(); // @unwrap!
     let received = String::from_utf8(received.body).unwrap(); // @unwrap!
 
@@ -169,7 +169,7 @@ enum CMD {
     Did,
     Add{ name: String, did: String },
     Send{ to: String, message: String },
-    Receive{ didcomm_message: String },
+    Receive{ didcomm_encrypted_message: String },
     Help
 }
 
@@ -220,12 +220,12 @@ impl Config {
                 CMD::Send{ to, message }
             },
             "receive" => {
-                let didcomm_message = (match args.get(2) {
+                let didcomm_encrypted_message = (match args.get(2) {
                     Some(arg) => arg,
                     None => return Ok(Config{ cmd: CMD::Help }),
                 }).clone();
 
-                CMD::Receive{ didcomm_message }
+                CMD::Receive{ didcomm_encrypted_message }
             },
             "help" => CMD::Help,
             &_ => CMD::Help,
