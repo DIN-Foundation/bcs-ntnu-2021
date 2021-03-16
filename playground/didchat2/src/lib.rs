@@ -51,8 +51,8 @@ fn doc() -> Result<String, std::io::Error> {
     let doc = public_only_keypair.get_did_document(did_key::CONFIG_LD_PUBLIC);
 
     // 3. Serialize did-document to json
-    let json = serde_json::to_string_pretty(&doc).unwrap();
-    Ok(format!("{}", json))
+    let did_document = serde_json::to_string_pretty(&doc).unwrap();
+    Ok(format!("{}", did_document))
 }
 
 fn did() -> Result<String, std::io::Error> {
