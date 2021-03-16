@@ -153,9 +153,10 @@ fn receive(path: &str, encrypted_message: &str) -> Result<String, std::io::Error
     let received = String::from_utf8(received.body).unwrap(); // @unwrap!
 
     // 5. Map did to name
-    let from_name = std::fs::read_to_string(did_path(path, from_did)).unwrap();
+    let from_name = std::fs::read_to_string(did_path(path, from_did))
+        .unwrap_or(from_did.clone());
 
-    Ok(format!("{}:\t{}", from_name, received))
+    Ok(format!("{} > {}", from_name, received))
 }
 
 fn help() -> Result<String, std::io::Error> {
@@ -165,25 +166,25 @@ fn help() -> Result<String, std::io::Error> {
         didchat <path> doc    
         didchat <path> did    
 
-        didchat <path> connect  <other> <other did>
+        didchat <path> connect <name> <did>
 
-        didchat <path> send     <other> <message>       -->  <encrypted message>
-        didchat <path> receive  <encrypted message>     -->  <other>: <message>
+        didchat <path> send    <name> <message>      -->  <encrypted message>
+        didchat <path> receive <encrypted message>   -->  <name> > <message>
 
-    Example - talk to self:
+    Example - Talk to self:
         didchat . init
-        didchat . connect Self $(didchat . did)
-        didchat . receive $(didchat . send Self \"Hello self!\")
+        didchat . connect self $(didchat . did)
+        didchat . receive $(didchat . send self \"Hello self!\")
 
-    Example - talk to peer:
+    Example - Talk to peer:
         didchat jonas init
         didchat snorre init
         
-        didchat snorre connect Jonas  $(didchat jonas  did)
-        didchat jonas connect Snorre $(didchat snorre did)
+        didchat snorre connect jonas $(didchat jonas did)
+        didchat jonas connect snorre $(didchat snorre did)
 
-        didchat jonas receive $(didchat snorre send Jonas \"Hello Jonas. How are you?\")
-        didchat snorre receive $(didchat jonas send Snorre \"Hi Snorre:) I have seen better days.\")
+        didchat jonas receive $(didchat snorre send jonas \"Hello Jonas. How are you?\")
+        didchat snorre receive $(didchat jonas send snorre \"Hi Snorre:) I have seen better days.\")
 "))
 }
 
