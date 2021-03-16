@@ -1,11 +1,11 @@
 pub fn run(config: Config) -> Result<String, std::io::Error> {
     match config.cmd {
-        CMD::Init => init(),
-        CMD::Doc => doc(),
-        CMD::Did => did(),
-        CMD::Add{ name, did } => add(&name, &did),
-        CMD::Send{ to, message } => send(&to, &message),
-        CMD::Receive{ didcomm_encrypted_message } => receive(&didcomm_encrypted_message),
+        CMD::Init{ agent } => init(&agent),
+        CMD::Doc{ agent } => doc(&agent),
+        CMD::Did{ agent } => did(&agent),
+        CMD::Connect{ agent, name, did } => connect(&agent, &name, &did),
+        CMD::Send{ agent, name, message } => send(&agent, &name, &message),
+        CMD::Receive{ agent, didcomm_encrypted_message } => receive(&agent, &didcomm_encrypted_message),
         CMD::Help => help()
     }
 }
@@ -13,37 +13,43 @@ pub fn run(config: Config) -> Result<String, std::io::Error> {
 /**
  * new - Creates a public/private key-pair if does not already exists, effectively creating a new chat.
  */ 
-fn init() -> Result<String, std::io::Error> {
+fn init(agent: &str) -> Result<String, std::io::Error> {
     use std::io::Write;
 
-    if !std::fs::metadata(".didchat/").is_ok() {
-        std::fs::create_dir_all(".didchat/").unwrap_or_default();
+    if !std::fs::metadata(root_path(agent)).is_ok() {
+        std::fs::create_dir_all(root_path(agent)).unwrap_or_default();
     }
 
-    let seed_path = format!(".didchat/seed");
+    if !std::fs::metadata(names_path(agent)).is_ok() {
+        std::fs::create_dir_all(names_path(agent)).unwrap_or_default();
+    }
 
-    if !std::fs::metadata(&seed_path).is_ok() {
+    if !std::fs::metadata(seed_path(agent)).is_ok() {
         // 1. Generate seed
         let mut csprng = rand_core::OsRng{};
         let seed = ed25519_dalek::SecretKey::generate(&mut csprng);
         let seed_bytes = seed.as_bytes();
 
         // 2. Write seed to file
-        let mut file = std::fs::File::create(seed_path).unwrap();
+        let mut file = std::fs::File::create(seed_path(agent)).unwrap();
         file.write(seed_bytes).unwrap();
         
-        Ok(format!("Didchat is ready."))
+        // 3. Connect to self
+        let did = did(agent).unwrap();
+        let _ = connect(agent, agent, &did);
+
+        Ok(format!("{} is ready", root_path(agent)))
     } else {
-        Ok(format!("Existing user already signed in."))
+        Ok(format!("{} already exists", root_path(agent)))
     }
 }
 
-fn doc() -> Result<String, std::io::Error> {
+fn doc(agent: &str) -> Result<String, std::io::Error> {
     use did_key::DIDCore;
     use did_key::KeyMaterial;
     
     // 1. Read seed from file
-    let seed = std::fs::read(".didchat/seed").unwrap();
+    let seed = std::fs::read(seed_path(agent)).unwrap();
 
     // 2. Transform seed to a did-document
     let public_private_keypair = did_key::Ed25519KeyPair::from_seed(&seed);
@@ -55,15 +61,14 @@ fn doc() -> Result<String, std::io::Error> {
     Ok(format!("{}", did_document))
 }
 
-fn did() -> Result<String, std::io::Error> {
+fn did(agent: &str) -> Result<String, std::io::Error> {
     use did_key::DIDCore;
 
     // 1. Read seed from file
-    let seed = std::fs::read(".didchat/seed").unwrap();
+    let seed = std::fs::read(seed_path(agent)).unwrap();
 
     // 2. Transform seed to a did
     let keypair = did_key::Ed25519KeyPair::from_seed(&seed);
-
     let diddoc: did_key::Document = keypair.get_did_document(did_key::CONFIG_LD_PUBLIC);
     let did = diddoc.id;
 
@@ -71,32 +76,41 @@ fn did() -> Result<String, std::io::Error> {
     Ok(format!("{}", did))
 }
 
-fn add(alias: &str, did: &str) -> Result<String, std::io::Error> {
+fn connect(agent: &str, name: &str, did: &str) -> Result<String, std::io::Error> {
     use std::io::Write;
 
-    if !std::fs::metadata(".didchat/dids/").is_ok() {
-        std::fs::create_dir_all(".didchat/dids/").unwrap_or_default();
+    // 1. Ensure folders exists
+    if !std::fs::metadata(names_path(agent)).is_ok() {
+        std::fs::create_dir_all(names_path(agent)).unwrap_or_default();
     }
 
-    let friend_path = format!(".didchat/dids/{}.did", alias);
-    let mut file = std::fs::File::create(friend_path).unwrap();
+    if !std::fs::metadata(dids_path(agent)).is_ok() {
+        std::fs::create_dir_all(dids_path(agent)).unwrap_or_default();
+    }
+
+    // 2. Create 'name' -> 'did' mapping
+    let mut file = std::fs::File::create(name_path(agent, name)).unwrap();
     file.write(did.as_bytes()).unwrap();
 
-    Ok(format!(".didchat/dids/{}.did", alias))
+    // 3. Create 'did' to 'name' mapping
+    let mut file = std::fs::File::create(did_path(agent, did)).unwrap();
+    file.write(name.as_bytes()).unwrap();
+
+    Ok(format!("{}\n{}", name_path(agent, name), did_path(agent, did)))
 }
 
-fn send(to: &str, message: &str) -> Result<String, std::io::Error> {
+fn send(agent: &str, name: &str, message: &str) -> Result<String, std::io::Error> {
     use did_key::Ecdh;
     use did_key::KeyMaterial;
     use did_key::DIDCore;
 
     // 1. Read from and to x25519 keys from file
-    let from_seed = std::fs::read(".didchat/seed").unwrap();
+    let from_seed = std::fs::read(seed_path(agent)).unwrap();
     let from_key = did_key::Ed25519KeyPair::from_seed(&from_seed);
     let from_did = from_key.get_did_document(did_key::CONFIG_LD_PUBLIC).id;
     let from_key = from_key.get_x25519();
     
-    let to_did = std::fs::read_to_string(format!(".didchat/dids/{}.did", to)).unwrap();
+    let to_did = std::fs::read_to_string(name_path(agent, name)).unwrap();
     let to_key = did_key::resolve(&to_did).unwrap();
     let to_key = did_key::Ed25519KeyPair::from_public_key(&to_key.public_key_bytes());
     let to_key = to_key.get_x25519();
@@ -119,15 +133,15 @@ fn send(to: &str, message: &str) -> Result<String, std::io::Error> {
         .seal(&shared_secret)
         .unwrap();
 
-    Ok(format!("{:?}", &didcomm_encrypted_message))
+    Ok(format!("{}", &didcomm_encrypted_message))
 }
 
-fn receive(didcomm_encrypted_message: &str) -> Result<String, std::io::Error> {
+fn receive(agent: &str, didcomm_encrypted_message: &str) -> Result<String, std::io::Error> {
     use did_key::Ecdh;
     use did_key::KeyMaterial;
 
     // 1. Read "to"-key from file
-    let to_seed = std::fs::read(".didchat/seed").unwrap();
+    let to_seed = std::fs::read(seed_path(agent)).unwrap();
     let to_key = did_key::Ed25519KeyPair::from_seed(&to_seed);
     let to_key = to_key.get_x25519();
 
@@ -146,30 +160,35 @@ fn receive(didcomm_encrypted_message: &str) -> Result<String, std::io::Error> {
     let received = received.unwrap(); // @unwrap!
     let received = String::from_utf8(received.body).unwrap(); // @unwrap!
 
-    Ok(format!("{}", received))
+    // 5. Map did to name
+    let from_name = std::fs::read_to_string(did_path(agent, from_did)).unwrap();
+
+    Ok(format!("{}: {}", from_name, received))
 }
 
 fn help() -> Result<String, std::io::Error> {
     Ok(String::from("
     Usage: 
+        didchat init    <me>
+        didchat doc     <me>
+        didchat did     <me>
 
-        didchat <init|doc|did>
+        didchat connect <me>  <other> <other did>
 
-        didchat add     <name>  <did>
-        didchat send    <name>  <message>            -->   <didcomm encrypted message>
-        didchat receive <didcomm encrypted message>  -->   <message>
+        didchat send    <me>  <other> <message>        -->  <encrypted message>
+        didchat receive <me>  <encrypted message>      -->  <other>: <message>
 "))
 }
 
 
 #[derive(Debug)]
 enum CMD {
-    Init,
-    Doc,
-    Did,
-    Add{ name: String, did: String },
-    Send{ to: String, message: String },
-    Receive{ didcomm_encrypted_message: String },
+    Init{ agent: String },
+    Doc{ agent: String },
+    Did{ agent: String },
+    Connect{ agent: String, name: String, did: String },
+    Send{ agent: String, name: String, message: String },
+    Receive{ agent: String, didcomm_encrypted_message: String },
     Help
 }
 
@@ -179,7 +198,7 @@ pub struct Config {
 
 impl Config {
     pub fn new(args: &[String]) -> Result<Config, std::io::Error> {
-        let valid_cmds = vec!["help", "did", "doc", "init", "add", "send", "receive"];
+        let valid_cmds = vec!["help", "did", "doc", "init", "connect", "send", "receive"];
         let default_cmd = String::from("help");
         let cmd = args.get(1).unwrap_or(&default_cmd);
 
@@ -190,42 +209,78 @@ impl Config {
         };
 
         let cmd: CMD = match &cmd[..] {
-            "did" => CMD::Did,
-            "doc" => CMD::Doc,
-            "init" => CMD::Init,
-            "add" => {
-                let name = (match args.get(2) {
+            "did" => {
+                let agent = (match args.get(2) {
                     Some(arg) => arg,
                     None => return Ok(Config{ cmd: CMD::Help }),
                 }).clone();
 
-                let did = (match args.get(3) {
+                CMD::Did{ agent }
+            },
+            "doc" => {
+                let agent = (match args.get(2) {
                     Some(arg) => arg,
                     None => return Ok(Config{ cmd: CMD::Help }),
                 }).clone();
 
-                CMD::Add{ name, did }
+                CMD::Doc{ agent }
+            },
+            "init" => {
+                let agent = (match args.get(2) {
+                    Some(arg) => arg,
+                    None => return Ok(Config{ cmd: CMD::Help }),
+                }).clone();
+
+                CMD::Init{ agent }
+            },
+            "connect" => {
+                let agent = (match args.get(2) {
+                    Some(arg) => arg,
+                    None => return Ok(Config{ cmd: CMD::Help }),
+                }).clone();
+
+                let name = (match args.get(3) {
+                    Some(arg) => arg,
+                    None => return Ok(Config{ cmd: CMD::Help }),
+                }).clone();
+
+                let did = (match args.get(4) {
+                    Some(arg) => arg,
+                    None => return Ok(Config{ cmd: CMD::Help }),
+                }).clone();
+                
+                CMD::Connect{ agent, name, did }
             },
             "send" => {
-                let to = (match args.get(2) {
+                let agent = (match args.get(2) {
                     Some(arg) => arg,
                     None => return Ok(Config{ cmd: CMD::Help }),
                 }).clone();
 
-                let message = (match args.get(3) {
+                let name = (match args.get(3) {
                     Some(arg) => arg,
                     None => return Ok(Config{ cmd: CMD::Help }),
                 }).clone();
 
-                CMD::Send{ to, message }
+                let message = (match args.get(4) {
+                    Some(arg) => arg,
+                    None => return Ok(Config{ cmd: CMD::Help }),
+                }).clone();
+
+                CMD::Send{ agent, name, message }
             },
             "receive" => {
-                let didcomm_encrypted_message = (match args.get(2) {
+                let agent = (match args.get(2) {
                     Some(arg) => arg,
                     None => return Ok(Config{ cmd: CMD::Help }),
                 }).clone();
 
-                CMD::Receive{ didcomm_encrypted_message }
+                let didcomm_encrypted_message = (match args.get(3) {
+                    Some(arg) => arg,
+                    None => return Ok(Config{ cmd: CMD::Help }),
+                }).clone();
+
+                CMD::Receive{ agent, didcomm_encrypted_message }
             },
             "help" => CMD::Help,
             &_ => CMD::Help,
@@ -233,4 +288,28 @@ impl Config {
 
         Ok(Config { cmd })
     }
+}
+
+fn root_path(agent: &str) -> String {
+    format!(".didchat.{}", agent)
+}
+
+fn seed_path(agent: &str) -> String {
+    format!(".didchat.{}/seed", agent)
+}
+
+fn names_path(agent: &str) -> String {
+    format!(".didchat.{}/names", agent)
+}
+
+fn name_path(agent: &str, name: &str) -> String {
+    format!(".didchat.{}/names/{}", agent, name)
+}
+
+fn dids_path(agent: &str) -> String {
+    format!(".didchat.{}/dids", agent)
+}
+
+fn did_path(agent: &str, did: &str) -> String {
+    format!(".didchat.{}/dids/{}", agent, did)
 }
