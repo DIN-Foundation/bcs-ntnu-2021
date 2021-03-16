@@ -91,13 +91,13 @@ fn send(to: &str, message: &str) -> Result<String, std::io::Error> {
     use did_key::DIDCore;
 
     // 1. Read from and to x25519 keys from file
-    let from_seed = std::fs::read(".didchat/seed").unwrap(); // @unwrap!!
+    let from_seed = std::fs::read(".didchat/seed").unwrap();
     let from_key = did_key::Ed25519KeyPair::from_seed(&from_seed);
     let from_did = from_key.get_did_document(did_key::CONFIG_LD_PUBLIC).id;
     let from_key = from_key.get_x25519();
     
-    let to_did = std::fs::read_to_string(format!(".didchat/dids/{}.did", to)).unwrap(); // @unwrap!!
-    let to_key = did_key::resolve(&to_did).unwrap(); // @unwrap!!
+    let to_did = std::fs::read_to_string(format!(".didchat/dids/{}.did", to)).unwrap();
+    let to_key = did_key::resolve(&to_did).unwrap();
     let to_key = did_key::Ed25519KeyPair::from_public_key(&to_key.public_key_bytes());
     let to_key = to_key.get_x25519();
 
@@ -117,7 +117,7 @@ fn send(to: &str, message: &str) -> Result<String, std::io::Error> {
     // 4. Seal/encrypt message using shared secret
     let sealed_message = message
         .seal(&shared_secret)
-        .unwrap(); // @unwrap!!
+        .unwrap();
 
     Ok(format!("{:?}", &sealed_message))
 }
@@ -127,14 +127,14 @@ fn receive(didcomm_message: &str) -> Result<String, std::io::Error> {
     use did_key::KeyMaterial;
 
     // 1. Read "to"-key from file
-    let to_seed = std::fs::read(".didchat/seed").unwrap(); // @unwrap!!
+    let to_seed = std::fs::read(".didchat/seed").unwrap();
     let to_key = did_key::Ed25519KeyPair::from_seed(&to_seed);
     let to_key = to_key.get_x25519();
 
-    // 2. Read "from"-key from did file
-    let jwe: didcomm_rs::Jwe = serde_json::from_str(didcomm_message)?;
+    // 2. Read "from"-key from "dcem" header.
+    let jwe: didcomm_rs::Jwe = serde_json::from_str(didcomm_message).unwrap();
     let from_did = jwe.from().as_ref().unwrap();
-    let from_key = did_key::resolve(&from_did).unwrap(); // @unwrap!!
+    let from_key = did_key::resolve(&from_did).unwrap();
     let from_key = did_key::Ed25519KeyPair::from_public_key(&from_key.public_key_bytes());
     let from_key = from_key.get_x25519();
 
