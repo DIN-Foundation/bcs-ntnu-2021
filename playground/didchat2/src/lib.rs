@@ -4,8 +4,8 @@ pub fn run(config: Config) -> Result<String, std::io::Error> {
         CMD::Doc => doc(),
         CMD::Did => did(),
         CMD::Add{ name, did } => add(&name, &did),
-        CMD::Write{ to, message } => write(&to, &message),
-        CMD::Read{ from, didcomm_message } => read(&from, &didcomm_message),
+        CMD::Send{ to, message } => send(&to, &message),
+        CMD::Receive{ didcomm_message } => receive(&didcomm_message),
         CMD::Help => help()
     }
 }
@@ -85,7 +85,7 @@ fn add(alias: &str, did: &str) -> Result<String, std::io::Error> {
     Ok(format!(".didchat/dids/{}.did", alias))
 }
 
-fn write(to: &str, message: &str) -> Result<String, std::io::Error> {
+fn send(to: &str, message: &str) -> Result<String, std::io::Error> {
     use did_key::Ecdh;
     use did_key::KeyMaterial;
     use did_key::DIDCore;
@@ -122,7 +122,7 @@ fn write(to: &str, message: &str) -> Result<String, std::io::Error> {
     Ok(format!("{:?}", &sealed_message))
 }
 
-fn read(from: &str, didcomm_message: &str) -> Result<String, std::io::Error> {
+fn receive(didcomm_message: &str) -> Result<String, std::io::Error> {
     use did_key::Ecdh;
     use did_key::KeyMaterial;
 
@@ -132,7 +132,8 @@ fn read(from: &str, didcomm_message: &str) -> Result<String, std::io::Error> {
     let to_key = to_key.get_x25519();
 
     // 2. Read "from"-key from did file
-    let from_did = std::fs::read_to_string(format!(".didchat/dids/{}.did", from)).unwrap(); // @unwrap!!
+    let jwe: didcomm_rs::Jwe = serde_json::from_str(didcomm_message)?;
+    let from_did = jwe.from().as_ref().unwrap();
     let from_key = did_key::resolve(&from_did).unwrap(); // @unwrap!!
     let from_key = did_key::Ed25519KeyPair::from_public_key(&from_key.public_key_bytes());
     let from_key = from_key.get_x25519();
@@ -152,11 +153,11 @@ fn help() -> Result<String, std::io::Error> {
     Ok(String::from("
     Usage: 
 
-        didchat   <init|doc|did|add|write|read|help>
+        didchat   <init|doc|did|add|send|receive>
 
-        didchat add   <name>       <did>
-        didchat write <to name>    <message>
-        didchat read  <from name>  <didcomm message>
+        didchat add     <name>    <did>
+        didchat send    <to name> <plaintext>
+        didchat receive <didcomm encrypted message>
 "))
 }
 
@@ -167,8 +168,8 @@ enum CMD {
     Doc,
     Did,
     Add{ name: String, did: String },
-    Write{ to: String, message: String },
-    Read{ from: String, didcomm_message: String },
+    Send{ to: String, message: String },
+    Receive{ didcomm_message: String },
     Help
 }
 
@@ -178,7 +179,7 @@ pub struct Config {
 
 impl Config {
     pub fn new(args: &[String]) -> Result<Config, std::io::Error> {
-        let valid_cmds = vec!["help", "did", "doc", "init", "add", "write", "read"];
+        let valid_cmds = vec!["help", "did", "doc", "init", "add", "send", "receive"];
         let default_cmd = String::from("help");
         let cmd = args.get(1).unwrap_or(&default_cmd);
 
@@ -205,7 +206,7 @@ impl Config {
 
                 CMD::Add{ name, did }
             },
-            "write" => {
+            "send" => {
                 let to = (match args.get(2) {
                     Some(arg) => arg,
                     None => return Ok(Config{ cmd: CMD::Help }),
@@ -216,20 +217,15 @@ impl Config {
                     None => return Ok(Config{ cmd: CMD::Help }),
                 }).clone();
 
-                CMD::Write{ to, message }
+                CMD::Send{ to, message }
             },
-            "read" => {
-                let from = (match args.get(2) {
+            "receive" => {
+                let didcomm_message = (match args.get(2) {
                     Some(arg) => arg,
                     None => return Ok(Config{ cmd: CMD::Help }),
                 }).clone();
 
-                let didcomm_message = (match args.get(3) {
-                    Some(arg) => arg,
-                    None => return Ok(Config{ cmd: CMD::Help }),
-                }).clone();
-
-                CMD::Read{ from, didcomm_message }
+                CMD::Receive{ didcomm_message }
             },
             "help" => CMD::Help,
             &_ => CMD::Help,
