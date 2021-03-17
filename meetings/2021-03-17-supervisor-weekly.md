@@ -23,7 +23,7 @@
 - did spec design goals - https://www.w3.org/TR/did-core/#design-goals
 
 [2:20 PM] Jonas Johan Solsvik
-- vc spec overview - https://www.w3.org/TR/vc-data-model/#ecosystem-overview
+- vc spec ecosystem overview - https://www.w3.org/TR/vc-data-model/#ecosystem-overview
 
 ​[2:25 PM] Jonas Johan Solsvik
 - 5 weeks left of implementation.
