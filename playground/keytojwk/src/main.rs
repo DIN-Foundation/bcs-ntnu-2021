@@ -15,10 +15,9 @@ fn ed25519_keypair_to_jwk() -> String {
 fn didkey_keypair_to_jwk() -> String {
     let mut csprng = rand::rngs::OsRng {};
     let keypair = ed25519_dalek::Keypair::generate(&mut csprng);
-    
+
     bytes_to_jwk(keypair.public.to_bytes().to_vec(), keypair.secret.to_bytes().to_vec())
 }
-
 
 fn bytes_to_jwk(public: Vec<u8>, private: Vec<u8>) -> String {
     let jwk = ssi::jwk::JWK {
@@ -37,6 +36,13 @@ fn bytes_to_jwk(public: Vec<u8>, private: Vec<u8>) -> String {
         x509_thumbprint_sha256: None
     };
 
+    let _okp = (if let ssi::jwk::Params::OKP(o) = jwk.params.clone() {
+        Some(o)
+    } else {
+        None
+    }).unwrap();
+    
+    
     serde_json::to_string(&jwk).unwrap()
 }
 
