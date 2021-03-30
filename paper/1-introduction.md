@@ -12,7 +12,7 @@ This paper investigates 3 major innovations related to SSI:
 2. **DIDComm Messaging** - Establishes protocols for the exchange of information between networked DID-agents.
 3. **Verifiable Credentials** - Specifies how to express any piece of information as a "cryptographically secure, privacy respecting and machine verifiable" data-structure.
 
-All these 3 innovations are big on their own, and fairly independent of one another, but it is when combined, they truly realize their full potential, and become a whole that is much more than the sum of it's parts. This whole is referred to as "Self-Sovereign Identity" - SSI for short.
+All 3 innovations are big on their own, and fairly independent of one another. It is when combined, they truly realize their full potential, and become a whole, that is much more than the sum of it's parts. This whole, is referred to as "Self-Sovereign Identity" - SSI for short.
 
 ## 1.2 A practical experiment
 
