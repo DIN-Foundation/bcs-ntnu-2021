@@ -18,4 +18,4 @@ All these 3 innovations are big on their own, and fairly independent of one anot
 
 This paper also includes details about a practical experiment which was conducted, by implementing an SSI-agent as a CLI application, in the Rust programming language. 
 
-The experiment was used to understand how `didcomm-rs` - which is a pure implementation of the `DIDComm v2`-spec - could interoperate with existing `Aries`-agents, which tradiationally only have supported `"DIDComm v1"`, but as of late also are claiming `DIDComm v2`-support.
+The experiment was conducted to understand how `didcomm-rs` - which is a novel implementation of the `DIDComm v2`-spec, hosted by DIF - could interoperate with existing `Aries`-hosted implementations, which tradiationally only have supported `"DIDComm v1"`, but as of late also are claiming `DIDComm v2`-support.
