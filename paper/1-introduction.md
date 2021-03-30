@@ -4,7 +4,7 @@
 
 SSI is an evolving ecosystem which - although still in it's infancy - already has established a solid foundation of technologies, which when implemented will seed a system-wide disruption of what we know today as "The Internet".
 
-## 1.1 A theoretical overview
+## 1.1 A theoretical investigation
 
 This paper investigates 3 major innovations related to SSI:
 
