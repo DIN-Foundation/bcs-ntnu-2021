@@ -4,10 +4,18 @@
 
 SSI is an evolving ecosystem which - although still in it's infancy - already has established a solid foundation of technologies, which when implemented will seed a system-wide disruption of what we know today as "The Internet".
 
-This project is an investigation into three major innovations related to SSI:
+## 1.1 A theoretical investigation
+
+This paper investigates three major innovations related to SSI:
 
 1. **Decentralized identifiers or DID's** - Facilitates the creation of decentralized, persistent, verifiable and resolvable agents in any network.
 2. **DIDComm Messaging** - Establishes protocols for the exchange of information between networked DID-agents.
 3. **Verifiable Credentials** - Specifies how to express any piece of information as a "cryptographically secure, privacy respecting and machine verifiable" data-structure.
 
 All these 3 innovations are big on their own, and fairly independent of one another, but it is when combined, they truly realize their full potential, and become a whole that is much more than the sum of it's parts. This whole is referred to as "Self-Sovereign Identity" - SSI for short.
+
+## 1.2 A practical experiment
+
+This paper also includes details about a practical experiment which was conducted, by implementing an SSI-agent as a CLI application, in the Rust programming language. 
+
+The experiment was used to understand how `didcomm-rs` - which is a pure implementation of the `DIDComm v2`-spec - could interoperate with existing `Aries`-agents, which tradiationally only have supported `"DIDComm v1"`, but as of late also are claiming `DIDComm v2`-support.
