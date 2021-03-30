@@ -4,9 +4,9 @@
 
 SSI is an evolving ecosystem which - although still in it's infancy - already has established a solid foundation of technologies, which when implemented will seed a system-wide disruption of what we know today as "The Internet".
 
-## 1.1 A theoretical investigation
+## 1.1 A theoretical overview
 
-This paper investigates three major innovations related to SSI:
+This paper gives an overview of three major innovations related to SSI:
 
 1. **Decentralized identifiers or DID's** - Facilitates the creation of decentralized, persistent, verifiable and resolvable agents in any network.
 2. **DIDComm Messaging** - Establishes protocols for the exchange of information between networked DID-agents.
@@ -16,6 +16,6 @@ All these 3 innovations are big on their own, and fairly independent of one anot
 
 ## 1.2 A practical experiment
 
-This paper also includes details about a practical experiment which was conducted, by implementing an SSI-agent as a CLI application, in the Rust programming language. 
+This paper also includes details about a practical experiment which was conducted. The experiment implements an SSI-agent as a CLI application, in the Rust programming language. 
 
-The experiment was conducted to understand how `didcomm-rs` - which is a novel implementation of the `DIDComm v2`-spec, hosted by DIF - could interoperate with existing `Aries`-hosted implementations, which tradiationally only have supported `"DIDComm v1"`, but as of late also are claiming `DIDComm v2`-support.
+The experiment was conducted to better understand how `didcomm-rs` - which is a novel implementation of the `DIDComm v2`-spec hosted by DIF - could interoperate with existing `Aries`-hosted implementations - which tradiationally have been `"DIDComm v1"`-implementations, but should now support `DIDComm v2` as well.
