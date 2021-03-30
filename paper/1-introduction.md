@@ -6,7 +6,7 @@ SSI is an evolving ecosystem which - although still in it's infancy - already ha
 
 ## 1.1 A theoretical overview
 
-This paper gives an overview of three major innovations related to SSI:
+This paper investigates 3 major innovations related to SSI:
 
 1. **Decentralized identifiers or DID's** - Facilitates the creation of decentralized, persistent, verifiable and resolvable agents in any network.
 2. **DIDComm Messaging** - Establishes protocols for the exchange of information between networked DID-agents.
@@ -20,4 +20,12 @@ This paper also includes details about a practical experiment which was conducte
 
 The experiment was conducted to better understand how `didcomm-rs` - which is a novel implementation of the `DIDComm v2`-spec hosted by DIF - could interoperate with existing `Aries`-hosted implementations - which tradiationally have been `"DIDComm v1"`-implementations, but should now support `DIDComm v2` as well.
 
-To learn more about DIF, Aries, DIDComm v1 and v2, and much more, read the next chapter: ["2 Background"](./2-background.md).
+To learn more about DIF, Aries, DIDComm v1 and v2, and much more, read the next chapter: [2 Background](./2-background.md).
+
+
+## 1.3 Refs
+* [did-core]: https://www.w3.org/TR/did-core/ - 2021-03-30
+* [did-use-cases]: https://www.w3.org/TR/did-use-cases/ - 2021-03-30
+* [didcomm-messaging-v1]: https://github.com/hyperledger/aries-rfcs/tree/master/concepts/0005-didcomm - 2021-03-30
+* [didcomm-messaging-v2]: https://identity.foundation/didcomm-messaging/spec/ - 2021-03-30
+* [vc-data-model]: https://www.w3.org/TR/vc-data-model/ - 2021-03-30
