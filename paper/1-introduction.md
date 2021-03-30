@@ -19,3 +19,5 @@ All these 3 innovations are big on their own, and fairly independent of one anot
 This paper also includes details about a practical experiment which was conducted. The experiment implements an SSI-agent as a CLI application, in the Rust programming language. 
 
 The experiment was conducted to better understand how `didcomm-rs` - which is a novel implementation of the `DIDComm v2`-spec hosted by DIF - could interoperate with existing `Aries`-hosted implementations - which tradiationally have been `"DIDComm v1"`-implementations, but should now support `DIDComm v2` as well.
+
+To learn more about DIF, Aries, DIDComm v1 and v2, and much more, read the next chapter: ["2 Background"](./2-background.md).
