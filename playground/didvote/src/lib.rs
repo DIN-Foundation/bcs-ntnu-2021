@@ -234,40 +234,115 @@ fn help() -> Result<String, std::io::Error> {
 //
 
 fn root_path(path: &str) -> String {
-    format!("{}/.didvote", path)
+    let path = std::path::Path::new(path)
+        .join("./.didvote");
+
+    match path.to_str() {
+        None => panic!("root_path({:?}) is not a valid UTF-8 sequence", path),
+        Some(s) => { 
+            println!("{}", s.to_string());
+            s.to_string()
+        },
+    }
 }
 
 fn jwk_path(path: &str) -> String {
-    format!("{}/.didvote/self.jwk", path)
+    let path = std::path::Path::new(path)
+        .join("./.didvote/me.jwk");
+
+    match path.to_str() {
+        None => panic!("jwk_path({:?}) is not a valid UTF-8 sequence", path),
+        Some(s) => { 
+            println!("{}", s.to_string());
+            s.to_string()
+        },
+    }
 }
 
 fn names_path(path: &str) -> String {
-    format!("{}/.didvote/names", path)
+    let path = std::path::Path::new(path)
+        .join("./.didvote/names");
+
+    match path.to_str() {
+        None => panic!("names_path({:?}) is not a valid UTF-8 sequence", path),
+        Some(s) => { 
+            println!("{}", s.to_string());
+            s.to_string()
+        },
+    }
 }
 
 fn name_path(path: &str, name: &str) -> String {
-    format!("{}/.didvote/names/{}", path, name)
+    let path = std::path::Path::new(path)
+        .join("./.didvote/names/")
+        .join(name);
+
+    match path.to_str() {
+        None => panic!("name_path({:?}, {}) is not a valid UTF-8 sequence", path, name),
+        Some(s) => { 
+            println!("{}", s.to_string());
+            s.to_string()
+        },
+    }
 }
 
 fn dids_path(path: &str) -> String {
-    format!("{}/.didvote/dids", path)
+    let path = std::path::Path::new(path)
+        .join("./.didvote/dids");
+
+    match path.to_str() {
+        None => panic!("dids_paths({:?}) is not a valid UTF-8 sequence", path),
+        Some(s) => { 
+            println!("{}", s.to_string());
+            s.to_string()
+        },
+    }
 }
 
 fn did_path(path: &str, did: &str) -> String {
-    format!("{}/.didvote/dids/{}", path, did)
+    let path = std::path::Path::new(path)
+        .join("./.didvote/dids/")
+        .join(did);
+
+    match path.to_str() {
+        None => panic!("did_path({:?}, {}) is not a valid UTF-8 sequence", path, did),
+        Some(s) => { 
+            println!("{}", s.to_string());
+            s.to_string()
+        },
+    }
 }
 
 fn messages_path(path: &str) -> String {
-    format!("{}/.didvote/messages", path)
+
+    let path = std::path::Path::new(path)
+        .join("./.didvote/messages");
+
+    match path.to_str() {
+        None => panic!("messages_path({:?}) is not a valid UTF-8 sequence", path),
+        Some(s) => { 
+            println!("{}", s.to_string());
+            s.to_string()
+        },
+    }
 }
 
 fn message_path(path: &str) -> String {
     let start = std::time::SystemTime::now();
-    let since_the_epoch = start
+    let since_epoch = start
         .duration_since(std::time::UNIX_EPOCH)
-        .expect("Time went backwards");
+        .expect("Time went backwards").as_secs();
 
-    format!("{}/.didvote/messages/{}.dcem", path, since_the_epoch.as_nanos())
+    let path = std::path::Path::new(path)
+        .join(format!("./.didvote/messages/{}.dcem", since_epoch));
+
+    match path.to_str() {
+        None => panic!("message_path({:?}, {}) is not a valid UTF-8 sequence", path, since_epoch),
+        Some(s) => { 
+            println!("{}", s.to_string());
+            s.to_string()
+        },
+    }
 }
 
 fn encrypt_didcomm(from_key: &did_key::Ed25519KeyPair, to_key: &did_key::Ed25519KeyPair, message: &str) -> Result<String, didcomm_rs::Error> {
