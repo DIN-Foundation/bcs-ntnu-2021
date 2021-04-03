@@ -230,6 +230,9 @@ fn help() -> Result<String, std::io::Error> {
         didvote . write self \"Hello self!\"
         didvote . read $(didvote . write self \"How do you do?\")
 
+        didvote . write self \"I am very well, thank you :+1:\" > hello.dcem
+        didvote . read $(cat hello.dcem)
+
     Example - Write to peer:
         didvote jonas init
         didvote snorre init
