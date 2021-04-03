@@ -227,7 +227,8 @@ fn help() -> Result<String, std::io::Error> {
 
     Example - Write to self:
         didvote . init
-        didvote . read $(didvote . write self \"Hello self!\")
+        didvote . write self \"Hello self!\"
+        didvote . read $(didvote . write self \"How do you do?\")
 
     Example - Write to peer:
         didvote jonas init
