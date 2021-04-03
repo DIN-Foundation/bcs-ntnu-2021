@@ -33,18 +33,25 @@ fn init(path: &str) -> Result<String, std::io::Error> {
     }
 
     if !std::fs::metadata(jwk_path(path)).is_ok() {
-        // 2. Generate seed
-        use did_key::KeyMaterial;
+
+        // 2. Generate jwk
         let mut csprng = rand::rngs::OsRng {};
         let private_key = ed25519_dalek::SecretKey::generate(&mut csprng).to_bytes();
         let did_key = did_key::Ed25519KeyPair::from_seed(&private_key);
-        
+
+        use did_key::KeyMaterial;
         let jwk = publicprivatebytes_to_jwkstr(did_key.public_key_bytes(), did_key.private_key_bytes());
-        
-        // 3. Write seed to file
+
+        // 3. Write jwk to file
         let mut file = std::fs::File::create(jwk_path(path)).unwrap();
         file.write(jwk.as_bytes()).unwrap();
-        
+
+        // 4. Connect to me/self
+        use did_key::DIDCore;
+        let did_doc = did_key.get_did_document(did_key::CONFIG_LD_PUBLIC);
+
+        let _ = connect(path, "me", &did_doc.id);
+
         Ok(format!("{} is ready", path))
     } else {
         Ok(format!("{} already exists", path))
@@ -54,7 +61,7 @@ fn init(path: &str) -> Result<String, std::io::Error> {
 
 fn doc(path: &str) -> Result<String, std::io::Error> {
     use did_key::DIDCore;
-    
+
     // 1. Read jwk from file
     let jwk = std::fs::read(jwk_path(path))?;
     let jwkstr = String::from_utf8(jwk).unwrap();
@@ -108,9 +115,11 @@ fn write(path: &str, name: &str, message: &str) -> Result<String, std::io::Error
     use std::io::Write;
 
     // 1. Read from-key
-    let from_seed = std::fs::read(jwk_path(path)).unwrap();
-    let from_key = did_key::Ed25519KeyPair::from_seed(&from_seed);
-    
+    let jwk = std::fs::read(jwk_path(path))?;
+    let jwkstr = String::from_utf8(jwk).unwrap();
+    let (_, private) = jwkstr_to_publicprivatebytes(&jwkstr);
+    let from_key = did_key::Ed25519KeyPair::from_seed(&private);
+
     // 2. Read to-key
     let to_did = std::fs::read_to_string(name_path(path, name)).unwrap();
     let to_key = did_key::resolve(&to_did).unwrap();
@@ -123,7 +132,7 @@ fn write(path: &str, name: &str, message: &str) -> Result<String, std::io::Error
 
     // 4. Encrypt message with to_key, to prepare it for transmission
     let encrypted_message = encrypt_didcomm(&from_key, &to_key, message).unwrap();
-    
+
     Ok(format!("{}", &encrypted_message))
 }
 
@@ -139,9 +148,11 @@ fn read(path: &str, encrypted_message: &str) -> Result<String, std::io::Error> {
     file.write(encrypted_message.as_bytes()).unwrap();
 
     // 2. Get to-key
-    let to_seed = std::fs::read(jwk_path(path)).unwrap();
-    let to_key = did_key::Ed25519KeyPair::from_seed(&to_seed);
-    
+    let jwk = std::fs::read(jwk_path(path))?;
+    let jwkstr = String::from_utf8(jwk).unwrap();
+    let (_, private) = jwkstr_to_publicprivatebytes(&jwkstr);
+    let to_key = did_key::Ed25519KeyPair::from_seed(&private);
+
     // 3. Get from-key
     let from_jwe: didcomm_rs::Jwe = serde_json::from_str(&encrypted_message).unwrap();
     let from_did = from_jwe.from().as_ref().unwrap();
@@ -201,10 +212,10 @@ fn help() -> Result<String, std::io::Error> {
     Ok(String::from("
     Usage:
         didvote <path> <command>
-        
+
         didvote <path> init
-        didvote <path> doc    
-        didvote <path> did    
+        didvote <path> doc
+        didvote <path> did
         didvote <path> messages
 
         didvote <path> connect <name> <did>
@@ -220,7 +231,7 @@ fn help() -> Result<String, std::io::Error> {
     Example - Write to peer:
         didvote jonas init
         didvote snorre init
-        
+
         didvote snorre connect jonas $(didvote jonas did)
         didvote jonas connect snorre $(didvote snorre did)
 
@@ -239,10 +250,7 @@ fn root_path(path: &str) -> String {
 
     match path.to_str() {
         None => panic!("root_path({:?}) is not a valid UTF-8 sequence", path),
-        Some(s) => { 
-            println!("{}", s.to_string());
-            s.to_string()
-        },
+        Some(s) => s.to_string(),
     }
 }
 
@@ -252,10 +260,7 @@ fn jwk_path(path: &str) -> String {
 
     match path.to_str() {
         None => panic!("jwk_path({:?}) is not a valid UTF-8 sequence", path),
-        Some(s) => { 
-            println!("{}", s.to_string());
-            s.to_string()
-        },
+        Some(s) => s.to_string(),
     }
 }
 
@@ -265,10 +270,7 @@ fn names_path(path: &str) -> String {
 
     match path.to_str() {
         None => panic!("names_path({:?}) is not a valid UTF-8 sequence", path),
-        Some(s) => { 
-            println!("{}", s.to_string());
-            s.to_string()
-        },
+        Some(s) => s.to_string(),
     }
 }
 
@@ -279,10 +281,7 @@ fn name_path(path: &str, name: &str) -> String {
 
     match path.to_str() {
         None => panic!("name_path({:?}, {}) is not a valid UTF-8 sequence", path, name),
-        Some(s) => { 
-            println!("{}", s.to_string());
-            s.to_string()
-        },
+        Some(s) => s.to_string(),
     }
 }
 
@@ -292,10 +291,7 @@ fn dids_path(path: &str) -> String {
 
     match path.to_str() {
         None => panic!("dids_paths({:?}) is not a valid UTF-8 sequence", path),
-        Some(s) => { 
-            println!("{}", s.to_string());
-            s.to_string()
-        },
+        Some(s) => s.to_string(),
     }
 }
 
@@ -306,10 +302,7 @@ fn did_path(path: &str, did: &str) -> String {
 
     match path.to_str() {
         None => panic!("did_path({:?}, {}) is not a valid UTF-8 sequence", path, did),
-        Some(s) => { 
-            println!("{}", s.to_string());
-            s.to_string()
-        },
+        Some(s) => s.to_string(),
     }
 }
 
@@ -320,10 +313,7 @@ fn messages_path(path: &str) -> String {
 
     match path.to_str() {
         None => panic!("messages_path({:?}) is not a valid UTF-8 sequence", path),
-        Some(s) => { 
-            println!("{}", s.to_string());
-            s.to_string()
-        },
+        Some(s) => s.to_string(),
     }
 }
 
@@ -338,10 +328,7 @@ fn message_path(path: &str) -> String {
 
     match path.to_str() {
         None => panic!("message_path({:?}, {}) is not a valid UTF-8 sequence", path, since_epoch),
-        Some(s) => { 
-            println!("{}", s.to_string());
-            s.to_string()
-        },
+        Some(s) => s.to_string(),
     }
 }
 
@@ -362,7 +349,7 @@ fn encrypt_didcomm(from_key: &did_key::Ed25519KeyPair, to_key: &did_key::Ed25519
 
     // 4. Make didcomm message
     let to_vec = vec![&to_did[..]];
-    
+
     let message = didcomm_rs::Message::new()
         .from(&from_did)
         .to(&to_vec[..])
@@ -418,11 +405,11 @@ fn publicprivatebytes_to_jwkstr(public: Vec<u8>, private: Vec<u8>) -> String {
     } else {
         None
     }).unwrap();
-    
+
     serde_json::to_string(&jwk).unwrap()
 }
 
-fn jwkstr_to_publicprivatebytes(jwkstr: &str) -> (Vec<u8>, Vec<u8>) {// -> (public: Vec<u8>, private: Vec<u8>) 
+fn jwkstr_to_publicprivatebytes(jwkstr: &str) -> (Vec<u8>, Vec<u8>) {// -> (public: Vec<u8>, private: Vec<u8>)
 
     let jwk: ssi::jwk::JWK = serde_json::from_str(jwkstr).unwrap();
     let okp = (if let ssi::jwk::Params::OKP(o) = jwk.params.clone() {
@@ -464,7 +451,7 @@ pub struct Config {
 impl Config {
     pub fn new(args: &[String]) -> Result<Config, std::io::Error> {
         let default_cmd = String::from("help");
-        
+
         let path = args.get(1).unwrap_or(&default_cmd).clone();
         let cmd = args.get(2).unwrap_or(&default_cmd).clone();
 
@@ -498,7 +485,7 @@ impl Config {
                     Some(arg) => arg,
                     None => return Ok(Config{ cmd: CMD::Help }),
                 }).clone();
-                
+
                 CMD::Connect{ path, name, did }
             },
             "write" => {
