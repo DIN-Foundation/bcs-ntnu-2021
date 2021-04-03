@@ -32,7 +32,7 @@ fn init(path: &str) -> Result<String, std::io::Error> {
         std::fs::create_dir_all(messages_path(path))?;
     }
 
-    if !std::fs::metadata(jwk_path(path)).is_ok() {
+    if !std::fs::metadata(didkey_jwk_path(path)).is_ok() {
 
         // 2. Generate jwk
         let mut csprng = rand::rngs::OsRng {};
@@ -43,14 +43,14 @@ fn init(path: &str) -> Result<String, std::io::Error> {
         let jwk = publicprivatebytes_to_jwkstr(did_key.public_key_bytes(), did_key.private_key_bytes());
 
         // 3. Write jwk to file
-        let mut file = std::fs::File::create(jwk_path(path)).unwrap();
+        let mut file = std::fs::File::create(didkey_jwk_path(path)).unwrap();
         file.write(jwk.as_bytes()).unwrap();
 
-        // 4. Connect to me/self
+        // 4. Connect to self
         use did_key::DIDCore;
         let did_doc = did_key.get_did_document(did_key::CONFIG_LD_PUBLIC);
 
-        let _ = connect(path, "me", &did_doc.id);
+        let _ = connect(path, "self", &did_doc.id);
 
         Ok(format!("{} is ready", path))
     } else {
@@ -63,7 +63,7 @@ fn doc(path: &str) -> Result<String, std::io::Error> {
     use did_key::DIDCore;
 
     // 1. Read jwk from file
-    let jwk = std::fs::read(jwk_path(path))?;
+    let jwk = std::fs::read(didkey_jwk_path(path))?;
     let jwkstr = String::from_utf8(jwk).unwrap();
     let (public,_) = jwkstr_to_publicprivatebytes(&jwkstr);
 
@@ -81,7 +81,7 @@ fn did(path: &str) -> Result<String, std::io::Error> {
     use did_key::DIDCore;
 
     // 1. Read jwk from file
-    let jwk = std::fs::read(jwk_path(path))?;
+    let jwk = std::fs::read(didkey_jwk_path(path))?;
     let jwkstr = String::from_utf8(jwk).unwrap();
     let (public,_) = jwkstr_to_publicprivatebytes(&jwkstr);
 
@@ -115,7 +115,7 @@ fn write(path: &str, name: &str, message: &str) -> Result<String, std::io::Error
     use std::io::Write;
 
     // 1. Read from-key
-    let jwk = std::fs::read(jwk_path(path))?;
+    let jwk = std::fs::read(didkey_jwk_path(path))?;
     let jwkstr = String::from_utf8(jwk).unwrap();
     let (_, private) = jwkstr_to_publicprivatebytes(&jwkstr);
     let from_key = did_key::Ed25519KeyPair::from_seed(&private);
@@ -148,7 +148,7 @@ fn read(path: &str, encrypted_message: &str) -> Result<String, std::io::Error> {
     file.write(encrypted_message.as_bytes()).unwrap();
 
     // 2. Get to-key
-    let jwk = std::fs::read(jwk_path(path))?;
+    let jwk = std::fs::read(didkey_jwk_path(path))?;
     let jwkstr = String::from_utf8(jwk).unwrap();
     let (_, private) = jwkstr_to_publicprivatebytes(&jwkstr);
     let to_key = did_key::Ed25519KeyPair::from_seed(&private);
@@ -178,15 +178,17 @@ fn messages(path: &str) -> Result<String, std::io::Error> {
     let mut entries: Vec<std::fs::DirEntry> = std::fs::read_dir(messages_path(path)).unwrap().filter_map(|f| f.ok()).collect();
     entries.sort_by_key(|e| e.path());
 
+    // 1. Get to-key
+    let jwk = std::fs::read(didkey_jwk_path(path))?;
+    let jwkstr = String::from_utf8(jwk).unwrap();
+    let (_, private) = jwkstr_to_publicprivatebytes(&jwkstr);
+    let to_key = did_key::Ed25519KeyPair::from_seed(&private);
+
     for entry in entries {
         if entry.path().is_dir() {
             continue;
         }
         let encrypted_message = std::fs::read_to_string(entry.path())?;
-
-        // 1. Get to-key
-        let to_seed = std::fs::read(jwk_path(path)).unwrap();
-        let to_key = did_key::Ed25519KeyPair::from_seed(&to_seed);
 
         // 2. Get from-key
         let from_jwe: didcomm_rs::Jwe = serde_json::from_str(&encrypted_message).unwrap();
@@ -225,7 +227,6 @@ fn help() -> Result<String, std::io::Error> {
 
     Example - Write to self:
         didvote . init
-        didvote . connect self $(didvote . did)
         didvote . read $(didvote . write self \"Hello self!\")
 
     Example - Write to peer:
@@ -254,12 +255,12 @@ fn root_path(path: &str) -> String {
     }
 }
 
-fn jwk_path(path: &str) -> String {
+fn didkey_jwk_path(path: &str) -> String {
     let path = std::path::Path::new(path)
-        .join("./.didvote/me.jwk");
+        .join("./.didvote/didkey.jwk");
 
     match path.to_str() {
-        None => panic!("jwk_path({:?}) is not a valid UTF-8 sequence", path),
+        None => panic!("didkey_jwk_path({:?}) is not a valid UTF-8 sequence", path),
         Some(s) => s.to_string(),
     }
 }
