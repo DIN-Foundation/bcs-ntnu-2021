@@ -7,6 +7,7 @@ pub fn run(config: Config) -> Result<String, std::io::Error> {
         CMD::Connect{ path, name, did } => connect(&path, &name, &did),
         CMD::Write{ path, name, message } => write(&path, &name, &message),
         CMD::Read{ path, encrypted_message } => read(&path, &encrypted_message),
+        CMD::Vote{ name: _name, path: _path } => help(),
         CMD::Help => help()
     }
 }
@@ -14,7 +15,6 @@ pub fn run(config: Config) -> Result<String, std::io::Error> {
 //
 // Commands
 //
-
 fn init(path: &str) -> Result<String, std::io::Error> {
     use std::io::Write;
 
@@ -248,7 +248,6 @@ fn help() -> Result<String, std::io::Error> {
 //
 // Util
 //
-
 fn root_path(path: &str) -> String {
     let path = std::path::Path::new(path)
         .join("./.didvote");
@@ -258,6 +257,7 @@ fn root_path(path: &str) -> String {
         Some(s) => s.to_string(),
     }
 }
+
 
 fn didkey_jwk_path(path: &str) -> String {
     let path = std::path::Path::new(path)
@@ -269,6 +269,7 @@ fn didkey_jwk_path(path: &str) -> String {
     }
 }
 
+
 fn names_path(path: &str) -> String {
     let path = std::path::Path::new(path)
         .join("./.didvote/names");
@@ -278,6 +279,7 @@ fn names_path(path: &str) -> String {
         Some(s) => s.to_string(),
     }
 }
+
 
 fn name_path(path: &str, name: &str) -> String {
     let path = std::path::Path::new(path)
@@ -290,6 +292,7 @@ fn name_path(path: &str, name: &str) -> String {
     }
 }
 
+
 fn dids_path(path: &str) -> String {
     let path = std::path::Path::new(path)
         .join("./.didvote/dids");
@@ -299,6 +302,7 @@ fn dids_path(path: &str) -> String {
         Some(s) => s.to_string(),
     }
 }
+
 
 fn did_path(path: &str, did: &str) -> String {
     let path = std::path::Path::new(path)
@@ -311,6 +315,7 @@ fn did_path(path: &str, did: &str) -> String {
     }
 }
 
+
 fn messages_path(path: &str) -> String {
 
     let path = std::path::Path::new(path)
@@ -321,6 +326,7 @@ fn messages_path(path: &str) -> String {
         Some(s) => s.to_string(),
     }
 }
+
 
 fn message_path(path: &str) -> String {
     let start = std::time::SystemTime::now();
@@ -336,6 +342,7 @@ fn message_path(path: &str) -> String {
         Some(s) => s.to_string(),
     }
 }
+
 
 fn encrypt_didcomm(from_key: &did_key::Ed25519KeyPair, to_key: &did_key::Ed25519KeyPair, message: &str) -> Result<String, didcomm_rs::Error> {
     use did_key::Ecdh;
@@ -370,6 +377,7 @@ fn encrypt_didcomm(from_key: &did_key::Ed25519KeyPair, to_key: &did_key::Ed25519
     Ok(encrypted_message)
 }
 
+
 fn decrypt_didcomm(from_key: &did_key::Ed25519KeyPair, to_key: &did_key::Ed25519KeyPair, encrypted_message: &str)-> Result<String, didcomm_rs::Error> {
     use did_key::Ecdh;
 
@@ -387,6 +395,7 @@ fn decrypt_didcomm(from_key: &did_key::Ed25519KeyPair, to_key: &did_key::Ed25519
 
     Ok(decrypted)
 }
+
 
 fn publicprivatebytes_to_jwkstr(public: Vec<u8>, private: Vec<u8>) -> String {
     let jwk = ssi::jwk::JWK {
@@ -413,6 +422,7 @@ fn publicprivatebytes_to_jwkstr(public: Vec<u8>, private: Vec<u8>) -> String {
 
     serde_json::to_string(&jwk).unwrap()
 }
+
 
 fn jwkstr_to_publicprivatebytes(jwkstr: &str) -> (Vec<u8>, Vec<u8>) {// -> (public: Vec<u8>, private: Vec<u8>)
 
@@ -442,6 +452,7 @@ enum CMD {
     Init{ path: String },
     Doc{ path: String },
     Did{ path: String },
+    Vote{ path: String, name: String },
     Messages{ path: String },
     Connect{ path: String, name: String, did: String },
     Write{ path: String, name: String, message: String },
@@ -514,6 +525,7 @@ impl Config {
 
                 CMD::Read{ path, encrypted_message }
             },
+            "vote" => CMD::Help,
             "help" => CMD::Help,
             &_ => {
                 eprintln!("{} not a valid command!", cmd);
