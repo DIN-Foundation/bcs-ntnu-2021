@@ -1,4 +1,4 @@
-pub fn run(config: Config) -> Result<String, std::io::Error> {
+pub async fn run(config: Config) -> Result<String, std::io::Error> {
     match config.cmd {
         // Basic
         CMD::Init{} => init(),
@@ -11,10 +11,10 @@ pub fn run(config: Config) -> Result<String, std::io::Error> {
         CMD::Help => help(),
 
         // Verifiable Credentials
-        CMD::IssuePassport{ to_did_name } => issue_passport(&to_did_name),
-        CMD::IssueLawEnforcer{ to_did_name } => issue_law_enforcer(&to_did_name),
-        CMD::IssueTrafficAuthority{ to_did_name } => issue_traffic_authority(&to_did_name),
-        CMD::IssueDriversLicense{ to_did_name } => issue_drivers_license(&to_did_name),
+        CMD::IssuePassport{ to_did_name } => issue_passport(&to_did_name).await,
+        CMD::IssueLawEnforcer{ to_did_name } => issue_law_enforcer(&to_did_name).await,
+        CMD::IssueTrafficAuthority{ to_did_name } => issue_traffic_authority(&to_did_name).await,
+        CMD::IssueDriversLicense{ to_did_name } => issue_drivers_license(&to_did_name).await,
     }
 }
 
@@ -66,77 +66,54 @@ fn init() -> Result<String, std::io::Error> {
 
 
 fn doc() -> Result<String, std::io::Error> {
+    let self_didkey = get_self_didkey()?;
+
     use did_key::DIDCore;
-
-    // 1. Read jwk from file
-    let jwk = std::fs::read(didkey_jwk_path())?;
-    let jwkstr = String::from_utf8(jwk).unwrap();
-    let (public,_) = jwkstr_to_publicprivatebytes(&jwkstr);
-
-    // 2. Transform public key to a did-document
-    let keypair = did_key::from_existing_key::<did_key::Ed25519KeyPair>(&public, None);
-    let did_doc = keypair.get_did_document(did_key::CONFIG_LD_PUBLIC);
-
-    // 3. Serialize did-document to json
+    let did_doc = self_didkey.get_did_document(did_key::CONFIG_LD_PUBLIC);
     let did_doc = serde_json::to_string_pretty(&did_doc).unwrap();
+
     Ok(format!("{}", did_doc))
 }
 
 
 fn did() -> Result<String, std::io::Error> {
+    let self_didkey = get_self_didkey()?;
+
     use did_key::DIDCore;
+    let diddoc = self_didkey.get_did_document(did_key::CONFIG_LD_PUBLIC);
+    let did = diddoc.id;
 
-    // 1. Read jwk from file
-    let jwk = std::fs::read(didkey_jwk_path())?;
-    let jwkstr = String::from_utf8(jwk).unwrap();
-    let (public,_) = jwkstr_to_publicprivatebytes(&jwkstr);
-
-    // 2. Transform public key to a did-document
-    let keypair = did_key::from_existing_key::<did_key::Ed25519KeyPair>(&public, None);
-    let did_doc = keypair.get_did_document(did_key::CONFIG_LD_PUBLIC);
-
-    let did = did_doc.id;
-
-    // 3. Print did
     Ok(format!("{}", did))
 }
 
 fn connect(to_did_name: &str, did: &str) -> Result<String, std::io::Error> {
     use std::io::Write;
 
-    // 2. Create 'name' -> 'did' mapping
-    let mut file = std::fs::File::create(name_path(to_did_name)).unwrap();
-    file.write(did.as_bytes()).unwrap();
+    // 1. Create 'name' -> 'did'-mapping
+    let mut file = std::fs::File::create(name_path(to_did_name))?;
+    file.write(did.as_bytes())?;
 
-    // 3. Create 'did' to 'name' mapping
-    let mut file = std::fs::File::create(did_path(did)).unwrap();
-    file.write(to_did_name.as_bytes()).unwrap();
+    // 2. Create 'did' -> 'name'-mapping
+    let mut file = std::fs::File::create(did_path(did))?;
+    file.write(to_did_name.as_bytes())?;
 
     Ok(format!("{}\n{}", name_path(to_did_name), did_path(did)))
 }
 
 
 fn write(to_did_name: &str, message: &str) -> Result<String, std::io::Error> {
-    use did_key::KeyMaterial;
     use std::io::Write;
 
-    // 1. Read from-key
-    let jwk = std::fs::read(didkey_jwk_path())?;
-    let jwkstr = String::from_utf8(jwk).unwrap();
-    let (_, private) = jwkstr_to_publicprivatebytes(&jwkstr);
-    let from_key = did_key::Ed25519KeyPair::from_seed(&private);
-
-    // 2. Read to-key
-    let to_did = std::fs::read_to_string(name_path(to_did_name)).unwrap();
-    let to_key = did_key::resolve(&to_did).unwrap();
-    let to_key = did_key::Ed25519KeyPair::from_public_key(&to_key.public_key_bytes());
-
-    // 3. Encrypt message with from_key, to keep message history in local file
+    // 1. Get did:keys
+    let from_key = get_self_didkey()?;
+    let to_key = get_other_didkey(to_did_name)?;
+    
+    // 2. Encrypt message with from_key, to keep message history in local file
     let dcem = encrypt_didcomm(&from_key, &from_key, message).unwrap();
-    let mut file = std::fs::File::create(message_path()).unwrap();
-    file.write(dcem.as_bytes()).unwrap();
+    let mut file = std::fs::File::create(message_path())?;
+    file.write(dcem.as_bytes())?;
 
-    // 4. Encrypt message with to_key, to prepare it for transmission
+    // 3. Encrypt message with to_key, to prepare it for transmission
     let dcem = encrypt_didcomm(&from_key, &to_key, message).unwrap();
 
     Ok(format!("{}", &dcem))
@@ -145,50 +122,39 @@ fn write(to_did_name: &str, message: &str) -> Result<String, std::io::Error> {
 
 fn read(dcem: &str) -> Result<String, std::io::Error> {
     use std::io::Write;
-    use did_key::KeyMaterial;
 
     // 1. Store incomming message to file, to keep the message history
     let message_fpath = message_path();
     let message_fpath = std::path::Path::new(&message_fpath);
-    let mut file = std::fs::File::create(message_fpath).unwrap();
-    file.write(dcem.as_bytes()).unwrap();
+    let mut file = std::fs::File::create(message_fpath)?;
+    file.write(dcem.as_bytes())?;
 
-    // 2. Get to-key
-    let jwk = std::fs::read(didkey_jwk_path())?;
-    let jwkstr = String::from_utf8(jwk).unwrap();
-    let (_, private) = jwkstr_to_publicprivatebytes(&jwkstr);
-    let to_key = did_key::Ed25519KeyPair::from_seed(&private);
+    // 2. Get did:keys
+    let to_key = get_self_didkey()?;
+    let from_key = get_from_didkey(dcem);
 
-    // 3. Get from-key
-    let from_jwe: didcomm_rs::Jwe = serde_json::from_str(&dcem).unwrap();
-    let from_did = from_jwe.from().as_ref().unwrap();
-    let from_key = did_key::resolve(&from_did).unwrap();
-    let from_key = did_key::Ed25519KeyPair::from_public_key(&from_key.public_key_bytes());
-
-    // 4. Decrypt message
+    // 3. Decrypt message
     let decrypted = decrypt_didcomm(&from_key, &to_key, dcem).unwrap();
 
-    // 5. Format
-    let from_name = std::fs::read_to_string(did_path(from_did))
+    // 4. Format
+    use did_key::DIDCore;
+    let from_did = from_key.get_did_document(did_key::CONFIG_LD_PUBLIC).id;
+    let from_name = std::fs::read_to_string(did_path(&from_did))
         .unwrap_or(from_did.clone());
     let filename = &message_fpath.file_name().unwrap().to_str().unwrap();
+
     Ok(format!("[{}] {} > {}", filename, from_name, decrypted))
 }
 
 
 fn messages() -> Result<String, std::io::Error> {
-    use did_key::KeyMaterial;
-
     let mut result = String::from("");
 
     let mut entries: Vec<std::fs::DirEntry> = std::fs::read_dir(messages_path()).unwrap().filter_map(|f| f.ok()).collect();
     entries.sort_by_key(|e| e.path());
 
     // 1. Get to-key
-    let jwk = std::fs::read(didkey_jwk_path())?;
-    let jwkstr = String::from_utf8(jwk).unwrap();
-    let (_, private) = jwkstr_to_publicprivatebytes(&jwkstr);
-    let to_key = did_key::Ed25519KeyPair::from_seed(&private);
+    let to_key = get_self_didkey()?;
 
     for entry in entries {
         if entry.path().is_dir() {
@@ -196,19 +162,19 @@ fn messages() -> Result<String, std::io::Error> {
         }
         let dcem = std::fs::read_to_string(entry.path())?;
 
-        // 2. Get from-key
-        let from_jwe: didcomm_rs::Jwe = serde_json::from_str(&dcem).unwrap();
-        let from_did = from_jwe.from().as_ref().unwrap();
-        let from_key = did_key::resolve(&from_did).unwrap();
-        let from_key = did_key::Ed25519KeyPair::from_public_key(&from_key.public_key_bytes());
+        // 2. Get from-didkey
+        let from_key = get_from_didkey(&dcem);
+        use did_key::DIDCore;
+        let from_did = from_key.get_did_document(did_key::CONFIG_LD_PUBLIC).id;
 
         // 3. Decrypt message
         let decrypted = decrypt_didcomm(&from_key, &to_key, &dcem).unwrap();
 
         // 4. Format
-        let from_name = std::fs::read_to_string(did_path(from_did))
+        let from_name = std::fs::read_to_string(did_path(&from_did))
             .unwrap_or(from_did.clone());
         let file_name = String::from(entry.file_name().to_str().unwrap());
+
         result.push_str(&format!("[{}] {} > {}\n", file_name, from_name, decrypted));
     }
 
@@ -243,17 +209,80 @@ fn help() -> Result<String, std::io::Error> {
 //
 // Commands: Verifiable credentials
 //
-fn issue_passport(to_did_name: &str) -> Result<String, std::io::Error> { 
-    Ok(String::new()) 
+async fn issue_passport(to_did_name: &str) -> Result<String, std::io::Error> {
+    let (from_didkey, from_jwk) = get_self_jwk_and_didkey()?;
+    let to_didkey = get_other_didkey(to_did_name)?;
+
+    let credential = issue_verifiable_credential("Passport", &from_jwk, &from_didkey, &to_didkey);
+    Ok(credential.await) 
 }
-fn issue_drivers_license(to_did_name: &str) -> Result<String, std::io::Error> { 
-    Ok(String::new()) 
+
+async fn issue_drivers_license(to_did_name: &str) -> Result<String, std::io::Error> { 
+    let (from_didkey, from_jwk) = get_self_jwk_and_didkey()?;
+    let to_didkey = get_other_didkey(to_did_name)?;
+    
+    let credential = issue_verifiable_credential("DriversLicense", &from_jwk, &from_didkey, &to_didkey);
+    Ok(credential.await) 
 }
-fn issue_traffic_authority(to_did_name: &str) -> Result<String, std::io::Error> { 
-    Ok(String::new()) 
+
+async fn issue_traffic_authority(to_did_name: &str) -> Result<String, std::io::Error> { 
+    let (from_didkey, from_jwk) = get_self_jwk_and_didkey()?;
+    let to_didkey = get_other_didkey(to_did_name)?;
+    
+    let credential = issue_verifiable_credential("TrafficAuthority", &from_jwk, &from_didkey, &to_didkey);
+    Ok(credential.await) 
 }
-fn issue_law_enforcer(to_did_name: &str) -> Result<String, std::io::Error> { 
-    Ok(String::new()) 
+
+async fn issue_law_enforcer(to_did_name: &str) -> Result<String, std::io::Error> { 
+    let (from_didkey, from_jwk) = get_self_jwk_and_didkey()?;
+    let to_didkey = get_other_didkey(to_did_name)?;
+    
+    let credential = issue_verifiable_credential("LawEnforcer", &from_jwk, &from_didkey, &to_didkey);
+    Ok(credential.await) 
+}
+
+/**
+ * @param assertion_method - https://www.w3.org/TR/did-core/#assertion
+ */ 
+async fn issue_verifiable_credential(
+    credential_type: &str, 
+    issuer_jwk: &ssi::jwk::JWK,
+    issuer_didkey: &did_key::Ed25519KeyPair,
+    subject_didkey: &did_key::Ed25519KeyPair, 
+) -> String {
+    use did_key::DIDCore;
+    // 1. Get did docs
+    let issuer_doc = issuer_didkey.get_did_document(did_key::CONFIG_LD_PUBLIC);
+    let subject_doc = subject_didkey.get_did_document(did_key::CONFIG_LD_PUBLIC);
+
+    // 2. Construct unsigned vc
+    let vc = serde_json::json!({
+        "@context": [
+            "https://www.w3.org/2018/credentials/v1", 
+        ],
+        "type": credential_type,
+        "issuer": issuer_doc.id,
+        "issuanceDate": ssi::ldp::now_ms(),
+        "credentialSubject": {
+            "id": subject_doc.id
+        }
+    });
+
+    // 3. Setup proof options with verification method from issuer did doc
+    let mut vc: ssi::vc::Credential = serde_json::from_value(vc).unwrap();
+    let mut proof_options = ssi::vc::LinkedDataProofOptions::default();
+    let assertion_methods = issuer_doc.assertion_method.unwrap();
+    let verification_method = assertion_methods[0].clone();
+    proof_options.verification_method = Some(verification_method);
+    
+    // 4. Generate proof using issuer jwk
+    let proof = vc.generate_proof(issuer_jwk, &proof_options).await.unwrap();
+    vc.add_proof(proof);
+
+    // 5. Format and print
+    let pretty_vc = serde_json::to_string_pretty(&vc).unwrap();
+
+    pretty_vc
 }
 
 //
@@ -352,9 +381,9 @@ fn message_path() -> String {
 
 fn encrypt_didcomm(from_key: &did_key::Ed25519KeyPair, to_key: &did_key::Ed25519KeyPair, message: &str) -> Result<String, didcomm_rs::Error> {
     use did_key::Ecdh;
-    use did_key::DIDCore;
 
     // 1. Get dids
+    use did_key::DIDCore;
     let from_did = from_key.get_did_document(did_key::CONFIG_LD_PUBLIC).id;
     let to_did = to_key.get_did_document(did_key::CONFIG_LD_PUBLIC).id;
 
@@ -447,6 +476,52 @@ fn jwkstr_to_publicprivatebytes(jwkstr: &str) -> (Vec<u8>, Vec<u8>) {// -> (publ
     };
 
     (okp.public_key.0, privkey)
+}
+
+fn get_self_jwk_and_didkey() -> Result<(did_key::Ed25519KeyPair, ssi::jwk::JWK), std::io::Error> {
+    let jwk = didkey_jwk_path();
+    let jwk = std::fs::read(jwk)?;
+    let jwk = String::from_utf8(jwk).unwrap();
+
+    let (_, private) = jwkstr_to_publicprivatebytes(&jwk);
+    let didkey = did_key::Ed25519KeyPair::from_seed(&private);
+    
+    let jwk: ssi::jwk::JWK = serde_json::from_str(&jwk).unwrap();
+
+    Ok((didkey, jwk))
+}
+
+fn get_self_didkey() -> Result<did_key::Ed25519KeyPair, std::io::Error> {
+    let jwk = didkey_jwk_path();
+    let jwk = std::fs::read(jwk)?;
+    let jwk = String::from_utf8(jwk).unwrap();
+
+    let (_, private) = jwkstr_to_publicprivatebytes(&jwk);
+    let self_didkey = did_key::Ed25519KeyPair::from_seed(&private);
+    
+    Ok(self_didkey)
+}
+
+fn get_other_didkey(other_did_name: &str) -> Result<did_key::Ed25519KeyPair, std::io::Error> {
+    let to_did = std::fs::read_to_string(name_path(other_did_name))?;
+    let to_key = did_key::resolve(&to_did).unwrap();
+
+    use did_key::KeyMaterial;
+    let to_didkey = did_key::Ed25519KeyPair::from_public_key(&to_key.public_key_bytes());
+
+    Ok(to_didkey)
+}
+
+fn get_from_didkey(dcem: &str) -> did_key::Ed25519KeyPair {
+
+    let from_jwe: didcomm_rs::Jwe = serde_json::from_str(&dcem).unwrap();
+    let from_did = from_jwe.from().as_ref().unwrap();
+    let from_key = did_key::resolve(&from_did).unwrap();
+    
+    use did_key::KeyMaterial;
+    let from_key = did_key::Ed25519KeyPair::from_public_key(&from_key.public_key_bytes());
+
+    from_key
 }
 
 //

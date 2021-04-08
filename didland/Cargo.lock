@@ -748,6 +748,7 @@ dependencies = [
 name = "didland"
 version = "0.1.0"
 dependencies = [
+ "async-std",
  "custom_derive",
  "did-key",
  "didcomm-rs",
