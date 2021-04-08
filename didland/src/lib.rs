@@ -196,10 +196,10 @@ fn help() -> Result<String, std::io::Error> {
         didland messages
 
     Verifiable Credentials:
-        didland issue-passport          <to did name>  -->  <dcem>
-        didland issue-traffic-authority <to did name>  -->  <dcem>
-        didland issue-law-enforcer      <to did name>  -->  <dcem>
-        didland issue-drivers-license   <to did name>  -->  <dcem>
+        didland issue Passport         <to did name>  -->  <dcem>
+        didland issue DriversLicense   <to did name>  -->  <dcem>
+        didland issue TrafficAuthority <to did name>  -->  <dcem>
+        didland issue LawEnforcer      <to did name>  -->  <dcem>
 
         didland hold <credential name> <dcem>
         didland credentials
@@ -599,21 +599,30 @@ impl Config {
 
                 CMD::Read{ dcem }
             },
-            "issue-passport" => {
-                let to_did_name = get_arg_or_return_help!(2);
-                CMD::IssuePassport{ to_did_name }
-            },
-            "issue-traffic-authority" => {
-                let to_did_name = get_arg_or_return_help!(2);
-                CMD::IssueTrafficAuthority{ to_did_name }
-            },
-            "issue-law-enforcer" => {
-                let to_did_name = get_arg_or_return_help!(2);
-                CMD::IssueLawEnforcer{ to_did_name }
-            },
-            "issue-drivers-license" => {
-                let to_did_name = get_arg_or_return_help!(2);
-                CMD::IssueDriversLicense{ to_did_name }
+            "issue" => {
+                let credential_type = get_arg_or_return_help!(2);
+
+                match &credential_type[..] { 
+                    "Passport" => {
+                        let to_did_name = get_arg_or_return_help!(3);
+                        CMD::IssuePassport{ to_did_name }
+                    },
+                    "TrafficAuthority" => {
+                        let to_did_name = get_arg_or_return_help!(3);
+                        CMD::IssueTrafficAuthority{ to_did_name }
+                    },
+                    "LawEnforcer" => {
+                        let to_did_name = get_arg_or_return_help!(3);
+                        CMD::IssueLawEnforcer{ to_did_name }
+                    },
+                    "DriversLicense" => {
+                        let to_did_name = get_arg_or_return_help!(3);
+                        CMD::IssueDriversLicense{ to_did_name }
+                    },
+                    &_ => {
+                        CMD::Help
+                    }
+                }
             },
             "help" => CMD::Help,
             &_ => {
