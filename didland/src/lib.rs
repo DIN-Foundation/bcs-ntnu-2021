@@ -241,9 +241,6 @@ async fn issue_law_enforcer(to_did_name: &str) -> Result<String, std::io::Error>
     Ok(credential.await) 
 }
 
-/**
- * @param assertion_method - https://www.w3.org/TR/did-core/#assertion
- */ 
 async fn issue_verifiable_credential(
     credential_type: &str, 
     issuer_jwk: &ssi::jwk::JWK,
@@ -271,18 +268,18 @@ async fn issue_verifiable_credential(
     // 3. Setup proof options with verification method from issuer did doc
     let mut vc: ssi::vc::Credential = serde_json::from_value(vc).unwrap();
     let mut proof_options = ssi::vc::LinkedDataProofOptions::default();
-    let assertion_methods = issuer_doc.assertion_method.unwrap();
-    let verification_method = assertion_methods[0].clone();
+    // https://www.w3.org/TR/did-core/#assertion
+    let verification_method = issuer_doc.assertion_method.unwrap()[0].clone();
     proof_options.verification_method = Some(verification_method);
-    
-    // 4. Generate proof using issuer jwk
+
+    // 4. Generate proof, using issuer jwk + proof options
     let proof = vc.generate_proof(issuer_jwk, &proof_options).await.unwrap();
     vc.add_proof(proof);
 
-    // 5. Format and print
-    let pretty_vc = serde_json::to_string_pretty(&vc).unwrap();
+    // 5. Make pretty
+    let vc = serde_json::to_string_pretty(&vc).unwrap();
 
-    pretty_vc
+    vc
 }
 
 //

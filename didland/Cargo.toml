@@ -18,4 +18,3 @@ did-key = "*"
 ssi = { path = "../../../../github.com/spruceid/ssi", default-features = false,  features = ["ed25519-dalek", "rand", "sha2"]  }
 rand = "0.7"
 async-std = { version = "1.9", features = ["attributes"] }
-
