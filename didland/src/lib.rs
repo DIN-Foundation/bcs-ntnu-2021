@@ -241,47 +241,6 @@ async fn issue_law_enforcer(to_did_name: &str) -> Result<String, std::io::Error>
     Ok(credential.await) 
 }
 
-async fn issue_verifiable_credential(
-    credential_type: &str, 
-    issuer_jwk: &ssi::jwk::JWK,
-    issuer_didkey: &did_key::Ed25519KeyPair,
-    subject_didkey: &did_key::Ed25519KeyPair, 
-) -> String {
-    use did_key::DIDCore;
-    // 1. Get did docs
-    let issuer_doc = issuer_didkey.get_did_document(did_key::CONFIG_LD_PUBLIC);
-    let subject_doc = subject_didkey.get_did_document(did_key::CONFIG_LD_PUBLIC);
-
-    // 2. Construct unsigned vc
-    let vc = serde_json::json!({
-        "@context": [
-            "https://www.w3.org/2018/credentials/v1", 
-        ],
-        "type": credential_type,
-        "issuer": issuer_doc.id,
-        "issuanceDate": ssi::ldp::now_ms(),
-        "credentialSubject": {
-            "id": subject_doc.id
-        }
-    });
-
-    // 3. Setup proof options with verification method from issuer did doc
-    let mut vc: ssi::vc::Credential = serde_json::from_value(vc).unwrap();
-    let mut proof_options = ssi::vc::LinkedDataProofOptions::default();
-    // https://www.w3.org/TR/did-core/#assertion
-    let verification_method = issuer_doc.assertion_method.unwrap()[0].clone();
-    proof_options.verification_method = Some(verification_method);
-
-    // 4. Generate proof, using issuer jwk + proof options
-    let proof = vc.generate_proof(issuer_jwk, &proof_options).await.unwrap();
-    vc.add_proof(proof);
-
-    // 5. Make pretty
-    let vc = serde_json::to_string_pretty(&vc).unwrap();
-
-    vc
-}
-
 //
 // Util
 //
@@ -519,6 +478,46 @@ fn get_from_didkey(dcem: &str) -> did_key::Ed25519KeyPair {
     let from_key = did_key::Ed25519KeyPair::from_public_key(&from_key.public_key_bytes());
 
     from_key
+}
+
+async fn issue_verifiable_credential(
+    credential_type: &str, 
+    issuer_jwk: &ssi::jwk::JWK,
+    issuer_didkey: &did_key::Ed25519KeyPair,
+    subject_didkey: &did_key::Ed25519KeyPair, 
+) -> String {
+    use did_key::DIDCore;
+    // 1. Get did docs
+    let issuer_doc = issuer_didkey.get_did_document(did_key::CONFIG_LD_PUBLIC);
+    let subject_doc = subject_didkey.get_did_document(did_key::CONFIG_LD_PUBLIC);
+
+    // 2. Construct unsigned vc
+    let vc = serde_json::json!({
+        "@context": [
+            "https://www.w3.org/2018/credentials/v1", 
+        ],
+        "type": ["VerifiableCredential", credential_type],
+        "issuer": issuer_doc.id,
+        "issuanceDate": ssi::ldp::now_ms(),
+        "credentialSubject": {
+            "id": subject_doc.id
+        }
+    });
+
+    // 3. Setup proof options with verification method from issuer did doc
+    let mut vc: ssi::vc::Credential = serde_json::from_value(vc).unwrap();
+    let mut proof_options = ssi::vc::LinkedDataProofOptions::default();
+    // https://www.w3.org/TR/did-core/#assertion
+    let verification_method = issuer_doc.assertion_method.unwrap()[0].clone();
+    proof_options.verification_method = Some(verification_method);
+
+    // 4. Generate proof, using issuer jwk + proof options
+    let proof = vc.generate_proof(issuer_jwk, &proof_options).await.unwrap();
+    vc.add_proof(proof);
+
+    // 5. Make pretty
+    let vc = serde_json::to_string_pretty(&vc).unwrap();
+    vc
 }
 
 //
