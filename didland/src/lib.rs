@@ -1,38 +1,44 @@
 pub fn run(config: Config) -> Result<String, std::io::Error> {
     match config.cmd {
-        CMD::Init{ path } => init(&path),
-        CMD::Doc{ path } => doc(&path),
-        CMD::Did{ path } => did(&path),
-        CMD::Messages{ path } => messages(&path),
-        CMD::Connect{ path, name, did } => connect(&path, &name, &did),
-        CMD::Write{ path, name, message } => write(&path, &name, &message),
-        CMD::Read{ path, encrypted_message } => read(&path, &encrypted_message),
-        CMD::Vote{ name: _name, path: _path } => help(),
-        CMD::Help => help()
+        // Basic
+        CMD::Init{} => init(),
+        CMD::Doc{} => doc(),
+        CMD::Did{} => did(),
+        CMD::Messages{} => messages(),
+        CMD::Connect{ to_did_name, did } => connect(&to_did_name, &did),
+        CMD::Write{ to_did_name, message } => write(&to_did_name, &message),
+        CMD::Read{ dcem } => read(&dcem),
+        CMD::Help => help(),
+
+        // Verifiable Credentials
+        CMD::IssuePassport{ to_did_name } => issue_passport(&to_did_name),
+        CMD::IssueLawEnforcer{ to_did_name } => issue_law_enforcer(&to_did_name),
+        CMD::IssueTrafficAuthority{ to_did_name } => issue_traffic_authority(&to_did_name),
+        CMD::IssueDriversLicense{ to_did_name } => issue_drivers_license(&to_did_name),
     }
 }
 
 //
-// Commands
+// Commands: Basic
 //
-fn init(path: &str) -> Result<String, std::io::Error> {
+fn init() -> Result<String, std::io::Error> {
     use std::io::Write;
 
     // 1. Create empty folders
-    if !std::fs::metadata(root_path(path)).is_ok() {
-        std::fs::create_dir_all(root_path(path))?;
+    if !std::fs::metadata(root_path()).is_ok() {
+        std::fs::create_dir_all(root_path())?;
     }
-    if !std::fs::metadata(names_path(path)).is_ok() {
-        std::fs::create_dir_all(names_path(path))?;
+    if !std::fs::metadata(names_path()).is_ok() {
+        std::fs::create_dir_all(names_path())?;
     }
-    if !std::fs::metadata(dids_path(path)).is_ok() {
-        std::fs::create_dir_all(dids_path(path))?;
+    if !std::fs::metadata(dids_path()).is_ok() {
+        std::fs::create_dir_all(dids_path())?;
     }
-    if !std::fs::metadata(messages_path(path)).is_ok() {
-        std::fs::create_dir_all(messages_path(path))?;
+    if !std::fs::metadata(messages_path()).is_ok() {
+        std::fs::create_dir_all(messages_path())?;
     }
 
-    if !std::fs::metadata(didkey_jwk_path(path)).is_ok() {
+    if !std::fs::metadata(didkey_jwk_path()).is_ok() {
 
         // 2. Generate jwk
         let mut csprng = rand::rngs::OsRng {};
@@ -43,27 +49,27 @@ fn init(path: &str) -> Result<String, std::io::Error> {
         let jwk = publicprivatebytes_to_jwkstr(did_key.public_key_bytes(), did_key.private_key_bytes());
 
         // 3. Write jwk to file
-        let mut file = std::fs::File::create(didkey_jwk_path(path)).unwrap();
+        let mut file = std::fs::File::create(didkey_jwk_path()).unwrap();
         file.write(jwk.as_bytes()).unwrap();
 
         // 4. Connect to self
         use did_key::DIDCore;
         let did_doc = did_key.get_did_document(did_key::CONFIG_LD_PUBLIC);
 
-        let _ = connect(path, "self", &did_doc.id);
+        let _ = connect("self", &did_doc.id);
 
-        Ok(format!("{} is ready", path))
+        Ok(format!("Is ready"))
     } else {
-        Ok(format!("{} already exists", path))
+        Ok(format!("Already Ready"))
     }
 }
 
 
-fn doc(path: &str) -> Result<String, std::io::Error> {
+fn doc() -> Result<String, std::io::Error> {
     use did_key::DIDCore;
 
     // 1. Read jwk from file
-    let jwk = std::fs::read(didkey_jwk_path(path))?;
+    let jwk = std::fs::read(didkey_jwk_path())?;
     let jwkstr = String::from_utf8(jwk).unwrap();
     let (public,_) = jwkstr_to_publicprivatebytes(&jwkstr);
 
@@ -77,11 +83,11 @@ fn doc(path: &str) -> Result<String, std::io::Error> {
 }
 
 
-fn did(path: &str) -> Result<String, std::io::Error> {
+fn did() -> Result<String, std::io::Error> {
     use did_key::DIDCore;
 
     // 1. Read jwk from file
-    let jwk = std::fs::read(didkey_jwk_path(path))?;
+    let jwk = std::fs::read(didkey_jwk_path())?;
     let jwkstr = String::from_utf8(jwk).unwrap();
     let (public,_) = jwkstr_to_publicprivatebytes(&jwkstr);
 
@@ -95,91 +101,91 @@ fn did(path: &str) -> Result<String, std::io::Error> {
     Ok(format!("{}", did))
 }
 
-fn connect(path: &str, name: &str, did: &str) -> Result<String, std::io::Error> {
+fn connect(to_did_name: &str, did: &str) -> Result<String, std::io::Error> {
     use std::io::Write;
 
     // 2. Create 'name' -> 'did' mapping
-    let mut file = std::fs::File::create(name_path(path, name)).unwrap();
+    let mut file = std::fs::File::create(name_path(to_did_name)).unwrap();
     file.write(did.as_bytes()).unwrap();
 
     // 3. Create 'did' to 'name' mapping
-    let mut file = std::fs::File::create(did_path(path, did)).unwrap();
-    file.write(name.as_bytes()).unwrap();
+    let mut file = std::fs::File::create(did_path(did)).unwrap();
+    file.write(to_did_name.as_bytes()).unwrap();
 
-    Ok(format!("{}\n{}", name_path(path, name), did_path(path, did)))
+    Ok(format!("{}\n{}", name_path(to_did_name), did_path(did)))
 }
 
 
-fn write(path: &str, name: &str, message: &str) -> Result<String, std::io::Error> {
+fn write(to_did_name: &str, message: &str) -> Result<String, std::io::Error> {
     use did_key::KeyMaterial;
     use std::io::Write;
 
     // 1. Read from-key
-    let jwk = std::fs::read(didkey_jwk_path(path))?;
+    let jwk = std::fs::read(didkey_jwk_path())?;
     let jwkstr = String::from_utf8(jwk).unwrap();
     let (_, private) = jwkstr_to_publicprivatebytes(&jwkstr);
     let from_key = did_key::Ed25519KeyPair::from_seed(&private);
 
     // 2. Read to-key
-    let to_did = std::fs::read_to_string(name_path(path, name)).unwrap();
+    let to_did = std::fs::read_to_string(name_path(to_did_name)).unwrap();
     let to_key = did_key::resolve(&to_did).unwrap();
     let to_key = did_key::Ed25519KeyPair::from_public_key(&to_key.public_key_bytes());
 
     // 3. Encrypt message with from_key, to keep message history in local file
-    let encrypted_message = encrypt_didcomm(&from_key, &from_key, message).unwrap();
-    let mut file = std::fs::File::create(message_path(path)).unwrap();
-    file.write(encrypted_message.as_bytes()).unwrap();
+    let dcem = encrypt_didcomm(&from_key, &from_key, message).unwrap();
+    let mut file = std::fs::File::create(message_path()).unwrap();
+    file.write(dcem.as_bytes()).unwrap();
 
     // 4. Encrypt message with to_key, to prepare it for transmission
-    let encrypted_message = encrypt_didcomm(&from_key, &to_key, message).unwrap();
+    let dcem = encrypt_didcomm(&from_key, &to_key, message).unwrap();
 
-    Ok(format!("{}", &encrypted_message))
+    Ok(format!("{}", &dcem))
 }
 
 
-fn read(path: &str, encrypted_message: &str) -> Result<String, std::io::Error> {
+fn read(dcem: &str) -> Result<String, std::io::Error> {
     use std::io::Write;
     use did_key::KeyMaterial;
 
     // 1. Store incomming message to file, to keep the message history
-    let message_fpath = message_path(path);
+    let message_fpath = message_path();
     let message_fpath = std::path::Path::new(&message_fpath);
     let mut file = std::fs::File::create(message_fpath).unwrap();
-    file.write(encrypted_message.as_bytes()).unwrap();
+    file.write(dcem.as_bytes()).unwrap();
 
     // 2. Get to-key
-    let jwk = std::fs::read(didkey_jwk_path(path))?;
+    let jwk = std::fs::read(didkey_jwk_path())?;
     let jwkstr = String::from_utf8(jwk).unwrap();
     let (_, private) = jwkstr_to_publicprivatebytes(&jwkstr);
     let to_key = did_key::Ed25519KeyPair::from_seed(&private);
 
     // 3. Get from-key
-    let from_jwe: didcomm_rs::Jwe = serde_json::from_str(&encrypted_message).unwrap();
+    let from_jwe: didcomm_rs::Jwe = serde_json::from_str(&dcem).unwrap();
     let from_did = from_jwe.from().as_ref().unwrap();
     let from_key = did_key::resolve(&from_did).unwrap();
     let from_key = did_key::Ed25519KeyPair::from_public_key(&from_key.public_key_bytes());
 
     // 4. Decrypt message
-    let decrypted = decrypt_didcomm(&from_key, &to_key, encrypted_message).unwrap();
+    let decrypted = decrypt_didcomm(&from_key, &to_key, dcem).unwrap();
 
     // 5. Format
-    let from_name = std::fs::read_to_string(did_path(path, from_did))
+    let from_name = std::fs::read_to_string(did_path(from_did))
         .unwrap_or(from_did.clone());
     let filename = &message_fpath.file_name().unwrap().to_str().unwrap();
     Ok(format!("[{}] {} > {}", filename, from_name, decrypted))
 }
 
 
-fn messages(path: &str) -> Result<String, std::io::Error> {
+fn messages() -> Result<String, std::io::Error> {
     use did_key::KeyMaterial;
 
     let mut result = String::from("");
 
-    let mut entries: Vec<std::fs::DirEntry> = std::fs::read_dir(messages_path(path)).unwrap().filter_map(|f| f.ok()).collect();
+    let mut entries: Vec<std::fs::DirEntry> = std::fs::read_dir(messages_path()).unwrap().filter_map(|f| f.ok()).collect();
     entries.sort_by_key(|e| e.path());
 
     // 1. Get to-key
-    let jwk = std::fs::read(didkey_jwk_path(path))?;
+    let jwk = std::fs::read(didkey_jwk_path())?;
     let jwkstr = String::from_utf8(jwk).unwrap();
     let (_, private) = jwkstr_to_publicprivatebytes(&jwkstr);
     let to_key = did_key::Ed25519KeyPair::from_seed(&private);
@@ -188,19 +194,19 @@ fn messages(path: &str) -> Result<String, std::io::Error> {
         if entry.path().is_dir() {
             continue;
         }
-        let encrypted_message = std::fs::read_to_string(entry.path())?;
+        let dcem = std::fs::read_to_string(entry.path())?;
 
         // 2. Get from-key
-        let from_jwe: didcomm_rs::Jwe = serde_json::from_str(&encrypted_message).unwrap();
+        let from_jwe: didcomm_rs::Jwe = serde_json::from_str(&dcem).unwrap();
         let from_did = from_jwe.from().as_ref().unwrap();
         let from_key = did_key::resolve(&from_did).unwrap();
         let from_key = did_key::Ed25519KeyPair::from_public_key(&from_key.public_key_bytes());
 
         // 3. Decrypt message
-        let decrypted = decrypt_didcomm(&from_key, &to_key, &encrypted_message).unwrap();
+        let decrypted = decrypt_didcomm(&from_key, &to_key, &dcem).unwrap();
 
         // 4. Format
-        let from_name = std::fs::read_to_string(did_path(path, from_did))
+        let from_name = std::fs::read_to_string(did_path(from_did))
             .unwrap_or(from_did.clone());
         let file_name = String::from(entry.file_name().to_str().unwrap());
         result.push_str(&format!("[{}] {} > {}\n", file_name, from_name, decrypted));
@@ -208,7 +214,6 @@ fn messages(path: &str) -> Result<String, std::io::Error> {
 
     Ok(result)
 }
-
 
 fn help() -> Result<String, std::io::Error> {
     Ok(String::from("
@@ -220,39 +225,50 @@ fn help() -> Result<String, std::io::Error> {
         didland connect  <did name> <did>
     
     Basic Didcomm Messaging:
-        didland write    <did name> <message>  -->  <dcem>
-        didland read     <dcem>                -->  <did name> <message>
+        didland write    <to did name> <message>  -->  <dcem>
+        didland read     <dcem>                   -->  <from did name> <message>
         didland messages
 
     Verifiable Credentials:
-        didland issue <credentialtype>  <to did name>  -->  <dcem>
-        didland issue passport          <to did name>  -->  <dcem>
-        didland issue traffic-authority <to did name>  -->  <dcem>
-        didland issue law-enforcer      <to did name>  -->  <dcem>
-        didland issue drivers-license   <to did name>  -->  <dcem>
+        didland issue-passport          <to did name>  -->  <dcem>
+        didland issue-traffic-authority <to did name>  -->  <dcem>
+        didland issue-law-enforcer      <to did name>  -->  <dcem>
+        didland issue-drivers-license   <to did name>  -->  <dcem>
 
-        didland hold  <credential name> <dcem>
+        didland hold <credential name> <dcem>
         didland credentials
 "))
 }
 
 //
+// Commands: Verifiable credentials
+//
+fn issue_passport(to_did_name: &str) -> Result<String, std::io::Error> { 
+    Ok(String::new()) 
+}
+fn issue_drivers_license(to_did_name: &str) -> Result<String, std::io::Error> { 
+    Ok(String::new()) 
+}
+fn issue_traffic_authority(to_did_name: &str) -> Result<String, std::io::Error> { 
+    Ok(String::new()) 
+}
+fn issue_law_enforcer(to_did_name: &str) -> Result<String, std::io::Error> { 
+    Ok(String::new()) 
+}
+
+//
 // Util
 //
-fn root_path(path: &str) -> String {
-    let path = std::path::Path::new(path)
-        .join("./.didvote");
+const ROOT_PATH: &str = "./.didland/";
 
-    match path.to_str() {
-        None => panic!("root_path({:?}) is not a valid UTF-8 sequence", path),
-        Some(s) => s.to_string(),
-    }
+fn root_path() -> String {
+    String::from(ROOT_PATH)
 }
 
 
-fn didkey_jwk_path(path: &str) -> String {
-    let path = std::path::Path::new(path)
-        .join("./.didvote/didkey.jwk");
+fn didkey_jwk_path() -> String {
+    let path = std::path::Path::new(ROOT_PATH)
+        .join("didkey.jwk");
 
     match path.to_str() {
         None => panic!("didkey_jwk_path({:?}) is not a valid UTF-8 sequence", path),
@@ -261,9 +277,9 @@ fn didkey_jwk_path(path: &str) -> String {
 }
 
 
-fn names_path(path: &str) -> String {
-    let path = std::path::Path::new(path)
-        .join("./.didvote/names");
+fn names_path() -> String {
+    let path = std::path::Path::new(ROOT_PATH)
+        .join("names/");
 
     match path.to_str() {
         None => panic!("names_path({:?}) is not a valid UTF-8 sequence", path),
@@ -272,9 +288,9 @@ fn names_path(path: &str) -> String {
 }
 
 
-fn name_path(path: &str, name: &str) -> String {
-    let path = std::path::Path::new(path)
-        .join("./.didvote/names/")
+fn name_path(name: &str) -> String {
+    let path = std::path::Path::new(ROOT_PATH)
+        .join("names/")
         .join(name);
 
     match path.to_str() {
@@ -284,9 +300,9 @@ fn name_path(path: &str, name: &str) -> String {
 }
 
 
-fn dids_path(path: &str) -> String {
-    let path = std::path::Path::new(path)
-        .join("./.didvote/dids");
+fn dids_path() -> String {
+    let path = std::path::Path::new(ROOT_PATH)
+        .join("dids/");
 
     match path.to_str() {
         None => panic!("dids_paths({:?}) is not a valid UTF-8 sequence", path),
@@ -295,9 +311,9 @@ fn dids_path(path: &str) -> String {
 }
 
 
-fn did_path(path: &str, did: &str) -> String {
-    let path = std::path::Path::new(path)
-        .join("./.didvote/dids/")
+fn did_path(did: &str) -> String {
+    let path = std::path::Path::new(ROOT_PATH)
+        .join("dids/")
         .join(did);
 
     match path.to_str() {
@@ -307,10 +323,9 @@ fn did_path(path: &str, did: &str) -> String {
 }
 
 
-fn messages_path(path: &str) -> String {
-
-    let path = std::path::Path::new(path)
-        .join("./.didvote/messages");
+fn messages_path() -> String {
+    let path = std::path::Path::new(ROOT_PATH)
+        .join("messages/");
 
     match path.to_str() {
         None => panic!("messages_path({:?}) is not a valid UTF-8 sequence", path),
@@ -319,14 +334,14 @@ fn messages_path(path: &str) -> String {
 }
 
 
-fn message_path(path: &str) -> String {
+fn message_path() -> String {
     let start = std::time::SystemTime::now();
     let since_epoch = start
         .duration_since(std::time::UNIX_EPOCH)
         .expect("Time went backwards").as_secs();
 
-    let path = std::path::Path::new(path)
-        .join(format!("./.didvote/messages/{}.dcem", since_epoch));
+    let path = std::path::Path::new(ROOT_PATH)
+        .join(format!("messages/{}.dcem", since_epoch));
 
     match path.to_str() {
         None => panic!("message_path({:?}, {}) is not a valid UTF-8 sequence", path, since_epoch),
@@ -361,15 +376,15 @@ fn encrypt_didcomm(from_key: &did_key::Ed25519KeyPair, to_key: &did_key::Ed25519
         .as_jwe(&didcomm_rs::crypto::CryptoAlgorithm::XC20P);
 
     // 5. Seal message using shared secret
-    let encrypted_message = message
+    let dcem = message
         .seal(&shared_secret)
         .unwrap();
 
-    Ok(encrypted_message)
+    Ok(dcem)
 }
 
 
-fn decrypt_didcomm(from_key: &did_key::Ed25519KeyPair, to_key: &did_key::Ed25519KeyPair, encrypted_message: &str)-> Result<String, didcomm_rs::Error> {
+fn decrypt_didcomm(from_key: &did_key::Ed25519KeyPair, to_key: &did_key::Ed25519KeyPair, dcem: &str)-> Result<String, didcomm_rs::Error> {
     use did_key::Ecdh;
 
     // 1. Map Ed25519 -> x25519
@@ -380,7 +395,7 @@ fn decrypt_didcomm(from_key: &did_key::Ed25519KeyPair, to_key: &did_key::Ed25519
     let shared_secret = to_key.key_exchange(&from_key);
 
     // 3. Decrypt message
-    let decrypted = didcomm_rs::Message::receive(encrypted_message, Some(&shared_secret), None);
+    let decrypted = didcomm_rs::Message::receive(dcem, Some(&shared_secret), None);
     let decrypted = decrypted.unwrap();
     let decrypted = String::from_utf8(decrypted.body).unwrap();
 
@@ -440,15 +455,21 @@ fn jwkstr_to_publicprivatebytes(jwkstr: &str) -> (Vec<u8>, Vec<u8>) {// -> (publ
 
 #[derive(Debug)]
 enum CMD {
-    Init{ path: String },
-    Doc{ path: String },
-    Did{ path: String },
-    Vote{ path: String, name: String },
-    Messages{ path: String },
-    Connect{ path: String, name: String, did: String },
-    Write{ path: String, name: String, message: String },
-    Read{ path: String, encrypted_message: String },
-    Help
+    // Basic
+    Init{  },
+    Doc{  },
+    Did{  },
+    Messages{  },
+    Connect{ to_did_name: String, did: String },
+    Write{ to_did_name: String, message: String },
+    Read{ dcem: String },
+    Help,
+
+    // Verifiable Credentials
+    IssuePassport{ to_did_name: String },
+    IssueDriversLicense{ to_did_name: String },
+    IssueTrafficAuthority{ to_did_name: String },
+    IssueLawEnforcer{ to_did_name: String },
 }
 
 pub struct Config {
@@ -459,64 +480,70 @@ impl Config {
     pub fn new(args: &[String]) -> Result<Config, std::io::Error> {
         let default_cmd = String::from("help");
 
-        let path = args.get(1).unwrap_or(&default_cmd).clone();
-        let cmd = args.get(2).unwrap_or(&default_cmd).clone();
+        let cmd = args.get(1).unwrap_or(&default_cmd).clone();
 
-        let cmd = if args.len() < 3 {
+        let cmd = if args.len() < 2 {
             eprintln!("Command missing!");
             default_cmd.clone()
         } else {
             cmd.clone()
         };
 
+        macro_rules! get_arg_or_return_help {
+            ( $arg_number: expr ) => {
+                (match args.get($arg_number) {
+                    Some(arg) => arg,
+                    None => return Ok(Config{ cmd: CMD::Help }),
+                }).clone()
+            };
+        }
+
         let cmd: CMD = match &cmd[..] {
             "did" => {
-                CMD::Did{ path }
+                CMD::Did{ }
             },
             "doc" => {
-                CMD::Doc{ path }
+                CMD::Doc{ }
             },
             "init" => {
-                CMD::Init{ path }
+                CMD::Init{ }
             },
             "messages" => {
-                CMD::Messages{ path }
+                CMD::Messages{ }
             },
             "connect" => {
-                let name = (match args.get(3) {
-                    Some(arg) => arg,
-                    None => return Ok(Config{ cmd: CMD::Help }),
-                }).clone();
+                let to_did_name = get_arg_or_return_help!(2);
+                let did = get_arg_or_return_help!(3);
 
-                let did = (match args.get(4) {
-                    Some(arg) => arg,
-                    None => return Ok(Config{ cmd: CMD::Help }),
-                }).clone();
-
-                CMD::Connect{ path, name, did }
+                CMD::Connect{ to_did_name, did }
             },
             "write" => {
-                let name = (match args.get(3) {
-                    Some(arg) => arg,
-                    None => return Ok(Config{ cmd: CMD::Help }),
-                }).clone();
+                let to_did_name = get_arg_or_return_help!(2);
+                let message = get_arg_or_return_help!(3);
 
-                let message = (match args.get(4) {
-                    Some(arg) => arg,
-                    None => return Ok(Config{ cmd: CMD::Help }),
-                }).clone();
-
-                CMD::Write{ path, name, message }
+                CMD::Write{ to_did_name, message }
             },
             "read" => {
-                let encrypted_message = (match args.get(3) {
-                    Some(arg) => arg,
-                    None => return Ok(Config{ cmd: CMD::Help }),
-                }).clone();
+                let dcem = get_arg_or_return_help!(2);
 
-                CMD::Read{ path, encrypted_message }
+                CMD::Read{ dcem }
             },
-            "vote" => CMD::Help,
+            "issue-passport" => {
+                let to_did_name = get_arg_or_return_help!(2);
+                CMD::IssuePassport{ to_did_name }
+            },
+            "issue-traffic-authority" => {
+                let to_did_name = get_arg_or_return_help!(2);
+                CMD::IssueTrafficAuthority{ to_did_name }
+            },
+            "issue-law-enforcer" => {
+                let to_did_name = get_arg_or_return_help!(2);
+                CMD::IssueLawEnforcer{ to_did_name }
+            },
+            "issue-drivers-license" => {
+                let to_did_name = get_arg_or_return_help!(2);
+                CMD::IssueDriversLicense{ to_did_name }
+            },
             "help" => CMD::Help,
             &_ => {
                 eprintln!("{} not a valid command!", cmd);
