@@ -18,7 +18,9 @@ pub async fn run(config: Config) -> Result<String, std::io::Error> {
         CMD::Hold{ credential_name, dcem } => hold(&credential_name, &dcem),
         CMD::Present{ credential_name, to_did_name } => present(&credential_name, &to_did_name).await,
         CMD::Credentials => credentials(),
-        CMD::Credential{ credential_name } => credential(&credential_name)
+        CMD::Credential{ credential_name } => credential(&credential_name),
+        CMD::Presentations => presentations(),
+        CMD::Presentation{ presentation_name } => presentation(&presentation_name),
     }
 }
 
@@ -40,16 +42,16 @@ fn help() -> Result<String, std::io::Error> {
         didland issue DriversLicense   <to did name>  -->  <dcem>
         didland issue TrafficAuthority <to did name>  -->  <dcem>
         didland issue LawEnforcer      <to did name>  -->  <dcem>
-        didland hold    <credential name> <dcem>
-        didland present <credential name> <to did name> @TODO <presentation name>  -->  <dcem>
-        @TODO didland verify  <issuer did name> <dcem>
+        didland hold         <credential name> <dcem>
+        didland present      <credential name> <to did name>  -->  <dcem>
+        @TODO didland verify <issuer did name> <dcem>
 
     View stored data:
         didland messages
         didland credentials
         didland credential <credential name>
-        @TODO didland presentations
-        @TODO didland presentation <presentation name>
+        didland presentations
+        didland presentation <presentation name>
 "))
 }
 
@@ -75,6 +77,10 @@ fn init() -> Result<String, std::io::Error> {
     if !std::fs::metadata(credentials_path()).is_ok() {
         std::fs::create_dir_all(credentials_path())?;
     }
+    if !std::fs::metadata(presentations_path()).is_ok() {
+        std::fs::create_dir_all(presentations_path())?;
+    }
+
 
     if !std::fs::metadata(didkey_jwk_path()).is_ok() {
 
@@ -148,7 +154,7 @@ fn write(to_did_name: &str, message: &str) -> Result<String, std::io::Error> {
 
     // 2. Encrypt message with from_key, to keep message history in local file
     let dcem = encrypt_didcomm(&from_key, &from_key, message);
-    let mut file = std::fs::File::create(message_path())?;
+    let mut file = std::fs::File::create(make_message_path())?;
     file.write(dcem.as_bytes())?;
 
     // 3. Encrypt message with to_key, to prepare it for transmission
@@ -162,9 +168,9 @@ fn read(dcem: &str) -> Result<String, std::io::Error> {
     use std::io::Write;
 
     // 1. Store incomming message to file, to keep the message history
-    let message_fpath = message_path();
-    let message_fpath = std::path::Path::new(&message_fpath);
-    let mut file = std::fs::File::create(message_fpath)?;
+    let path = make_message_path();
+    let path = std::path::Path::new(&path);
+    let mut file = std::fs::File::create(path)?;
     file.write(dcem.as_bytes())?;
 
     // 2. Get did:keys
@@ -179,7 +185,7 @@ fn read(dcem: &str) -> Result<String, std::io::Error> {
     let from_did = from_key.get_did_document(did_key::CONFIG_LD_PUBLIC).id;
     let from_name = std::fs::read_to_string(did_path(&from_did))
         .unwrap_or(from_did.clone());
-    let filename = &message_fpath.file_name().unwrap().to_str().unwrap();
+    let filename = &path.file_name().unwrap().to_str().unwrap();
 
     Ok(format!("[{}] {} > {}", filename, from_name, decrypted))
 }
@@ -270,7 +276,6 @@ fn hold(credential_name: &str, dcem: &str) -> Result<String, std::io::Error> {
     let credential_path = credential_path(credential_name);
     let credential_path = std::path::Path::new(&credential_path);
     let mut file = std::fs::File::create(credential_path)?;
-
     use std::io::Write;
     file.write(dcem.as_bytes())?;
 
@@ -323,7 +328,7 @@ fn credentials() -> Result<String, std::io::Error> {
         let file_name = String::from(entry.file_name().to_str().unwrap());
         let file_name = file_name.replace(".dcem", "");
 
-        result.push_str(&format!("{} (issued by: {})\n", file_name, issuer_name));
+        result.push_str(&format!("{} (issuer: {})\n", file_name, issuer_name));
     }
 
     Ok(result)
@@ -334,10 +339,60 @@ fn credential(credential_name: &str) -> Result<String, std::io::Error> {
     let dcem = std::fs::read_to_string(path)?;
     let from_key = get_from_key_from_didcomm_message(&dcem);
     let self_key = get_self_didkey();
-    // 3. Decrypt message
     let vc = decrypt_didcomm(&from_key, &self_key, &dcem);
 
     Ok(vc)
+}
+
+fn presentations() -> Result<String, std::io::Error> {
+    let mut result = String::from("");
+
+    let mut entries: Vec<std::fs::DirEntry> = std::fs::read_dir(presentations_path())
+        .unwrap()
+        .filter_map(|f| f.ok()).collect();
+
+    entries.sort_by_key(|e| e.path());
+
+    // 1. Get to-key
+    let self_key = get_self_didkey();
+
+    for entry in entries {
+        if entry.path().is_dir() {
+            continue;
+        }
+        let dcem = std::fs::read_to_string(entry.path())?;
+
+        // 2. Get from-didkey
+        let from_key = get_from_key_from_didcomm_message(&dcem);
+
+        // 3. Decrypt message
+        let vp = decrypt_didcomm(&from_key, &self_key, &dcem);
+        let vp: ssi::vc::Presentation = serde_json::from_str(&vp).unwrap();
+        let holder_did: String = match vp.holder.unwrap() {
+            ssi::vc::URI::String(did) => did
+        };
+
+        // 4. Format
+        let path = did_path(&holder_did);
+        let holder_name = std::fs::read_to_string(path)
+            .unwrap_or(holder_did.clone());
+        let file_name = String::from(entry.file_name().to_str().unwrap());
+        let file_name = file_name.replace(".dcem", "");
+
+        result.push_str(&format!("{} (holder: {})\n", file_name, holder_name));
+    }
+
+    Ok(result)
+}
+
+fn presentation(presentation_name: &str) -> Result<String, std::io::Error> {
+    let path = presentation_path(presentation_name);
+    let dcem = std::fs::read_to_string(path)?;
+    let from_key = get_from_key_from_didcomm_message(&dcem);
+    let self_key = get_self_didkey();
+    let vp = decrypt_didcomm(&from_key, &self_key, &dcem);
+
+    Ok(vp)
 }
 
 async fn present(credential_name: &str, to_did_name: &str) -> Result<String, std::io::Error> {
@@ -371,11 +426,17 @@ async fn present(credential_name: &str, to_did_name: &str) -> Result<String, std
     let proof = vp.generate_proof(&holder_jwk, &proof_options).await.unwrap();
     vp.add_proof(proof);
 
-
     // 3. Re-encrypt
     let vp = serde_json::to_string_pretty(&vp).unwrap();
     let to_key = get_other_didkey(&to_did_name);
     let dcem = encrypt_didcomm(&holder_key, &to_key, &vp);
+
+    // 4. Store outgoing presentation to file
+    let presentation_path = make_presentation_path();
+    let presentation_path = std::path::Path::new(&presentation_path);
+    let mut file = std::fs::File::create(presentation_path)?;
+    use std::io::Write;
+    file.write(dcem.as_bytes())?;
 
     Ok(dcem)
 }
@@ -427,10 +488,34 @@ fn credentials_path() -> String {
         .to_str().unwrap().to_string()
 }
 
-fn credential_path(credential: &str) -> String {
+fn credential_path(credential_name: &str) -> String {
     std::path::Path::new(ROOT_PATH)
         .join("credentials/")
-        .join(format!("{}.dcem", credential))
+        .join(format!("{}.dcem", credential_name))
+        .to_str().unwrap().to_string()
+}
+
+fn presentations_path() -> String {
+    std::path::Path::new(ROOT_PATH)
+        .join("presentations/")
+        .to_str().unwrap().to_string()
+}
+
+fn presentation_path(presentation_name: &str) -> String {
+    std::path::Path::new(ROOT_PATH)
+        .join("presentations/")
+        .join(format!("{}.dcem", presentation_name))
+        .to_str().unwrap().to_string()
+}
+
+fn make_presentation_path() -> String {
+    let start = std::time::SystemTime::now();
+    let since_epoch = start
+        .duration_since(std::time::UNIX_EPOCH)
+        .expect("Time went backwards").as_secs();
+
+    std::path::Path::new(ROOT_PATH)
+        .join(format!("presentations/{}.dcem", since_epoch))
         .to_str().unwrap().to_string()
 }
 
@@ -440,7 +525,7 @@ fn messages_path() -> String {
         .to_str().unwrap().to_string()
 }
 
-fn message_path() -> String {
+fn make_message_path() -> String {
     let start = std::time::SystemTime::now();
     let since_epoch = start
         .duration_since(std::time::UNIX_EPOCH)
@@ -604,25 +689,29 @@ fn get_from_key_from_didcomm_message(dcem: &str) -> did_key::Ed25519KeyPair {
 
 #[derive(Debug)]
 enum CMD {
-    // Basic
+    // Basic commands
     Init,
     Doc,
     Did,
-    Messages,
     Connect{ to_did_name: String, did: String },
     Write{ to_did_name: String, message: String },
     Read{ dcem: String },
     Help,
 
-    // Verifiable Credentials
+    // Verifiable Credentials commands
     IssuePassport{ to_did_name: String },
     IssueDriversLicense{ to_did_name: String },
     IssueTrafficAuthority{ to_did_name: String },
     IssueLawEnforcer{ to_did_name: String },
     Hold{ credential_name: String, dcem: String },
     Present{ credential_name: String, to_did_name: String },
+
+    // View data at rest
+    Messages,
     Credentials,
-    Credential{ credential_name: String }
+    Credential{ credential_name: String },
+    Presentations,
+    Presentation{ presentation_name: String }
 }
 
 pub struct Config {
@@ -712,19 +801,25 @@ impl Config {
 
                 CMD::Hold{ credential_name, dcem }
             },
-            "credentials" => {
-                CMD::Credentials
-            },
-            "credential" => {
-                let credential_name = get_arg_or_return_help!(2);
-
-                CMD::Credential{ credential_name }
-            },
             "present" => {
                 let credential_name = get_arg_or_return_help!(2);
                 let to_did_name = get_arg_or_return_help!(3);
 
                 CMD::Present{ credential_name, to_did_name }
+            },
+            "credentials" => {
+                CMD::Credentials
+            },
+            "credential" => {
+                let credential_name = get_arg_or_return_help!(2);
+                CMD::Credential{ credential_name }
+            },
+            "presentations" => {
+                CMD::Presentations
+            },
+            "presentation" => {
+                let presentation_name = get_arg_or_return_help!(2);
+                CMD::Presentation{ presentation_name }
             },
             "help" => CMD::Help,
             &_ => {
