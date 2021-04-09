@@ -15,7 +15,33 @@ pub async fn run(config: Config) -> Result<String, std::io::Error> {
         CMD::IssueLawEnforcer{ to_did_name } => issue("LawEnforcer", &to_did_name).await,
         CMD::IssueTrafficAuthority{ to_did_name } => issue("TrafficAuthority", &to_did_name).await,
         CMD::IssueDriversLicense{ to_did_name } => issue("DriversLicense", &to_did_name).await,
+        CMD::Hold{ credential_name, dcem } => hold(&credential_name, &dcem),
     }
+}
+
+fn help() -> Result<String, std::io::Error> {
+    Ok(String::from("
+    Usage:
+        didland <command> <args>
+        didland init
+        didland did
+        didland doc
+        didland connect  <did name> <did>
+
+    Basic Didcomm Messaging:
+        didland write    <to did name> <message>  -->  <dcem>
+        didland read     <dcem>                   -->  <from did name> <message>
+        didland messages
+
+    Verifiable Credentials:
+        didland issue Passport         <to did name>  -->  <dcem>
+        didland issue DriversLicense   <to did name>  -->  <dcem>
+        didland issue TrafficAuthority <to did name>  -->  <dcem>
+        didland issue LawEnforcer      <to did name>  -->  <dcem>
+
+        didland hold <credential name> <dcem>
+        didland credentials
+"))
 }
 
 //
@@ -36,6 +62,9 @@ fn init() -> Result<String, std::io::Error> {
     }
     if !std::fs::metadata(messages_path()).is_ok() {
         std::fs::create_dir_all(messages_path())?;
+    }
+    if !std::fs::metadata(credentials_path()).is_ok() {
+        std::fs::create_dir_all(credentials_path())?;
     }
 
     if !std::fs::metadata(didkey_jwk_path()).is_ok() {
@@ -107,7 +136,7 @@ fn write(to_did_name: &str, message: &str) -> Result<String, std::io::Error> {
     // 1. Get did:keys
     let from_key = get_self_didkey();
     let to_key = get_other_didkey(to_did_name);
-    
+
     // 2. Encrypt message with from_key, to keep message history in local file
     let dcem = encrypt_didcomm(&from_key, &from_key, message);
     let mut file = std::fs::File::create(message_path())?;
@@ -181,30 +210,6 @@ fn messages() -> Result<String, std::io::Error> {
     Ok(result)
 }
 
-fn help() -> Result<String, std::io::Error> {
-    Ok(String::from("
-    Usage:
-        didland <command> <args>
-        didland init
-        didland did
-        didland doc
-        didland connect  <did name> <did>
-    
-    Basic Didcomm Messaging:
-        didland write    <to did name> <message>  -->  <dcem>
-        didland read     <dcem>                   -->  <from did name> <message>
-        didland messages
-
-    Verifiable Credentials:
-        didland issue Passport         <to did name>  -->  <dcem>
-        didland issue DriversLicense   <to did name>  -->  <dcem>
-        didland issue TrafficAuthority <to did name>  -->  <dcem>
-        didland issue LawEnforcer      <to did name>  -->  <dcem>
-
-        didland hold <credential name> <dcem>
-        didland credentials
-"))
-}
 
 //
 // Commands: Verifiable credentials
@@ -221,7 +226,7 @@ async fn issue(credential_type: &str, to_did_name: &str) -> Result<String, std::
     // 2. Construct unsigned vc
     let vc = serde_json::json!({
         "@context": [
-            "https://www.w3.org/2018/credentials/v1", 
+            "https://www.w3.org/2018/credentials/v1",
         ],
         "type": ["VerifiableCredential", credential_type],
         "issuer": issuer_doc.id,
@@ -234,7 +239,7 @@ async fn issue(credential_type: &str, to_did_name: &str) -> Result<String, std::
     // 3. Setup proof options with verification method from issuer did doc
     let mut vc: ssi::vc::Credential = serde_json::from_value(vc).unwrap();
     let mut proof_options = ssi::vc::LinkedDataProofOptions::default();
-    
+
     // https://www.w3.org/TR/did-core/#assertion
     let verification_method = issuer_doc.assertion_method.unwrap()[0].clone();
     proof_options.verification_method = Some(verification_method);
@@ -248,6 +253,26 @@ async fn issue(credential_type: &str, to_did_name: &str) -> Result<String, std::
     let dcem = encrypt_didcomm(&issuer_didkey, &subject_didkey, &vc);
 
     Ok(dcem)
+}
+
+fn hold(credential_name: &str, dcem: &str) -> Result<String, std::io::Error> {
+    // 1. Store incomming credential to file
+    let credential_path = credential_path(credential_name);
+    println!("{:?}", credential_path);
+    let credential_path = std::path::Path::new(&credential_path);
+    let mut file = std::fs::File::create(credential_path)?;
+
+    use std::io::Write;
+    file.write(dcem.as_bytes())?;
+
+    // 2. Get did:keys
+    let to_key = get_self_didkey();
+    let from_key = get_from_key_from_didcomm_message(dcem);
+
+    // 3. Decrypt message
+    let decrypted = decrypt_didcomm(&from_key, &to_key, dcem);
+
+    Ok(decrypted)
 }
 
 //
@@ -283,50 +308,43 @@ fn names_path() -> String {
 
 
 fn name_path(name: &str) -> String {
-    let path = std::path::Path::new(ROOT_PATH)
+    std::path::Path::new(ROOT_PATH)
         .join("names/")
-        .join(name);
-
-    match path.to_str() {
-        None => panic!("name_path({:?}, {}) is not a valid UTF-8 sequence", path, name),
-        Some(s) => s.to_string(),
-    }
+        .join(name)
+        .to_str().unwrap().to_string()
 }
 
 
 fn dids_path() -> String {
-    let path = std::path::Path::new(ROOT_PATH)
-        .join("dids/");
-
-    match path.to_str() {
-        None => panic!("dids_paths({:?}) is not a valid UTF-8 sequence", path),
-        Some(s) => s.to_string(),
-    }
-}
-
-
-fn did_path(did: &str) -> String {
-    let path = std::path::Path::new(ROOT_PATH)
+    std::path::Path::new(ROOT_PATH)
         .join("dids/")
-        .join(did);
-
-    match path.to_str() {
-        None => panic!("did_path({:?}, {}) is not a valid UTF-8 sequence", path, did),
-        Some(s) => s.to_string(),
-    }
+        .to_str().unwrap().to_string()
 }
 
+fn did_path(did_name: &str) -> String {
+    std::path::Path::new(ROOT_PATH)
+        .join("dids/")
+        .join(did_name).to_str().unwrap().to_string()
+}
+
+fn credentials_path() -> String {
+    std::path::Path::new(ROOT_PATH)
+        .join("credentials/")
+        .to_str().unwrap().to_string()
+}
+
+fn credential_path(credential: &str) -> String {
+    std::path::Path::new(ROOT_PATH)
+        .join("credentials/")
+        .join(format!("{}.dcem", credential))
+        .to_str().unwrap().to_string()
+}
 
 fn messages_path() -> String {
-    let path = std::path::Path::new(ROOT_PATH)
-        .join("messages/");
-
-    match path.to_str() {
-        None => panic!("messages_path({:?}) is not a valid UTF-8 sequence", path),
-        Some(s) => s.to_string(),
-    }
+    std::path::Path::new(ROOT_PATH)
+        .join("messages/")
+        .to_str().unwrap().to_string()
 }
-
 
 fn message_path() -> String {
     let start = std::time::SystemTime::now();
@@ -334,13 +352,9 @@ fn message_path() -> String {
         .duration_since(std::time::UNIX_EPOCH)
         .expect("Time went backwards").as_secs();
 
-    let path = std::path::Path::new(ROOT_PATH)
-        .join(format!("messages/{}.dcem", since_epoch));
-
-    match path.to_str() {
-        None => panic!("message_path({:?}, {}) is not a valid UTF-8 sequence", path, since_epoch),
-        Some(s) => s.to_string(),
-    }
+    std::path::Path::new(ROOT_PATH)
+        .join(format!("messages/{}.dcem", since_epoch))
+        .to_str().unwrap().to_string()
 }
 
 
@@ -450,7 +464,7 @@ fn get_self_jwk_and_didkey() -> (did_key::Ed25519KeyPair, ssi::jwk::JWK) {
 
     let (_, private) = jwkstr_to_publicprivatebytes(&jwk);
     let didkey = did_key::Ed25519KeyPair::from_seed(&private);
-    
+
     let jwk: ssi::jwk::JWK = serde_json::from_str(&jwk).unwrap();
 
     (didkey, jwk)
@@ -463,7 +477,7 @@ fn get_self_didkey() -> did_key::Ed25519KeyPair {
 
     let (_, private) = jwkstr_to_publicprivatebytes(&jwk);
     let self_didkey = did_key::Ed25519KeyPair::from_seed(&private);
-    
+
     self_didkey
 }
 
@@ -483,7 +497,7 @@ fn get_from_key_from_didcomm_message(dcem: &str) -> did_key::Ed25519KeyPair {
     let from_jwe: didcomm_rs::Jwe = serde_json::from_str(&dcem).unwrap();
     let from_did = from_jwe.from().as_ref().unwrap();
     let from_key = did_key::resolve(&from_did).unwrap();
-    
+
     use did_key::KeyMaterial;
     let from_key = did_key::Ed25519KeyPair::from_public_key(&from_key.public_key_bytes());
 
@@ -512,6 +526,7 @@ enum CMD {
     IssueDriversLicense{ to_did_name: String },
     IssueTrafficAuthority{ to_did_name: String },
     IssueLawEnforcer{ to_did_name: String },
+    Hold{ credential_name: String, dcem: String },
 }
 
 pub struct Config {
@@ -573,7 +588,7 @@ impl Config {
             "issue" => {
                 let credential_type = get_arg_or_return_help!(2);
 
-                match &credential_type[..] { 
+                match &credential_type[..] {
                     "Passport" => {
                         let to_did_name = get_arg_or_return_help!(3);
                         CMD::IssuePassport{ to_did_name }
@@ -594,6 +609,12 @@ impl Config {
                         CMD::Help
                     }
                 }
+            },
+            "hold" => {
+                let credential_name = get_arg_or_return_help!(2);
+                let dcem = get_arg_or_return_help!(3);
+
+                CMD::Hold{ credential_name, dcem }
             },
             "help" => CMD::Help,
             &_ => {
