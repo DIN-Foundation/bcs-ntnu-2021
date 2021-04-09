@@ -17,6 +17,7 @@ pub async fn run(config: Config) -> Result<String, std::io::Error> {
         CMD::IssueDriversLicense{ to_did_name } => issue("DriversLicense", &to_did_name).await,
         CMD::Hold{ credential_name, dcem } => hold(&credential_name, &dcem),
         CMD::Credentials => credentials(),
+        CMD::Present{ credential_name, to_did_name } => present(credential_name, to_did_name)
     }
 }
 
@@ -42,6 +43,7 @@ fn help() -> Result<String, std::io::Error> {
 
         didland hold <credential name> <dcem>
         didland credentials
+        didland present <credential name> <to did name>  -->  <dcem>
 "))
 }
 
@@ -259,7 +261,6 @@ async fn issue(credential_type: &str, to_did_name: &str) -> Result<String, std::
 fn hold(credential_name: &str, dcem: &str) -> Result<String, std::io::Error> {
     // 1. Store incomming credential to file
     let credential_path = credential_path(credential_name);
-    println!("{:?}", credential_path);
     let credential_path = std::path::Path::new(&credential_path);
     let mut file = std::fs::File::create(credential_path)?;
 
@@ -309,7 +310,6 @@ fn credentials() -> Result<String, std::io::Error> {
             },
         };
 
-
         // 4. Format
         let issuer_name = std::fs::read_to_string(did_path(&issuer_did))
             .unwrap_or(issuer_did.clone());
@@ -322,6 +322,24 @@ fn credentials() -> Result<String, std::io::Error> {
     Ok(result)
 }
 
+fn present(credential_name: String, to_did_name: String) -> Result<String, std::io::Error> {
+    // 0. Read from file
+    let credential_path = credential_path(&credential_name);
+    let credential_path = std::path::Path::new(&credential_path);
+    let dcem = std::fs::read_to_string(credential_path).unwrap();
+
+    // 1. Un-encrypt
+    let self_key = get_self_didkey();
+    let from_key = get_from_key_from_didcomm_message(&dcem);
+    let vc = decrypt_didcomm(&from_key, &self_key, &dcem);
+
+    // 2. Re-encrypt
+    let to_key = get_other_didkey(&to_did_name);
+    let dcem = encrypt_didcomm(&self_key, &to_key, &vc);
+
+    Ok(dcem)
+}
+
 //
 // Util
 //
@@ -331,28 +349,17 @@ fn root_path() -> String {
     String::from(ROOT_PATH)
 }
 
-
 fn didkey_jwk_path() -> String {
-    let path = std::path::Path::new(ROOT_PATH)
-        .join("didkey.jwk");
-
-    match path.to_str() {
-        None => panic!("didkey_jwk_path({:?}) is not a valid UTF-8 sequence", path),
-        Some(s) => s.to_string(),
-    }
+    std::path::Path::new(ROOT_PATH)
+        .join("didkey.jwk")
+        .to_str().unwrap().to_string()
 }
-
 
 fn names_path() -> String {
-    let path = std::path::Path::new(ROOT_PATH)
-        .join("names/");
-
-    match path.to_str() {
-        None => panic!("names_path({:?}) is not a valid UTF-8 sequence", path),
-        Some(s) => s.to_string(),
-    }
+    std::path::Path::new(ROOT_PATH)
+        .join("names/")
+        .to_str().unwrap().to_string()
 }
-
 
 fn name_path(name: &str) -> String {
     std::path::Path::new(ROOT_PATH)
@@ -360,7 +367,6 @@ fn name_path(name: &str) -> String {
         .join(name)
         .to_str().unwrap().to_string()
 }
-
 
 fn dids_path() -> String {
     std::path::Path::new(ROOT_PATH)
@@ -371,7 +377,8 @@ fn dids_path() -> String {
 fn did_path(did_name: &str) -> String {
     std::path::Path::new(ROOT_PATH)
         .join("dids/")
-        .join(did_name).to_str().unwrap().to_string()
+        .join(did_name)
+        .to_str().unwrap().to_string()
 }
 
 fn credentials_path() -> String {
@@ -530,7 +537,6 @@ fn get_self_didkey() -> did_key::Ed25519KeyPair {
 
 fn get_other_didkey(other_did_name: &str) -> did_key::Ed25519KeyPair {
     let path = name_path(other_did_name);
-    println!("{:?}", path);
     let other_did = std::fs::read_to_string(path).unwrap();
     let other_didkey = did_key::resolve(&other_did).unwrap();
 
@@ -575,6 +581,7 @@ enum CMD {
     IssueLawEnforcer{ to_did_name: String },
     Hold{ credential_name: String, dcem: String },
     Credentials,
+    Present{ credential_name: String, to_did_name: String },
 }
 
 pub struct Config {
@@ -666,6 +673,12 @@ impl Config {
             },
             "credentials" => {
                 CMD::Credentials
+            },
+            "present" => {
+                let credential_name = get_arg_or_return_help!(2);
+                let to_did_name = get_arg_or_return_help!(3);
+
+                CMD::Present{ credential_name, to_did_name }
             },
             "help" => CMD::Help,
             &_ => {
