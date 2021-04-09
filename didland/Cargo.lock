@@ -715,6 +715,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "did-method-key"
+version = "0.1.0"
+dependencies = [
+ "async-trait",
+ "multibase",
+ "ssi",
+ "thiserror",
+]
+
+[[package]]
 name = "did_url"
 version = "0.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -751,6 +761,7 @@ dependencies = [
  "async-std",
  "custom_derive",
  "did-key",
+ "did-method-key",
  "didcomm-rs",
  "ed25519-dalek",
  "enum_derive",

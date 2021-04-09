@@ -4,7 +4,6 @@ pub async fn run(config: Config) -> Result<String, std::io::Error> {
         CMD::Init => init(),
         CMD::Doc => doc(),
         CMD::Did => did(),
-        CMD::Messages => messages(),
         CMD::Connect{ to_did_name, did } => connect(&to_did_name, &did),
         CMD::Write{ to_did_name, message } => write(&to_did_name, &message),
         CMD::Read{ dcem } => read(&dcem),
@@ -17,6 +16,10 @@ pub async fn run(config: Config) -> Result<String, std::io::Error> {
         CMD::IssueDriversLicense{ to_did_name } => issue("DriversLicense", &to_did_name).await,
         CMD::Hold{ credential_name, dcem } => hold(&credential_name, &dcem),
         CMD::Present{ credential_name, to_did_name } => present(&credential_name, &to_did_name).await,
+        CMD::Verify{ issuer_name, dcem } => verify(&issuer_name, &dcem).await,
+
+        // View data at rest
+        CMD::Messages => messages(),
         CMD::Credentials => credentials(),
         CMD::Credential{ credential_name } => credential(&credential_name),
         CMD::Presentations => presentations(),
@@ -42,9 +45,10 @@ fn help() -> Result<String, std::io::Error> {
         didland issue DriversLicense   <to did name>  -->  <dcem>
         didland issue TrafficAuthority <to did name>  -->  <dcem>
         didland issue LawEnforcer      <to did name>  -->  <dcem>
-        didland hold         <credential name> <dcem>
-        didland present      <credential name> <to did name>  -->  <dcem>
-        @TODO didland verify <issuer did name> <dcem>
+
+        didland hold    <credential name> <dcem>
+        didland present <credential name> <to did name>  -->  <dcem>
+        didland verify  <issuer did name> <dcem>
 
     View stored data:
         didland messages
@@ -420,7 +424,7 @@ async fn present(credential_name: &str, to_did_name: &str) -> Result<String, std
     // 2. Sign vp with holder signature
     let mut vp: ssi::vc::Presentation = serde_json::from_value(vp).unwrap();
     let mut proof_options = ssi::vc::LinkedDataProofOptions::default();
-    let verification_method = holder_doc.authentication.unwrap()[0].clone();
+    let verification_method = holder_doc.assertion_method.unwrap()[0].clone();
     proof_options.verification_method = Some(verification_method);
     proof_options.proof_purpose = Some(ssi::vc::ProofPurpose::AssertionMethod);
     let proof = vp.generate_proof(&holder_jwk, &proof_options).await.unwrap();
@@ -439,6 +443,53 @@ async fn present(credential_name: &str, to_did_name: &str) -> Result<String, std
     file.write(dcem.as_bytes())?;
 
     Ok(dcem)
+}
+
+async fn verify(issuer_did_name: &str, dcem: &str) -> Result<String, std::io::Error> {
+    // 0. Get keys
+    let issuer_key = get_other_didkey(issuer_did_name);
+    use did_key::DIDCore;
+    let wanted_issuer_did = issuer_key.get_did_document(did_key::CONFIG_LD_PUBLIC).id;
+    let holder_key = get_from_key_from_didcomm_message(dcem);
+    let verifier_key = get_self_didkey();
+
+    // 1. Decrypt vp
+    let vp = decrypt_didcomm(&holder_key, &verifier_key, dcem);
+
+    // 2. Verify VP
+    let vp: ssi::vc::Presentation = serde_json::from_str(&vp).unwrap();
+    let result = vp.verify(None, &did_method_key::DIDKey).await;
+
+    if result.errors.len() > 0 {
+        return Ok(format!("Verify presentation failed: {:#?}", result))
+    }
+
+    // 3. Verify VC
+    for vc in vp.verifiable_credential.unwrap().into_iter() {
+        let vc: ssi::vc::Credential = match vc {
+            ssi::vc::CredentialOrJWT::Credential(vc) => vc,
+            ssi::vc::CredentialOrJWT::JWT(_) => panic!("verify(): Not credential. Was JWT")
+        };
+
+        let result = vc.verify(None, &did_method_key::DIDKey).await;
+        if result.errors.len() > 0 {
+            return Ok(format!("Verify credential failed: {:#?}", result))
+        }
+
+        let actual_issuer_did: String = match vc.issuer.unwrap() {
+            ssi::vc::Issuer::URI(s) => match s {
+                ssi::vc::URI::String(s) => s
+            },
+            ssi::vc::Issuer::Object(s) => match s.id {
+                ssi::vc::URI::String(s) => s
+            },
+        };
+        if wanted_issuer_did != actual_issuer_did {
+            return Ok(format!("Credential.issuer.did did not match the did of {}: Wanted did: {}: Actual did: {}", issuer_did_name, wanted_issuer_did, actual_issuer_did));
+        }
+    }
+
+    Ok("Verification successful".to_string())
 }
 
 //
@@ -705,6 +756,7 @@ enum CMD {
     IssueLawEnforcer{ to_did_name: String },
     Hold{ credential_name: String, dcem: String },
     Present{ credential_name: String, to_did_name: String },
+    Verify{ issuer_name: String, dcem: String },
 
     // View data at rest
     Messages,
@@ -806,6 +858,12 @@ impl Config {
                 let to_did_name = get_arg_or_return_help!(3);
 
                 CMD::Present{ credential_name, to_did_name }
+            },
+            "verify" => {
+                let issuer_name = get_arg_or_return_help!(2);
+                let dcem = get_arg_or_return_help!(3);
+
+                CMD::Verify{ issuer_name, dcem }
             },
             "credentials" => {
                 CMD::Credentials
