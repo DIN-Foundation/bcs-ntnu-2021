@@ -195,41 +195,6 @@ fn read(dcem: &str) -> Result<String, std::io::Error> {
 }
 
 
-fn messages() -> Result<String, std::io::Error> {
-    let mut result = String::from("");
-
-    let mut entries: Vec<std::fs::DirEntry> = std::fs::read_dir(messages_path()).unwrap().filter_map(|f| f.ok()).collect();
-    entries.sort_by_key(|e| e.path());
-
-    // 1. Get to-key
-    let to_key = get_self_didkey();
-
-    for entry in entries {
-        if entry.path().is_dir() {
-            continue;
-        }
-        let dcem = std::fs::read_to_string(entry.path())?;
-
-        // 2. Get from-didkey
-        let from_key = get_from_key_from_didcomm_message(&dcem);
-        use did_key::DIDCore;
-        let from_did = from_key.get_did_document(did_key::CONFIG_LD_PUBLIC).id;
-
-        // 3. Decrypt message
-        let decrypted = decrypt_didcomm(&from_key, &to_key, &dcem);
-
-        // 4. Format
-        let from_name = std::fs::read_to_string(did_path(&from_did))
-            .unwrap_or(from_did.clone());
-        let file_name = String::from(entry.file_name().to_str().unwrap());
-
-        result.push_str(&format!("[{}] {} > {}\n", file_name, from_name, decrypted));
-    }
-
-    Ok(result)
-}
-
-
 //
 // Commands: Verifiable credentials
 //
@@ -291,6 +256,136 @@ fn hold(credential_name: &str, dcem: &str) -> Result<String, std::io::Error> {
     let decrypted = decrypt_didcomm(&from_key, &to_key, dcem);
 
     Ok(decrypted)
+}
+
+async fn present(credential_name: &str, to_did_name: &str) -> Result<String, std::io::Error> {
+    // 0. Read from file
+    let credential_path = credential_path(&credential_name);
+    let credential_path = std::path::Path::new(&credential_path);
+    let dcem = std::fs::read_to_string(credential_path).unwrap();
+
+    // 1. Un-encrypt
+    let (holder_key, holder_jwk) = get_self_jwk_and_didkey();
+
+    use did_key::DIDCore;
+    let holder_doc = holder_key.get_did_document(did_key::CONFIG_LD_PUBLIC);
+    let from_key = get_from_key_from_didcomm_message(&dcem);
+    let vc = decrypt_didcomm(&from_key, &holder_key, &dcem);
+
+    let vc: ssi::vc::Credential = serde_json::from_str(&vc).unwrap();
+    let vp = serde_json::json!({
+        "@context": ["https://www.w3.org/2018/credentials/v1"],
+        "type": ["VerifiablePresentation"],
+        "holder": holder_doc.id,
+        "verifiableCredential": vc
+    });
+
+    // 2. Sign vp with holder signature
+    let mut vp: ssi::vc::Presentation = serde_json::from_value(vp).unwrap();
+    let mut proof_options = ssi::vc::LinkedDataProofOptions::default();
+    let verification_method = holder_doc.assertion_method.unwrap()[0].clone();
+    proof_options.verification_method = Some(verification_method);
+    proof_options.proof_purpose = Some(ssi::vc::ProofPurpose::AssertionMethod);
+    let proof = vp.generate_proof(&holder_jwk, &proof_options).await.unwrap();
+    vp.add_proof(proof);
+
+    // 3. Re-encrypt
+    let vp = serde_json::to_string_pretty(&vp).unwrap();
+    let to_key = get_other_didkey(&to_did_name);
+    let dcem = encrypt_didcomm(&holder_key, &to_key, &vp);
+
+    // 4. Store outgoing presentation to file
+    let presentation_path = make_presentation_path();
+    let presentation_path = std::path::Path::new(&presentation_path);
+    let mut file = std::fs::File::create(presentation_path)?;
+    use std::io::Write;
+    file.write(dcem.as_bytes())?;
+
+    Ok(dcem)
+}
+
+async fn verify(issuer_did_name: &str, dcem: &str) -> Result<String, std::io::Error> {
+    // 0. Get keys
+    let issuer_key = get_other_didkey(issuer_did_name);
+    use did_key::DIDCore;
+    let wanted_issuer_did = issuer_key.get_did_document(did_key::CONFIG_LD_PUBLIC).id;
+    let holder_key = get_from_key_from_didcomm_message(dcem);
+    let verifier_key = get_self_didkey();
+
+    // 1. Decrypt vp
+    let vp = decrypt_didcomm(&holder_key, &verifier_key, dcem);
+
+    // 2. Verify VP
+    let vp: ssi::vc::Presentation = serde_json::from_str(&vp).unwrap();
+    let result = vp.verify(None, &did_method_key::DIDKey).await;
+
+    if result.errors.len() > 0 {
+        return Ok(format!("Verify presentation failed: {:#?}", result))
+    }
+
+    // 3. Verify VC
+    for vc in vp.verifiable_credential.unwrap().into_iter() {
+        let vc: ssi::vc::Credential = match vc {
+            ssi::vc::CredentialOrJWT::Credential(vc) => vc,
+            ssi::vc::CredentialOrJWT::JWT(_) => panic!("verify(): Not credential. Was JWT")
+        };
+
+        let result = vc.verify(None, &did_method_key::DIDKey).await;
+        if result.errors.len() > 0 {
+            return Ok(format!("Verify credential failed: {:#?}", result))
+        }
+
+        let actual_issuer_did: String = match vc.issuer.unwrap() {
+            ssi::vc::Issuer::URI(s) => match s {
+                ssi::vc::URI::String(s) => s
+            },
+            ssi::vc::Issuer::Object(s) => match s.id {
+                ssi::vc::URI::String(s) => s
+            },
+        };
+        if wanted_issuer_did != actual_issuer_did {
+            return Ok(format!("Credential.issuer.did did not match the did of {}: Wanted did: {}: Actual did: {}", issuer_did_name, wanted_issuer_did, actual_issuer_did));
+        }
+    }
+
+    Ok("Verification successful".to_string())
+}
+
+//
+// Commands: For viewing data at rest
+//
+fn messages() -> Result<String, std::io::Error> {
+    let mut result = String::from("");
+
+    let mut entries: Vec<std::fs::DirEntry> = std::fs::read_dir(messages_path()).unwrap().filter_map(|f| f.ok()).collect();
+    entries.sort_by_key(|e| e.path());
+
+    // 1. Get to-key
+    let to_key = get_self_didkey();
+
+    for entry in entries {
+        if entry.path().is_dir() {
+            continue;
+        }
+        let dcem = std::fs::read_to_string(entry.path())?;
+
+        // 2. Get from-didkey
+        let from_key = get_from_key_from_didcomm_message(&dcem);
+        use did_key::DIDCore;
+        let from_did = from_key.get_did_document(did_key::CONFIG_LD_PUBLIC).id;
+
+        // 3. Decrypt message
+        let decrypted = decrypt_didcomm(&from_key, &to_key, &dcem);
+
+        // 4. Format
+        let from_name = std::fs::read_to_string(did_path(&from_did))
+            .unwrap_or(from_did.clone());
+        let file_name = String::from(entry.file_name().to_str().unwrap());
+
+        result.push_str(&format!("[{}] {} > {}\n", file_name, from_name, decrypted));
+    }
+
+    Ok(result)
 }
 
 fn credentials() -> Result<String, std::io::Error> {
@@ -397,99 +492,6 @@ fn presentation(presentation_name: &str) -> Result<String, std::io::Error> {
     let vp = decrypt_didcomm(&from_key, &self_key, &dcem);
 
     Ok(vp)
-}
-
-async fn present(credential_name: &str, to_did_name: &str) -> Result<String, std::io::Error> {
-    // 0. Read from file
-    let credential_path = credential_path(&credential_name);
-    let credential_path = std::path::Path::new(&credential_path);
-    let dcem = std::fs::read_to_string(credential_path).unwrap();
-
-    // 1. Un-encrypt
-    let (holder_key, holder_jwk) = get_self_jwk_and_didkey();
-
-    use did_key::DIDCore;
-    let holder_doc = holder_key.get_did_document(did_key::CONFIG_LD_PUBLIC);
-    let from_key = get_from_key_from_didcomm_message(&dcem);
-    let vc = decrypt_didcomm(&from_key, &holder_key, &dcem);
-
-    let vc: ssi::vc::Credential = serde_json::from_str(&vc).unwrap();
-    let vp = serde_json::json!({
-        "@context": ["https://www.w3.org/2018/credentials/v1"],
-        "type": ["VerifiablePresentation"],
-        "holder": holder_doc.id,
-        "verifiableCredential": vc
-    });
-
-    // 2. Sign vp with holder signature
-    let mut vp: ssi::vc::Presentation = serde_json::from_value(vp).unwrap();
-    let mut proof_options = ssi::vc::LinkedDataProofOptions::default();
-    let verification_method = holder_doc.assertion_method.unwrap()[0].clone();
-    proof_options.verification_method = Some(verification_method);
-    proof_options.proof_purpose = Some(ssi::vc::ProofPurpose::AssertionMethod);
-    let proof = vp.generate_proof(&holder_jwk, &proof_options).await.unwrap();
-    vp.add_proof(proof);
-
-    // 3. Re-encrypt
-    let vp = serde_json::to_string_pretty(&vp).unwrap();
-    let to_key = get_other_didkey(&to_did_name);
-    let dcem = encrypt_didcomm(&holder_key, &to_key, &vp);
-
-    // 4. Store outgoing presentation to file
-    let presentation_path = make_presentation_path();
-    let presentation_path = std::path::Path::new(&presentation_path);
-    let mut file = std::fs::File::create(presentation_path)?;
-    use std::io::Write;
-    file.write(dcem.as_bytes())?;
-
-    Ok(dcem)
-}
-
-async fn verify(issuer_did_name: &str, dcem: &str) -> Result<String, std::io::Error> {
-    // 0. Get keys
-    let issuer_key = get_other_didkey(issuer_did_name);
-    use did_key::DIDCore;
-    let wanted_issuer_did = issuer_key.get_did_document(did_key::CONFIG_LD_PUBLIC).id;
-    let holder_key = get_from_key_from_didcomm_message(dcem);
-    let verifier_key = get_self_didkey();
-
-    // 1. Decrypt vp
-    let vp = decrypt_didcomm(&holder_key, &verifier_key, dcem);
-
-    // 2. Verify VP
-    let vp: ssi::vc::Presentation = serde_json::from_str(&vp).unwrap();
-    let result = vp.verify(None, &did_method_key::DIDKey).await;
-
-    if result.errors.len() > 0 {
-        return Ok(format!("Verify presentation failed: {:#?}", result))
-    }
-
-    // 3. Verify VC
-    for vc in vp.verifiable_credential.unwrap().into_iter() {
-        let vc: ssi::vc::Credential = match vc {
-            ssi::vc::CredentialOrJWT::Credential(vc) => vc,
-            ssi::vc::CredentialOrJWT::JWT(_) => panic!("verify(): Not credential. Was JWT")
-        };
-
-        let result = vc.verify(None, &did_method_key::DIDKey).await;
-        if result.errors.len() > 0 {
-            return Ok(format!("Verify credential failed: {:#?}", result))
-        }
-
-        let actual_issuer_did: String = match vc.issuer.unwrap() {
-            ssi::vc::Issuer::URI(s) => match s {
-                ssi::vc::URI::String(s) => s
-            },
-            ssi::vc::Issuer::Object(s) => match s.id {
-                ssi::vc::URI::String(s) => s
-            },
-        };
-        if wanted_issuer_did != actual_issuer_did {
-            return Ok(format!("Credential.issuer.did did not match the did of {}: Wanted did: {}: Actual did: {}", issuer_did_name, wanted_issuer_did, actual_issuer_did));
-        }
-    }
-
-    Ok("Verification successful".to_string())
 }
 
 //
