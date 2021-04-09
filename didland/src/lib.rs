@@ -16,8 +16,9 @@ pub async fn run(config: Config) -> Result<String, std::io::Error> {
         CMD::IssueTrafficAuthority{ to_did_name } => issue("TrafficAuthority", &to_did_name).await,
         CMD::IssueDriversLicense{ to_did_name } => issue("DriversLicense", &to_did_name).await,
         CMD::Hold{ credential_name, dcem } => hold(&credential_name, &dcem),
+        CMD::Present{ credential_name, to_did_name } => present(&credential_name, &to_did_name).await,
         CMD::Credentials => credentials(),
-        CMD::Present{ credential_name, to_did_name } => present(credential_name, to_did_name).await
+        CMD::Credential{ credential_name } => credential(&credential_name)
     }
 }
 
@@ -33,20 +34,22 @@ fn help() -> Result<String, std::io::Error> {
     Basic Didcomm Messaging:
         didland write    <to did name> <message>  -->  <dcem>
         didland read     <dcem>                   -->  <from did name> <message>
-        didland messages
 
     Verifiable Credentials:
         didland issue Passport         <to did name>  -->  <dcem>
         didland issue DriversLicense   <to did name>  -->  <dcem>
         didland issue TrafficAuthority <to did name>  -->  <dcem>
         didland issue LawEnforcer      <to did name>  -->  <dcem>
-
         didland hold    <credential name> <dcem>
-        didland present <credential name> <to did name>  -->  <dcem>
-        didland verify  <issuer did name> <dcem>
+        didland present <credential name> <to did name> @TODO <presentation name>  -->  <dcem>
+        @TODO didland verify  <issuer did name> <dcem>
 
+    View stored data:
+        didland messages
         didland credentials
         didland credential <credential name>
+        @TODO didland presentations
+        @TODO didland presentation <presentation name>
 "))
 }
 
@@ -326,7 +329,18 @@ fn credentials() -> Result<String, std::io::Error> {
     Ok(result)
 }
 
-async fn present(credential_name: String, to_did_name: String) -> Result<String, std::io::Error> {
+fn credential(credential_name: &str) -> Result<String, std::io::Error> {
+    let path = credential_path(credential_name);
+    let dcem = std::fs::read_to_string(path)?;
+    let from_key = get_from_key_from_didcomm_message(&dcem);
+    let self_key = get_self_didkey();
+    // 3. Decrypt message
+    let vc = decrypt_didcomm(&from_key, &self_key, &dcem);
+
+    Ok(vc)
+}
+
+async fn present(credential_name: &str, to_did_name: &str) -> Result<String, std::io::Error> {
     // 0. Read from file
     let credential_path = credential_path(&credential_name);
     let credential_path = std::path::Path::new(&credential_path);
@@ -606,8 +620,9 @@ enum CMD {
     IssueTrafficAuthority{ to_did_name: String },
     IssueLawEnforcer{ to_did_name: String },
     Hold{ credential_name: String, dcem: String },
-    Credentials,
     Present{ credential_name: String, to_did_name: String },
+    Credentials,
+    Credential{ credential_name: String }
 }
 
 pub struct Config {
@@ -699,6 +714,11 @@ impl Config {
             },
             "credentials" => {
                 CMD::Credentials
+            },
+            "credential" => {
+                let credential_name = get_arg_or_return_help!(2);
+
+                CMD::Credential{ credential_name }
             },
             "present" => {
                 let credential_name = get_arg_or_return_help!(2);
