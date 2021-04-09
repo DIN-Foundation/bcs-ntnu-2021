@@ -11,10 +11,10 @@ pub async fn run(config: Config) -> Result<String, std::io::Error> {
         CMD::Help => help(),
 
         // Verifiable Credentials
-        CMD::IssuePassport{ to_did_name } => issue_passport(&to_did_name).await,
-        CMD::IssueLawEnforcer{ to_did_name } => issue_law_enforcer(&to_did_name).await,
-        CMD::IssueTrafficAuthority{ to_did_name } => issue_traffic_authority(&to_did_name).await,
-        CMD::IssueDriversLicense{ to_did_name } => issue_drivers_license(&to_did_name).await,
+        CMD::IssuePassport{ to_did_name } => issue("Passport", &to_did_name).await,
+        CMD::IssueLawEnforcer{ to_did_name } => issue("LawEnforcer", &to_did_name).await,
+        CMD::IssueTrafficAuthority{ to_did_name } => issue("TrafficAuthority", &to_did_name).await,
+        CMD::IssueDriversLicense{ to_did_name } => issue("DriversLicense", &to_did_name).await,
     }
 }
 
@@ -66,7 +66,7 @@ fn init() -> Result<String, std::io::Error> {
 
 
 fn doc() -> Result<String, std::io::Error> {
-    let self_didkey = get_self_didkey()?;
+    let self_didkey = get_self_didkey();
 
     use did_key::DIDCore;
     let did_doc = self_didkey.get_did_document(did_key::CONFIG_LD_PUBLIC);
@@ -77,7 +77,7 @@ fn doc() -> Result<String, std::io::Error> {
 
 
 fn did() -> Result<String, std::io::Error> {
-    let self_didkey = get_self_didkey()?;
+    let self_didkey = get_self_didkey();
 
     use did_key::DIDCore;
     let diddoc = self_didkey.get_did_document(did_key::CONFIG_LD_PUBLIC);
@@ -105,8 +105,8 @@ fn write(to_did_name: &str, message: &str) -> Result<String, std::io::Error> {
     use std::io::Write;
 
     // 1. Get did:keys
-    let from_key = get_self_didkey()?;
-    let to_key = get_other_didkey(to_did_name)?;
+    let from_key = get_self_didkey();
+    let to_key = get_other_didkey(to_did_name);
     
     // 2. Encrypt message with from_key, to keep message history in local file
     let dcem = encrypt_didcomm(&from_key, &from_key, message);
@@ -130,7 +130,7 @@ fn read(dcem: &str) -> Result<String, std::io::Error> {
     file.write(dcem.as_bytes())?;
 
     // 2. Get did:keys
-    let to_key = get_self_didkey()?;
+    let to_key = get_self_didkey();
     let from_key = get_from_key_from_didcomm_message(dcem);
 
     // 3. Decrypt message
@@ -154,7 +154,7 @@ fn messages() -> Result<String, std::io::Error> {
     entries.sort_by_key(|e| e.path());
 
     // 1. Get to-key
-    let to_key = get_self_didkey()?;
+    let to_key = get_self_didkey();
 
     for entry in entries {
         if entry.path().is_dir() {
@@ -209,42 +209,43 @@ fn help() -> Result<String, std::io::Error> {
 //
 // Commands: Verifiable credentials
 //
-async fn issue_passport(to_did_name: &str) -> Result<String, std::io::Error> {
-    let (from_didkey, from_jwk) = get_self_jwk_and_didkey()?;
-    let to_didkey = get_other_didkey(to_did_name)?;
+async fn issue(credential_type: &str, to_did_name: &str) -> Result<String, std::io::Error> {
+    // 1. Get did docs
+    let (issuer_didkey, issuer_jwk) = get_self_jwk_and_didkey();
+    let subject_didkey = get_other_didkey(to_did_name);
 
-    let vc = issue_verifiable_credential("Passport", &from_jwk, &from_didkey, &to_didkey).await;
-    let dcem = encrypt_didcomm(&from_didkey, &to_didkey, &vc);
+    use did_key::DIDCore;
+    let issuer_doc = issuer_didkey.get_did_document(did_key::CONFIG_LD_PUBLIC);
+    let subject_doc = subject_didkey.get_did_document(did_key::CONFIG_LD_PUBLIC);
 
-    Ok(dcem)
-}
+    // 2. Construct unsigned vc
+    let vc = serde_json::json!({
+        "@context": [
+            "https://www.w3.org/2018/credentials/v1", 
+        ],
+        "type": ["VerifiableCredential", credential_type],
+        "issuer": issuer_doc.id,
+        "issuanceDate": ssi::ldp::now_ms(),
+        "credentialSubject": {
+            "id": subject_doc.id
+        }
+    });
 
-async fn issue_drivers_license(to_did_name: &str) -> Result<String, std::io::Error> { 
-    let (from_didkey, from_jwk) = get_self_jwk_and_didkey()?;
-    let to_didkey = get_other_didkey(to_did_name)?;
+    // 3. Setup proof options with verification method from issuer did doc
+    let mut vc: ssi::vc::Credential = serde_json::from_value(vc).unwrap();
+    let mut proof_options = ssi::vc::LinkedDataProofOptions::default();
     
-    let vc = issue_verifiable_credential("DriversLicense", &from_jwk, &from_didkey, &to_didkey).await;
-    let dcem = encrypt_didcomm(&from_didkey, &to_didkey, &vc);
+    // https://www.w3.org/TR/did-core/#assertion
+    let verification_method = issuer_doc.assertion_method.unwrap()[0].clone();
+    proof_options.verification_method = Some(verification_method);
 
-    Ok(dcem)
-}
+    // 4. Generate proof, using issuer jwk + proof options
+    let proof = vc.generate_proof(&issuer_jwk, &proof_options).await.unwrap();
+    vc.add_proof(proof);
 
-async fn issue_traffic_authority(to_did_name: &str) -> Result<String, std::io::Error> { 
-    let (from_didkey, from_jwk) = get_self_jwk_and_didkey()?;
-    let to_didkey = get_other_didkey(to_did_name)?;
-    
-    let vc = issue_verifiable_credential("TrafficAuthority", &from_jwk, &from_didkey, &to_didkey).await;
-    let dcem = encrypt_didcomm(&from_didkey, &to_didkey, &vc);
-
-    Ok(dcem)
-}
-
-async fn issue_law_enforcer(to_did_name: &str) -> Result<String, std::io::Error> { 
-    let (from_didkey, from_jwk) = get_self_jwk_and_didkey()?;
-    let to_didkey = get_other_didkey(to_did_name)?;
-    
-    let vc = issue_verifiable_credential("LawEnforcer", &from_jwk, &from_didkey, &to_didkey).await;
-    let dcem = encrypt_didcomm(&from_didkey, &to_didkey, &vc);
+    // 5. Serialize and encrypt
+    let vc = serde_json::to_string(&vc).unwrap();
+    let dcem = encrypt_didcomm(&issuer_didkey, &subject_didkey, &vc);
 
     Ok(dcem)
 }
@@ -442,9 +443,9 @@ fn jwkstr_to_publicprivatebytes(jwkstr: &str) -> (Vec<u8>, Vec<u8>) {// -> (publ
     (okp.public_key.0, privkey)
 }
 
-fn get_self_jwk_and_didkey() -> Result<(did_key::Ed25519KeyPair, ssi::jwk::JWK), std::io::Error> {
+fn get_self_jwk_and_didkey() -> (did_key::Ed25519KeyPair, ssi::jwk::JWK) {
     let jwk = didkey_jwk_path();
-    let jwk = std::fs::read(jwk)?;
+    let jwk = std::fs::read(jwk).unwrap();
     let jwk = String::from_utf8(jwk).unwrap();
 
     let (_, private) = jwkstr_to_publicprivatebytes(&jwk);
@@ -452,28 +453,30 @@ fn get_self_jwk_and_didkey() -> Result<(did_key::Ed25519KeyPair, ssi::jwk::JWK),
     
     let jwk: ssi::jwk::JWK = serde_json::from_str(&jwk).unwrap();
 
-    Ok((didkey, jwk))
+    (didkey, jwk)
 }
 
-fn get_self_didkey() -> Result<did_key::Ed25519KeyPair, std::io::Error> {
+fn get_self_didkey() -> did_key::Ed25519KeyPair {
     let jwk = didkey_jwk_path();
-    let jwk = std::fs::read(jwk)?;
+    let jwk = std::fs::read(jwk).unwrap();
     let jwk = String::from_utf8(jwk).unwrap();
 
     let (_, private) = jwkstr_to_publicprivatebytes(&jwk);
     let self_didkey = did_key::Ed25519KeyPair::from_seed(&private);
     
-    Ok(self_didkey)
+    self_didkey
 }
 
-fn get_other_didkey(other_did_name: &str) -> Result<did_key::Ed25519KeyPair, std::io::Error> {
-    let to_did = std::fs::read_to_string(name_path(other_did_name))?;
-    let to_key = did_key::resolve(&to_did).unwrap();
+fn get_other_didkey(other_did_name: &str) -> did_key::Ed25519KeyPair {
+    let path = name_path(other_did_name);
+    println!("{:?}", path);
+    let other_did = std::fs::read_to_string(path).unwrap();
+    let other_didkey = did_key::resolve(&other_did).unwrap();
 
     use did_key::KeyMaterial;
-    let to_didkey = did_key::Ed25519KeyPair::from_public_key(&to_key.public_key_bytes());
+    let other_didkey = did_key::Ed25519KeyPair::from_public_key(&other_didkey.public_key_bytes());
 
-    Ok(to_didkey)
+    other_didkey
 }
 
 fn get_from_key_from_didcomm_message(dcem: &str) -> did_key::Ed25519KeyPair {
@@ -487,45 +490,6 @@ fn get_from_key_from_didcomm_message(dcem: &str) -> did_key::Ed25519KeyPair {
     from_key
 }
 
-async fn issue_verifiable_credential(
-    credential_type: &str, 
-    issuer_jwk: &ssi::jwk::JWK,
-    issuer_didkey: &did_key::Ed25519KeyPair,
-    subject_didkey: &did_key::Ed25519KeyPair, 
-) -> String {
-    use did_key::DIDCore;
-    // 1. Get did docs
-    let issuer_doc = issuer_didkey.get_did_document(did_key::CONFIG_LD_PUBLIC);
-    let subject_doc = subject_didkey.get_did_document(did_key::CONFIG_LD_PUBLIC);
-
-    // 2. Construct unsigned vc
-    let vc = serde_json::json!({
-        "@context": [
-            "https://www.w3.org/2018/credentials/v1", 
-        ],
-        "type": ["VerifiableCredential", credential_type],
-        "issuer": issuer_doc.id,
-        "issuanceDate": ssi::ldp::now_ms(),
-        "credentialSubject": {
-            "id": subject_doc.id
-        }
-    });
-
-    // 3. Setup proof options with verification method from issuer did doc
-    let mut vc: ssi::vc::Credential = serde_json::from_value(vc).unwrap();
-    let mut proof_options = ssi::vc::LinkedDataProofOptions::default();
-    // https://www.w3.org/TR/did-core/#assertion
-    let verification_method = issuer_doc.assertion_method.unwrap()[0].clone();
-    proof_options.verification_method = Some(verification_method);
-
-    // 4. Generate proof, using issuer jwk + proof options
-    let proof = vc.generate_proof(issuer_jwk, &proof_options).await.unwrap();
-    vc.add_proof(proof);
-
-    // 5. Make pretty
-    let vc = serde_json::to_string_pretty(&vc).unwrap();
-    vc
-}
 
 //
 // Config
