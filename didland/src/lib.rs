@@ -1,10 +1,10 @@
 pub async fn run(config: Config) -> Result<String, std::io::Error> {
     match config.cmd {
         // Basic
-        CMD::Init{} => init(),
-        CMD::Doc{} => doc(),
-        CMD::Did{} => did(),
-        CMD::Messages{} => messages(),
+        CMD::Init => init(),
+        CMD::Doc => doc(),
+        CMD::Did => did(),
+        CMD::Messages => messages(),
         CMD::Connect{ to_did_name, did } => connect(&to_did_name, &did),
         CMD::Write{ to_did_name, message } => write(&to_did_name, &message),
         CMD::Read{ dcem } => read(&dcem),
@@ -16,6 +16,7 @@ pub async fn run(config: Config) -> Result<String, std::io::Error> {
         CMD::IssueTrafficAuthority{ to_did_name } => issue("TrafficAuthority", &to_did_name).await,
         CMD::IssueDriversLicense{ to_did_name } => issue("DriversLicense", &to_did_name).await,
         CMD::Hold{ credential_name, dcem } => hold(&credential_name, &dcem),
+        CMD::Credentials => credentials(),
     }
 }
 
@@ -275,6 +276,52 @@ fn hold(credential_name: &str, dcem: &str) -> Result<String, std::io::Error> {
     Ok(decrypted)
 }
 
+fn credentials() -> Result<String, std::io::Error> {
+    let mut result = String::from("");
+
+    let mut entries: Vec<std::fs::DirEntry> = std::fs::read_dir(credentials_path())
+        .unwrap()
+        .filter_map(|f| f.ok()).collect();
+
+    entries.sort_by_key(|e| e.path());
+
+    // 1. Get to-key
+    let to_key = get_self_didkey();
+
+    for entry in entries {
+        if entry.path().is_dir() {
+            continue;
+        }
+        let dcem = std::fs::read_to_string(entry.path())?;
+
+        // 2. Get from-didkey
+        let from_key = get_from_key_from_didcomm_message(&dcem);
+
+        // 3. Decrypt message
+        let vc = decrypt_didcomm(&from_key, &to_key, &dcem);
+        let vc: ssi::vc::Credential = serde_json::from_str(&vc).unwrap();
+        let issuer_did: String = match vc.issuer.unwrap() {
+            ssi::vc::Issuer::URI(s) => match s {
+                ssi::vc::URI::String(s) => s
+            },
+            ssi::vc::Issuer::Object(s) => match s.id {
+                ssi::vc::URI::String(s) => s
+            },
+        };
+
+
+        // 4. Format
+        let issuer_name = std::fs::read_to_string(did_path(&issuer_did))
+            .unwrap_or(issuer_did.clone());
+        let file_name = String::from(entry.file_name().to_str().unwrap());
+        let file_name = file_name.replace(".dcem", "");
+
+        result.push_str(&format!("{} (issued by: {})\n", file_name, issuer_name));
+    }
+
+    Ok(result)
+}
+
 //
 // Util
 //
@@ -512,10 +559,10 @@ fn get_from_key_from_didcomm_message(dcem: &str) -> did_key::Ed25519KeyPair {
 #[derive(Debug)]
 enum CMD {
     // Basic
-    Init{  },
-    Doc{  },
-    Did{  },
-    Messages{  },
+    Init,
+    Doc,
+    Did,
+    Messages,
     Connect{ to_did_name: String, did: String },
     Write{ to_did_name: String, message: String },
     Read{ dcem: String },
@@ -527,6 +574,7 @@ enum CMD {
     IssueTrafficAuthority{ to_did_name: String },
     IssueLawEnforcer{ to_did_name: String },
     Hold{ credential_name: String, dcem: String },
+    Credentials,
 }
 
 pub struct Config {
@@ -557,16 +605,16 @@ impl Config {
 
         let cmd: CMD = match &cmd[..] {
             "did" => {
-                CMD::Did{ }
+                CMD::Did
             },
             "doc" => {
-                CMD::Doc{ }
+                CMD::Doc
             },
             "init" => {
-                CMD::Init{ }
+                CMD::Init
             },
             "messages" => {
-                CMD::Messages{ }
+                CMD::Messages
             },
             "connect" => {
                 let to_did_name = get_arg_or_return_help!(2);
@@ -615,6 +663,9 @@ impl Config {
                 let dcem = get_arg_or_return_help!(3);
 
                 CMD::Hold{ credential_name, dcem }
+            },
+            "credentials" => {
+                CMD::Credentials
             },
             "help" => CMD::Help,
             &_ => {
