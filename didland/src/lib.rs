@@ -17,7 +17,7 @@ pub async fn run(config: Config) -> Result<String, std::io::Error> {
         CMD::IssueDriversLicense{ to_did_name } => issue("DriversLicense", &to_did_name).await,
         CMD::Hold{ credential_name, dcem } => hold(&credential_name, &dcem),
         CMD::Credentials => credentials(),
-        CMD::Present{ credential_name, to_did_name } => present(credential_name, to_did_name)
+        CMD::Present{ credential_name, to_did_name } => present(credential_name, to_did_name).await
     }
 }
 
@@ -41,9 +41,12 @@ fn help() -> Result<String, std::io::Error> {
         didland issue TrafficAuthority <to did name>  -->  <dcem>
         didland issue LawEnforcer      <to did name>  -->  <dcem>
 
-        didland hold <credential name> <dcem>
-        didland credentials
+        didland hold    <credential name> <dcem>
         didland present <credential name> <to did name>  -->  <dcem>
+        didland verify  <issuer did name> <dcem>
+
+        didland credentials
+        didland credential <credential name>
 "))
 }
 
@@ -246,13 +249,14 @@ async fn issue(credential_type: &str, to_did_name: &str) -> Result<String, std::
     // https://www.w3.org/TR/did-core/#assertion
     let verification_method = issuer_doc.assertion_method.unwrap()[0].clone();
     proof_options.verification_method = Some(verification_method);
+    proof_options.proof_purpose = Some(ssi::vc::ProofPurpose::AssertionMethod);
 
     // 4. Generate proof, using issuer jwk + proof options
     let proof = vc.generate_proof(&issuer_jwk, &proof_options).await.unwrap();
     vc.add_proof(proof);
 
     // 5. Serialize and encrypt
-    let vc = serde_json::to_string(&vc).unwrap();
+    let vc = serde_json::to_string_pretty(&vc).unwrap();
     let dcem = encrypt_didcomm(&issuer_didkey, &subject_didkey, &vc);
 
     Ok(dcem)
@@ -322,20 +326,42 @@ fn credentials() -> Result<String, std::io::Error> {
     Ok(result)
 }
 
-fn present(credential_name: String, to_did_name: String) -> Result<String, std::io::Error> {
+async fn present(credential_name: String, to_did_name: String) -> Result<String, std::io::Error> {
     // 0. Read from file
     let credential_path = credential_path(&credential_name);
     let credential_path = std::path::Path::new(&credential_path);
     let dcem = std::fs::read_to_string(credential_path).unwrap();
 
     // 1. Un-encrypt
-    let self_key = get_self_didkey();
-    let from_key = get_from_key_from_didcomm_message(&dcem);
-    let vc = decrypt_didcomm(&from_key, &self_key, &dcem);
+    let (holder_key, holder_jwk) = get_self_jwk_and_didkey();
 
-    // 2. Re-encrypt
+    use did_key::DIDCore;
+    let holder_doc = holder_key.get_did_document(did_key::CONFIG_LD_PUBLIC);
+    let from_key = get_from_key_from_didcomm_message(&dcem);
+    let vc = decrypt_didcomm(&from_key, &holder_key, &dcem);
+
+    let vc: ssi::vc::Credential = serde_json::from_str(&vc).unwrap();
+    let vp = serde_json::json!({
+        "@context": ["https://www.w3.org/2018/credentials/v1"],
+        "type": ["VerifiablePresentation"],
+        "holder": holder_doc.id,
+        "verifiableCredential": vc
+    });
+
+    // 2. Sign vp with holder signature
+    let mut vp: ssi::vc::Presentation = serde_json::from_value(vp).unwrap();
+    let mut proof_options = ssi::vc::LinkedDataProofOptions::default();
+    let verification_method = holder_doc.authentication.unwrap()[0].clone();
+    proof_options.verification_method = Some(verification_method);
+    proof_options.proof_purpose = Some(ssi::vc::ProofPurpose::AssertionMethod);
+    let proof = vp.generate_proof(&holder_jwk, &proof_options).await.unwrap();
+    vp.add_proof(proof);
+
+
+    // 3. Re-encrypt
+    let vp = serde_json::to_string_pretty(&vp).unwrap();
     let to_key = get_other_didkey(&to_did_name);
-    let dcem = encrypt_didcomm(&self_key, &to_key, &vc);
+    let dcem = encrypt_didcomm(&holder_key, &to_key, &vp);
 
     Ok(dcem)
 }
