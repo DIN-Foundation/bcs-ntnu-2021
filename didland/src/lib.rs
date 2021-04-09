@@ -109,12 +109,12 @@ fn write(to_did_name: &str, message: &str) -> Result<String, std::io::Error> {
     let to_key = get_other_didkey(to_did_name)?;
     
     // 2. Encrypt message with from_key, to keep message history in local file
-    let dcem = encrypt_didcomm(&from_key, &from_key, message).unwrap();
+    let dcem = encrypt_didcomm(&from_key, &from_key, message);
     let mut file = std::fs::File::create(message_path())?;
     file.write(dcem.as_bytes())?;
 
     // 3. Encrypt message with to_key, to prepare it for transmission
-    let dcem = encrypt_didcomm(&from_key, &to_key, message).unwrap();
+    let dcem = encrypt_didcomm(&from_key, &to_key, message);
 
     Ok(format!("{}", &dcem))
 }
@@ -131,10 +131,10 @@ fn read(dcem: &str) -> Result<String, std::io::Error> {
 
     // 2. Get did:keys
     let to_key = get_self_didkey()?;
-    let from_key = get_from_didkey(dcem);
+    let from_key = get_from_key_from_didcomm_message(dcem);
 
     // 3. Decrypt message
-    let decrypted = decrypt_didcomm(&from_key, &to_key, dcem).unwrap();
+    let decrypted = decrypt_didcomm(&from_key, &to_key, dcem);
 
     // 4. Format
     use did_key::DIDCore;
@@ -163,12 +163,12 @@ fn messages() -> Result<String, std::io::Error> {
         let dcem = std::fs::read_to_string(entry.path())?;
 
         // 2. Get from-didkey
-        let from_key = get_from_didkey(&dcem);
+        let from_key = get_from_key_from_didcomm_message(&dcem);
         use did_key::DIDCore;
         let from_did = from_key.get_did_document(did_key::CONFIG_LD_PUBLIC).id;
 
         // 3. Decrypt message
-        let decrypted = decrypt_didcomm(&from_key, &to_key, &dcem).unwrap();
+        let decrypted = decrypt_didcomm(&from_key, &to_key, &dcem);
 
         // 4. Format
         let from_name = std::fs::read_to_string(did_path(&from_did))
@@ -213,32 +213,40 @@ async fn issue_passport(to_did_name: &str) -> Result<String, std::io::Error> {
     let (from_didkey, from_jwk) = get_self_jwk_and_didkey()?;
     let to_didkey = get_other_didkey(to_did_name)?;
 
-    let credential = issue_verifiable_credential("Passport", &from_jwk, &from_didkey, &to_didkey);
-    Ok(credential.await) 
+    let vc = issue_verifiable_credential("Passport", &from_jwk, &from_didkey, &to_didkey).await;
+    let dcem = encrypt_didcomm(&from_didkey, &to_didkey, &vc);
+
+    Ok(dcem)
 }
 
 async fn issue_drivers_license(to_did_name: &str) -> Result<String, std::io::Error> { 
     let (from_didkey, from_jwk) = get_self_jwk_and_didkey()?;
     let to_didkey = get_other_didkey(to_did_name)?;
     
-    let credential = issue_verifiable_credential("DriversLicense", &from_jwk, &from_didkey, &to_didkey);
-    Ok(credential.await) 
+    let vc = issue_verifiable_credential("DriversLicense", &from_jwk, &from_didkey, &to_didkey).await;
+    let dcem = encrypt_didcomm(&from_didkey, &to_didkey, &vc);
+
+    Ok(dcem)
 }
 
 async fn issue_traffic_authority(to_did_name: &str) -> Result<String, std::io::Error> { 
     let (from_didkey, from_jwk) = get_self_jwk_and_didkey()?;
     let to_didkey = get_other_didkey(to_did_name)?;
     
-    let credential = issue_verifiable_credential("TrafficAuthority", &from_jwk, &from_didkey, &to_didkey);
-    Ok(credential.await) 
+    let vc = issue_verifiable_credential("TrafficAuthority", &from_jwk, &from_didkey, &to_didkey).await;
+    let dcem = encrypt_didcomm(&from_didkey, &to_didkey, &vc);
+
+    Ok(dcem)
 }
 
 async fn issue_law_enforcer(to_did_name: &str) -> Result<String, std::io::Error> { 
     let (from_didkey, from_jwk) = get_self_jwk_and_didkey()?;
     let to_didkey = get_other_didkey(to_did_name)?;
     
-    let credential = issue_verifiable_credential("LawEnforcer", &from_jwk, &from_didkey, &to_didkey);
-    Ok(credential.await) 
+    let vc = issue_verifiable_credential("LawEnforcer", &from_jwk, &from_didkey, &to_didkey).await;
+    let dcem = encrypt_didcomm(&from_didkey, &to_didkey, &vc);
+
+    Ok(dcem)
 }
 
 //
@@ -335,7 +343,7 @@ fn message_path() -> String {
 }
 
 
-fn encrypt_didcomm(from_key: &did_key::Ed25519KeyPair, to_key: &did_key::Ed25519KeyPair, message: &str) -> Result<String, didcomm_rs::Error> {
+fn encrypt_didcomm(from_key: &did_key::Ed25519KeyPair, to_key: &did_key::Ed25519KeyPair, message: &str) -> String {
     use did_key::Ecdh;
 
     // 1. Get dids
@@ -365,11 +373,11 @@ fn encrypt_didcomm(from_key: &did_key::Ed25519KeyPair, to_key: &did_key::Ed25519
         .seal(&shared_secret)
         .unwrap();
 
-    Ok(dcem)
+    dcem
 }
 
 
-fn decrypt_didcomm(from_key: &did_key::Ed25519KeyPair, to_key: &did_key::Ed25519KeyPair, dcem: &str)-> Result<String, didcomm_rs::Error> {
+fn decrypt_didcomm(from_key: &did_key::Ed25519KeyPair, to_key: &did_key::Ed25519KeyPair, dcem: &str)-> String {
     use did_key::Ecdh;
 
     // 1. Map Ed25519 -> x25519
@@ -384,7 +392,7 @@ fn decrypt_didcomm(from_key: &did_key::Ed25519KeyPair, to_key: &did_key::Ed25519
     let decrypted = decrypted.unwrap();
     let decrypted = String::from_utf8(decrypted.body).unwrap();
 
-    Ok(decrypted)
+    decrypted
 }
 
 
@@ -468,8 +476,7 @@ fn get_other_didkey(other_did_name: &str) -> Result<did_key::Ed25519KeyPair, std
     Ok(to_didkey)
 }
 
-fn get_from_didkey(dcem: &str) -> did_key::Ed25519KeyPair {
-
+fn get_from_key_from_didcomm_message(dcem: &str) -> did_key::Ed25519KeyPair {
     let from_jwe: didcomm_rs::Jwe = serde_json::from_str(&dcem).unwrap();
     let from_did = from_jwe.from().as_ref().unwrap();
     let from_key = did_key::resolve(&from_did).unwrap();
