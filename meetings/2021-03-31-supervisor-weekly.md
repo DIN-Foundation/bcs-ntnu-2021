@@ -1,4 +1,4 @@
-# Supervisor Weekly - 2021-04-01 @ 14:00-14:30
+# Supervisor Weekly - 2021-03-31 @ 14:00-14:30
 
 *Attendees: Jonas*
 *Location: MS Teams*
