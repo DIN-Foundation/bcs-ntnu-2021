@@ -715,7 +715,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "did-method-key"
+name = "did-key"
 version = "0.1.0"
 dependencies = [
  "async-trait",
@@ -760,8 +760,8 @@ version = "0.1.0"
 dependencies = [
  "async-std",
  "custom_derive",
- "did-key",
- "did-method-key",
+ "did-key 0.0.11",
+ "did-key 0.1.0",
  "didcomm-rs",
  "ed25519-dalek",
  "enum_derive",
@@ -1284,6 +1284,20 @@ name = "json"
 version = "0.12.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "078e285eafdfb6c4b434e0d31e8cfcb5115b651496faca5749b88fafd4f23bfd"
+
+[[package]]
+name = "json-ld"
+version = "0.2.0-alpha"
+source = "git+https://github.com/timothee-haudebourg/json-ld?rev=5a30cfe37cfecd36808549caa983de3e5ced926b#5a30cfe37cfecd36808549caa983de3e5ced926b"
+dependencies = [
+ "futures",
+ "iref",
+ "json",
+ "langtag",
+ "log",
+ "mown",
+ "once_cell",
+]
 
 [[package]]
 name = "k256"
@@ -1975,7 +1989,7 @@ dependencies = [
 
 [[package]]
 name = "ssi"
-version = "0.2.0"
+version = "0.1.0"
 dependencies = [
  "async-std",
  "async-trait",
@@ -1990,13 +2004,10 @@ dependencies = [
  "hex",
  "iref",
  "json",
- "langtag",
+ "json-ld",
  "lazy_static",
- "log",
- "mown",
  "multibase",
  "num-bigint 0.3.2",
- "once_cell",
  "pest",
  "pest_derive",
  "rand 0.7.3",
@@ -2007,13 +2018,8 @@ dependencies = [
  "sha2 0.9.3",
  "signature",
  "simple_asn1",
- "ssi-contexts",
  "thiserror",
 ]
-
-[[package]]
-name = "ssi-contexts"
-version = "0.0.2"
 
 [[package]]
 name = "strsim"

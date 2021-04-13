@@ -87,7 +87,6 @@ fn init() -> Result<String, std::io::Error> {
 
 
     if !std::fs::metadata(didkey_jwk_path()).is_ok() {
-
         // 2. Generate jwk
         let mut csprng = rand::rngs::OsRng {};
         let private_key = ed25519_dalek::SecretKey::generate(&mut csprng).to_bytes();
@@ -106,10 +105,10 @@ fn init() -> Result<String, std::io::Error> {
 
         let _ = connect("self", &did_doc.id);
 
-        Ok(format!("Is ready"))
-    } else {
-        Ok(format!("Already Ready"))
+
     }
+    // 5. Return self did
+    did()
 }
 
 
@@ -171,20 +170,20 @@ fn write(to_did_name: &str, message: &str) -> Result<String, std::io::Error> {
 fn read(dcem: &str) -> Result<String, std::io::Error> {
     use std::io::Write;
 
-    // 1. Store incomming message to file, to keep the message history
+    // 1. Get did:keys
+    let to_key = get_self_didkey();
+    let from_key = get_from_key_from_didcomm_message(dcem);
+
+    // 2. Decrypt message
+    let decrypted = decrypt_didcomm(&from_key, &to_key, dcem);
+
+    // 3. Store incomming message to file, to keep the message history
     let path = make_message_path();
     let path = std::path::Path::new(&path);
     let mut file = std::fs::File::create(path)?;
     file.write(dcem.as_bytes())?;
 
-    // 2. Get did:keys
-    let to_key = get_self_didkey();
-    let from_key = get_from_key_from_didcomm_message(dcem);
-
-    // 3. Decrypt message
-    let decrypted = decrypt_didcomm(&from_key, &to_key, dcem);
-
-    // 4. Format
+    // 4. Format message
     use did_key::DIDCore;
     let from_did = from_key.get_did_document(did_key::CONFIG_LD_PUBLIC).id;
     let from_name = std::fs::read_to_string(did_path(&from_did))
@@ -317,7 +316,7 @@ async fn verify(issuer_did_name: &str, dcem: &str) -> Result<String, std::io::Er
 
     // 2. Verify VP
     let vp: ssi::vc::Presentation = serde_json::from_str(&vp).unwrap();
-    let result = vp.verify(None, &did_method_key::DIDKey).await;
+    let result = vp.verify(None, &ssi_did_key::DIDKey).await;
 
     if result.errors.len() > 0 {
         return Ok(format!("Verify presentation failed: {:#?}", result))
@@ -330,7 +329,7 @@ async fn verify(issuer_did_name: &str, dcem: &str) -> Result<String, std::io::Er
             ssi::vc::CredentialOrJWT::JWT(_) => panic!("verify(): Not credential. Was JWT")
         };
 
-        let result = vc.verify(None, &did_method_key::DIDKey).await;
+        let result = vc.verify(None, &ssi_did_key::DIDKey).await;
         if result.errors.len() > 0 {
             return Ok(format!("Verify credential failed: {:#?}", result))
         }
