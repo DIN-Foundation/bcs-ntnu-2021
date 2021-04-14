@@ -1,22 +1,32 @@
-Didland 
+Didland
 
-Example basic usage:
+Example usage:
 ```
-    Example - Write to self:
-        didland . init
-        didland . write self \"Hello self!\"
-        didland . read $(didland . write self \"How do you do?\")
+    Usage:
+        didland <command> <args>
+        didland init
+        didland did
+        didland doc
+        didland connect  <did name> <did>
 
-        didland . write self \"I am very well, thank you :+1:\" > hello.dcem
-        didland . read $(cat hello.dcem)
+    Basic Didcomm Messaging:
+        didland write    <to did name> <message>  -->  <dcem>
+        didland read     <dcem>                   -->  <from did name> <message>
 
-    Example - Write to peer:
-        didland jonas init
-        didland snorre init
+    Verifiable Credentials:
+        didland issue Passport         <to did name>  -->  <dcem>
+        didland issue DriversLicense   <to did name>  -->  <dcem>
+        didland issue TrafficAuthority <to did name>  -->  <dcem>
+        didland issue LawEnforcer      <to did name>  -->  <dcem>
 
-        didland snorre connect jonas $(didland jonas did)
-        didland jonas connect snorre $(didland snorre did)
+        didland hold    <credential name> <dcem>
+        didland present <credential name> <to did name>  -->  <dcem>
+        didland verify  <issuer did name> <dcem>
 
-        didland jonas read $(didland snorre write jonas \"Hello Jonas. How are you?\")
-        didland snorre read $(didland jonas write snorre \"Hi Snorre:) I have seen better days.\")
+    View stored data:
+        didland messages
+        didland credentials
+        didland credential <credential name>
+        didland presentations
+        didland presentation <presentation name>
 ```
