@@ -1,9 +1,8 @@
 pub async fn run(config: Config) -> Result<String, std::io::Error> {
     match config.cmd {
         // Basic
-        CMD::Init => init(),
+        CMD::DID => did(),
         CMD::Doc => doc(),
-        CMD::Did => did(),
         CMD::Connect{ to_did_name, did } => connect(&to_did_name, &did),
         CMD::Write{ to_did_name, message } => write(&to_did_name, &message),
         CMD::Read{ dcem } => read(&dcem),
@@ -29,18 +28,16 @@ pub async fn run(config: Config) -> Result<String, std::io::Error> {
 
 fn help() -> Result<String, std::io::Error> {
     Ok(String::from("
-    Usage:
-        did <command> <args>
-        did init
-        did did
+    Basic:
+        did
         did doc
         did connect  <did name> <did>
 
-    Basic Didcomm Messaging:
+    DIDComm v2 messaging:
         did write    <to did name> <message>  -->  <dcem>
         did read     <dcem>                   -->  <from did name> <message>
 
-    Verifiable Credentials:
+    DIDComm v2 + Verifiable Credentials:
         did issue Passport         <to did name>  -->  <dcem>
         did issue DriversLicense   <to did name>  -->  <dcem>
         did issue TrafficAuthority <to did name>  -->  <dcem>
@@ -62,10 +59,10 @@ fn help() -> Result<String, std::io::Error> {
 //
 // Commands: Basic
 //
-fn init() -> Result<String, std::io::Error> {
+fn did() -> Result<String, std::io::Error> {
     use std::io::Write;
 
-    // 1. Create empty folders
+    // 1. Create empty folders, if not exists
     if !std::fs::metadata(root_path()).is_ok() {
         std::fs::create_dir_all(root_path())?;
     }
@@ -85,9 +82,8 @@ fn init() -> Result<String, std::io::Error> {
         std::fs::create_dir_all(presentations_path())?;
     }
 
-
-    if !std::fs::metadata(didkey_jwk_path()).is_ok() {
-        // 2. Generate jwk
+    let did_doc = if !std::fs::metadata(didkey_jwk_path()).is_ok() {
+        // 2. Generate jwk, if not exists
         let mut csprng = rand::rngs::OsRng {};
         let private_key = ed25519_dalek::SecretKey::generate(&mut csprng).to_bytes();
         let did_key = did_key::Ed25519KeyPair::from_seed(&private_key);
@@ -105,10 +101,19 @@ fn init() -> Result<String, std::io::Error> {
 
         let _ = connect("self", &did_doc.id);
 
+        did_doc
+    } else {
+        let self_didkey = get_self_didkey();
 
-    }
+        use did_key::DIDCore;
+        let did_doc = self_didkey.get_did_document(did_key::CONFIG_LD_PUBLIC);
+
+        did_doc
+    };
+
     // 5. Return self did
-    did()
+    let did = did_doc.id;
+    Ok(format!("{}", did))
 }
 
 
@@ -120,17 +125,6 @@ fn doc() -> Result<String, std::io::Error> {
     let did_doc = serde_json::to_string_pretty(&did_doc).unwrap();
 
     Ok(format!("{}", did_doc))
-}
-
-
-fn did() -> Result<String, std::io::Error> {
-    let self_didkey = get_self_didkey();
-
-    use did_key::DIDCore;
-    let diddoc = self_didkey.get_did_document(did_key::CONFIG_LD_PUBLIC);
-    let did = diddoc.id;
-
-    Ok(format!("{}", did))
 }
 
 fn connect(to_did_name: &str, did: &str) -> Result<String, std::io::Error> {
@@ -746,9 +740,8 @@ fn get_from_key_from_didcomm_message(dcem: &str) -> did_key::Ed25519KeyPair {
 #[derive(Debug)]
 enum CMD {
     // Basic commands
-    Init,
+    DID,
     Doc,
-    Did,
     Connect{ to_did_name: String, did: String },
     Write{ to_did_name: String, message: String },
     Read{ dcem: String },
@@ -782,8 +775,7 @@ impl Config {
         let cmd = args.get(1).unwrap_or(&default_cmd).clone();
 
         let cmd = if args.len() < 2 {
-            eprintln!("Command missing!");
-            default_cmd.clone()
+            "did".to_string()
         } else {
             cmd.clone()
         };
@@ -799,13 +791,10 @@ impl Config {
 
         let cmd: CMD = match &cmd[..] {
             "did" => {
-                CMD::Did
+                CMD::DID
             },
             "doc" => {
                 CMD::Doc
-            },
-            "init" => {
-                CMD::Init
             },
             "messages" => {
                 CMD::Messages
