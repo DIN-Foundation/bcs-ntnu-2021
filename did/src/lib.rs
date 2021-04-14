@@ -30,32 +30,32 @@ pub async fn run(config: Config) -> Result<String, std::io::Error> {
 fn help() -> Result<String, std::io::Error> {
     Ok(String::from("
     Usage:
-        didland <command> <args>
-        didland init
-        didland did
-        didland doc
-        didland connect  <did name> <did>
+        did <command> <args>
+        did init
+        did did
+        did doc
+        did connect  <did name> <did>
 
     Basic Didcomm Messaging:
-        didland write    <to did name> <message>  -->  <dcem>
-        didland read     <dcem>                   -->  <from did name> <message>
+        did write    <to did name> <message>  -->  <dcem>
+        did read     <dcem>                   -->  <from did name> <message>
 
     Verifiable Credentials:
-        didland issue Passport         <to did name>  -->  <dcem>
-        didland issue DriversLicense   <to did name>  -->  <dcem>
-        didland issue TrafficAuthority <to did name>  -->  <dcem>
-        didland issue LawEnforcer      <to did name>  -->  <dcem>
+        did issue Passport         <to did name>  -->  <dcem>
+        did issue DriversLicense   <to did name>  -->  <dcem>
+        did issue TrafficAuthority <to did name>  -->  <dcem>
+        did issue LawEnforcer      <to did name>  -->  <dcem>
 
-        didland hold    <credential name> <dcem>
-        didland present <credential name> <to did name>  -->  <dcem>
-        didland verify  <issuer did name> <dcem>
+        did hold    <credential name> <dcem>
+        did present <credential name> <to did name>  -->  <dcem>
+        did verify  <issuer did name> <dcem>
 
     View stored data:
-        didland messages
-        didland credentials
-        didland credential <credential name>
-        didland presentations
-        didland presentation <presentation name>
+        did messages
+        did credentials
+        did credential <credential name>
+        did presentations
+        did presentation <presentation name>
 "))
 }
 

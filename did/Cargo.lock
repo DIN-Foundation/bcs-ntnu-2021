@@ -690,6 +690,24 @@ dependencies = [
 ]
 
 [[package]]
+name = "did"
+version = "0.1.0"
+dependencies = [
+ "async-std",
+ "custom_derive",
+ "did-key",
+ "did-method-key",
+ "didcomm-rs",
+ "ed25519-dalek",
+ "enum_derive",
+ "rand 0.7.3",
+ "rand_core 0.5.1",
+ "serde",
+ "serde_json",
+ "ssi",
+]
+
+[[package]]
 name = "did-key"
 version = "0.0.11"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -752,24 +770,6 @@ dependencies = [
  "serde_json",
  "thiserror",
  "x25519-dalek",
-]
-
-[[package]]
-name = "didland"
-version = "0.1.0"
-dependencies = [
- "async-std",
- "custom_derive",
- "did-key",
- "did-method-key",
- "didcomm-rs",
- "ed25519-dalek",
- "enum_derive",
- "rand 0.7.3",
- "rand_core 0.5.1",
- "serde",
- "serde_json",
- "ssi",
 ]
 
 [[package]]
