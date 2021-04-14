@@ -240,19 +240,20 @@ async fn issue(credential_type: &str, to_did_name: &str) -> Result<String, std::
 }
 
 fn hold(credential_name: &str, dcem: &str) -> Result<String, std::io::Error> {
-    // 1. Store incomming credential to file
+
+    // 1. Get did:keys
+    let to_key = get_self_didkey();
+    let from_key = get_from_key_from_didcomm_message(dcem);
+
+    // 2. Decrypt message
+    let decrypted = decrypt_didcomm(&from_key, &to_key, dcem);
+
+    // 3. Store incomming credential to file
     let credential_path = credential_path(credential_name);
     let credential_path = std::path::Path::new(&credential_path);
     let mut file = std::fs::File::create(credential_path)?;
     use std::io::Write;
     file.write(dcem.as_bytes())?;
-
-    // 2. Get did:keys
-    let to_key = get_self_didkey();
-    let from_key = get_from_key_from_didcomm_message(dcem);
-
-    // 3. Decrypt message
-    let decrypted = decrypt_didcomm(&from_key, &to_key, dcem);
 
     Ok(decrypted)
 }
