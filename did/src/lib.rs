@@ -494,7 +494,7 @@ fn presentation(presentation_name: &str) -> Result<String, std::io::Error> {
 //
 // Util
 //
-const ROOT_PATH: &str = "./.didland/";
+const ROOT_PATH: &str = "./.did/";
 
 fn root_path() -> String {
     String::from(ROOT_PATH)
@@ -502,7 +502,7 @@ fn root_path() -> String {
 
 fn didkey_jwk_path() -> String {
     std::path::Path::new(ROOT_PATH)
-        .join("didkey.jwk")
+        .join("key.jwk")
         .to_str().unwrap().to_string()
 }
 
