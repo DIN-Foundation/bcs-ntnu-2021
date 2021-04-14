@@ -1,0 +1,3 @@
+[submodule "ssi"]
+	path = ssi
+	url = git@github.com:spruceid/ssi
