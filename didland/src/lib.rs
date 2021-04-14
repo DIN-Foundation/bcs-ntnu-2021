@@ -288,10 +288,9 @@ async fn present(credential_name: &str, to_did_name: &str) -> Result<String, std
     let proof = vp.generate_proof(&holder_jwk, &proof_options).await.unwrap();
     vp.add_proof(proof);
 
-    // 3. Re-encrypt
+    // 3. Re-encrypt to holder_key
     let vp = serde_json::to_string_pretty(&vp).unwrap();
-    let to_key = get_other_didkey(&to_did_name);
-    let dcem = encrypt_didcomm(&holder_key, &to_key, &vp);
+    let dcem = encrypt_didcomm(&holder_key, &holder_key, &vp);
 
     // 4. Store outgoing presentation to file
     let presentation_path = make_presentation_path();
@@ -299,6 +298,10 @@ async fn present(credential_name: &str, to_did_name: &str) -> Result<String, std
     let mut file = std::fs::File::create(presentation_path)?;
     use std::io::Write;
     file.write(dcem.as_bytes())?;
+
+    // 5. Re-encrypt to to_key
+    let to_key = get_other_didkey(&to_did_name);
+    let dcem = encrypt_didcomm(&holder_key, &to_key, &vp);
 
     Ok(dcem)
 }
