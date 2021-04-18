@@ -1,4 +1,4 @@
-# Exploring our Self-Sovereign-Identity(SSI) future, by developing a Command-Line-Interface(CLI) in Rust, using DID-Key, DIDComm V2 and Verifiable Credentials.
+# Exploring our Self-Sovereign-Identity future, by developing a Command-Line-Interface in Rust, using DID-Key, DIDComm V2 and Verifiable Credentials.
 
 # 1 Introduction
 
@@ -8,13 +8,13 @@ SSI is an evolving ecosystem which - although still in it's infancy - already ha
 
 ## 1.1 A theoretical investigation
 
-This paper investigates 3 major innovations related to SSI:
+This paper investigates 3 core technologies of SSI:
 
 1. **Decentralized identifiers or DID's** - Facilitates the creation of decentralized, persistent, verifiable and resolvable agents in any network.
 2. **DIDComm Messaging** - Establishes protocols for the exchange of information between networked DID-agents.
 3. **Verifiable Credentials** - Specifies how to express any piece of information as a "cryptographically secure, privacy respecting and machine verifiable" data-structure.
 
-All 3 innovations are big on their own, and fairly independent of one another. It is when combined, they truly realize their full potential, and become a whole, that is much more than the sum of it's parts. This whole, is referred to as "Self-Sovereign Identity" - SSI for short.
+All these 3 innovations are big on their own, and fairly independent of one another. Though, it is when combined they truly realize their full potential, and become a whole that is much more than the sum of it's parts. This whole is referred to as "Self-Sovereign Identity" - SSI for short.
 
 ## 1.2 A practical experiment
 
@@ -23,7 +23,6 @@ This paper also includes details about a practical experiment which was conducte
 The experiment was conducted to better understand how `didcomm-rs` - which is a novel implementation of the `DIDComm v2`-spec hosted by DIF - could interoperate with existing `Aries`-hosted implementations - which tradiationally have been `"DIDComm v1"`-implementations, but should now support `DIDComm v2` as well.
 
 To learn more about DIF, Aries, DIDComm v1 and v2, and much more, read the next chapter: [2 Background](./2-background.md).
-
 
 ## 1.3 Refs
 * [did-core]: https://www.w3.org/TR/did-core/ - 2021-03-30
