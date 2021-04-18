@@ -3,28 +3,29 @@ pub async fn run(config: Config) -> Result<String, std::io::Error> {
         // Basic
         CMD::DID => did(),
         CMD::Doc => doc(),
-        CMD::Connect{ to_did_name, did } => connect(&to_did_name, &did),
-        CMD::Write{ to_did_name, message } => write(&to_did_name, &message),
+        CMD::Connect{ connection_id, did } => connect(&connection_id, &did),
+        CMD::Write{ connection_id, message } => write(&connection_id, &message),
         CMD::Read{ dcem } => read(&dcem),
         CMD::Help => help(),
 
         // Verifiable Credentials
-        CMD::IssuePassport{ to_did_name } => issue("Passport", &to_did_name).await,
-        CMD::IssueLawEnforcer{ to_did_name } => issue("LawEnforcer", &to_did_name).await,
-        CMD::IssueTrafficAuthority{ to_did_name } => issue("TrafficAuthority", &to_did_name).await,
-        CMD::IssueDriversLicense{ to_did_name } => issue("DriversLicense", &to_did_name).await,
-        CMD::Hold{ credential_name, dcem } => hold(&credential_name, &dcem),
-        CMD::Present{ credential_name, to_did_name } => present(&credential_name, &to_did_name).await,
-        CMD::Verify{ issuer_name, dcem } => verify(&issuer_name, &dcem).await,
+        CMD::IssuePassport{ connection_id } => issue("Passport", &connection_id).await,
+        CMD::IssueLawEnforcer{ connection_id } => issue("LawEnforcer", &connection_id).await,
+        CMD::IssueTrafficAuthority{ connection_id } => issue("TrafficAuthority", &connection_id).await,
+        CMD::IssueDriversLicense{ connection_id } => issue("DriversLicense", &connection_id).await,
+        CMD::Hold{ dcem } => hold(&dcem),
+        CMD::Present{ credential_id, connection_id } => present(&credential_id, &connection_id).await,
+        CMD::Verify{ issuer_connection_id, dcem } => verify(&dcem, &issuer_connection_id).await,
 
-        // View data at rest
+        // View wallet data
         CMD::Messages => messages(),
-        CMD::Credentials => credentials(),
-        CMD::Credential{ credential_name } => credential(&credential_name),
-        CMD::Presentations => presentations(),
-        CMD::Presentation{ presentation_name } => presentation(&presentation_name),
+        CMD::Message{ message_id } => message(&message_id),
         CMD::Connections => connections(),
-        CMD::Connection{ connection_name } => connection(&connection_name),
+        CMD::Connection{ connection_id } => connection(&connection_id),
+        CMD::Credentials => credentials(),
+        CMD::Credential{ credential_id } => credential(&credential_id),
+        CMD::Presentations => presentations(),
+        CMD::Presentation{ presentation_id } => presentation(&presentation_id),
     }
 }
 
@@ -33,28 +34,29 @@ fn help() -> Result<String, std::io::Error> {
     Basic:
         did
         did doc
-        did connect  <did name> <did>
+        did connect <connection id> <did>
 
     DIDComm v2 messaging:
-        did write    <to did name> <message>  -->  <dcem>
-        did read     <dcem>                   -->  <from did name> <message>
+        did write  <connection id> <message>  -->  <dcem>
+        did read   <dcem>                     -->  <message id>
 
     DIDComm v2 + Verifiable Credentials:
-        did issue Passport         <to did name>  -->  <dcem>
-        did issue DriversLicense   <to did name>  -->  <dcem>
-        did issue TrafficAuthority <to did name>  -->  <dcem>
-        did issue LawEnforcer      <to did name>  -->  <dcem>
-
-        did hold    <credential name> <dcem>
-        did present <credential name> <to did name>  -->  <dcem>
-        did verify  <issuer did name> <dcem>
+        did issue   Passport         <connection id>  -->  <dcem>
+        did issue   DriversLicense   <connection id>  -->  <dcem>
+        did issue   TrafficAuthority <connection id>  -->  <dcem>
+        did issue   LawEnforcer      <connection id>  -->  <dcem>
+        did hold    <dcem>                            -->  <credential id>
+        did present <credential id>  <connection id>  -->  <dcem>
+        did verify  <dcem>    <issuer connection id>  -->  <presentation id>
 
     View stored data:
         did messages
+        did connections
+        did connection <connection id>
         did credentials
-        did credential <credential name>
+        did credential <credential id>
         did presentations
-        did presentation <presentation name>
+        did presentation <presentation id>
 "))
 }
 
@@ -66,25 +68,25 @@ fn did() -> Result<String, std::io::Error> {
 
     // 1. Create empty folders, if not exists
     if !std::fs::metadata(root_path()).is_ok() {
-        std::fs::create_dir_all(root_path())?;
+        std::fs::create_dir_all(root_path()).unwrap();
     }
-    if !std::fs::metadata(names_path()).is_ok() {
-        std::fs::create_dir_all(names_path())?;
+    if !std::fs::metadata(connections_path()).is_ok() {
+        std::fs::create_dir_all(connections_path()).unwrap();
     }
     if !std::fs::metadata(dids_path()).is_ok() {
-        std::fs::create_dir_all(dids_path())?;
+        std::fs::create_dir_all(dids_path()).unwrap();
     }
     if !std::fs::metadata(messages_path()).is_ok() {
-        std::fs::create_dir_all(messages_path())?;
+        std::fs::create_dir_all(messages_path()).unwrap();
     }
     if !std::fs::metadata(credentials_path()).is_ok() {
-        std::fs::create_dir_all(credentials_path())?;
+        std::fs::create_dir_all(credentials_path()).unwrap();
     }
     if !std::fs::metadata(presentations_path()).is_ok() {
-        std::fs::create_dir_all(presentations_path())?;
+        std::fs::create_dir_all(presentations_path()).unwrap();
     }
 
-    let did_doc = if !std::fs::metadata(didkey_jwk_path()).is_ok() {
+    let did_doc = if !std::fs::metadata(key_jwk_path()).is_ok() {
         // 2. Generate jwk, if not exists
         let mut csprng = rand::rngs::OsRng {};
         let private_key = ed25519_dalek::SecretKey::generate(&mut csprng).to_bytes();
@@ -94,7 +96,7 @@ fn did() -> Result<String, std::io::Error> {
         let jwk = publicprivatebytes_to_jwkstr(did_key.public_key_bytes(), did_key.private_key_bytes());
 
         // 3. Write jwk to file
-        let mut file = std::fs::File::create(didkey_jwk_path()).unwrap();
+        let mut file = std::fs::File::create(key_jwk_path()).unwrap();
         file.write(jwk.as_bytes()).unwrap();
 
         // 4. Connect to self
@@ -129,18 +131,18 @@ fn doc() -> Result<String, std::io::Error> {
     Ok(format!("{}", did_doc))
 }
 
-fn connect(to_did_name: &str, did: &str) -> Result<String, std::io::Error> {
+fn connect(connection_id: &str, did: &str) -> Result<String, std::io::Error> {
     use std::io::Write;
 
     // 1. Create 'name' -> 'did'-mapping
-    let mut file = std::fs::File::create(name_path(to_did_name))?;
-    file.write(did.as_bytes())?;
+    let mut file = std::fs::File::create(connection_path(connection_id)).unwrap();
+    file.write(did.as_bytes()).unwrap();
 
     // 2. Create 'did' -> 'name'-mapping
-    let mut file = std::fs::File::create(did_path(did))?;
-    file.write(to_did_name.as_bytes())?;
+    let mut file = std::fs::File::create(did_path(did)).unwrap();
+    file.write(connection_id.as_bytes()).unwrap();
 
-    Ok(format!("{}\n{}", name_path(to_did_name), did_path(did)))
+    Ok(format!("{}\n{}", connection_path(connection_id), did_path(did)))
 }
 
 
@@ -153,8 +155,8 @@ fn write(to_did_name: &str, message: &str) -> Result<String, std::io::Error> {
 
     // 2. Encrypt message with from_key, to keep message history in local file
     let dcem = encrypt_didcomm(&from_key, &from_key, message);
-    let mut file = std::fs::File::create(make_message_path())?;
-    file.write(dcem.as_bytes())?;
+    let mut file = std::fs::File::create(make_message_path()).unwrap();
+    file.write(dcem.as_bytes()).unwrap();
 
     // 3. Encrypt message with to_key, to prepare it for transmission
     let dcem = encrypt_didcomm(&from_key, &to_key, message);
@@ -176,8 +178,8 @@ fn read(dcem: &str) -> Result<String, std::io::Error> {
     // 3. Store incomming message to file, to keep the message history
     let path = make_message_path();
     let path = std::path::Path::new(&path);
-    let mut file = std::fs::File::create(path)?;
-    file.write(dcem.as_bytes())?;
+    let mut file = std::fs::File::create(path).unwrap();
+    file.write(dcem.as_bytes()).unwrap();
 
     // 4. Format message
     use did_key::DIDCore;
@@ -230,35 +232,34 @@ async fn issue(credential_type: &str, to_did_name: &str) -> Result<String, std::
 
     // 5. Serialize and encrypt with issuer_didkey
     let vc = serde_json::to_string_pretty(&vc).unwrap();
-    let dcem = encrypt_didcomm(&issuer_didkey, &issuer_didkey, &vc);
+    let dcem = encrypt_didcomm(&issuer_didkey, &issuer_didkey, &vc.clone());
 
     // 6. Store vc to file
-    let mut file = std::fs::File::create(make_credential_path())?;
+    let mut file = std::fs::File::create(make_credential_path()).unwrap();
     use std::io::Write;
-    file.write(dcem.as_bytes())?;
+    file.write(dcem.as_bytes()).unwrap();
 
     // 7. Serialize and encrypt with subject_didkey
-    let vc = serde_json::to_string_pretty(&vc).unwrap();
-    let dcem = encrypt_didcomm(&issuer_didkey, &subject_didkey, &vc);
+    let dcem = encrypt_didcomm(&issuer_didkey, &subject_didkey, &vc.clone());
 
     Ok(dcem)
 }
 
-fn hold(credential_name: &str, dcem: &str) -> Result<String, std::io::Error> {
-
+fn hold(dcem: &str) -> Result<String, std::io::Error> {
     // 1. Get did:keys
     let to_key = get_self_didkey();
     let from_key = get_from_key_from_didcomm_message(dcem);
 
-    // 2. Decrypt message
-    let decrypted = decrypt_didcomm(&from_key, &to_key, dcem);
+    // 2. Decrypt message, to check if it is intendend for me
+    let _ = decrypt_didcomm(&from_key, &to_key, dcem);
 
     // 3. Store incomming credential to file
-    let mut file = std::fs::File::create(credential_path(credential_name))?;
+    let credential_id = since_epoch();
+    let mut file = std::fs::File::create(credential_path(&credential_id)).unwrap();
     use std::io::Write;
-    file.write(dcem.as_bytes())?;
+    file.write(dcem.as_bytes()).unwrap();
 
-    Ok(decrypted)
+    Ok(credential_id)
 }
 
 async fn present(credential_name: &str, to_did_name: &str) -> Result<String, std::io::Error> {
@@ -297,9 +298,9 @@ async fn present(credential_name: &str, to_did_name: &str) -> Result<String, std
     let dcem = encrypt_didcomm(&holder_key, &holder_key, &vp);
 
     // 4. Store outgoing presentation to file
-    let mut file = std::fs::File::create(make_presentation_path())?;
+    let mut file = std::fs::File::create(make_presentation_path()).unwrap();
     use std::io::Write;
-    file.write(dcem.as_bytes())?;
+    file.write(dcem.as_bytes()).unwrap();
 
     // 5. Re-encrypt to to_key
     let to_key = get_other_didkey(&to_did_name);
@@ -308,9 +309,9 @@ async fn present(credential_name: &str, to_did_name: &str) -> Result<String, std
     Ok(dcem)
 }
 
-async fn verify(issuer_did_name: &str, dcem: &str) -> Result<String, std::io::Error> {
+async fn verify(dcem: &str, issuer_connection_id: &str) -> Result<String, std::io::Error> {
     // 0. Get keys
-    let issuer_key = get_other_didkey(issuer_did_name);
+    let issuer_key = get_other_didkey(issuer_connection_id);
     use did_key::DIDCore;
     let wanted_issuer_did = issuer_key.get_did_document(did_key::CONFIG_LD_PUBLIC).id;
     let holder_key = get_from_key_from_didcomm_message(dcem);
@@ -320,9 +321,9 @@ async fn verify(issuer_did_name: &str, dcem: &str) -> Result<String, std::io::Er
     let vp = decrypt_didcomm(&holder_key, &verifier_key, dcem);
 
     // 2. Store vp to file
-    let mut file = std::fs::File::create(make_presentation_path())?;
+    let mut file = std::fs::File::create(make_presentation_path()).unwrap();
     use std::io::Write;
-    file.write(dcem.as_bytes())?;
+    file.write(dcem.as_bytes()).unwrap();
 
     // 3. Verify VP
     let vp: ssi::vc::Presentation = serde_json::from_str(&vp).unwrap();
@@ -353,7 +354,7 @@ async fn verify(issuer_did_name: &str, dcem: &str) -> Result<String, std::io::Er
             },
         };
         if wanted_issuer_did != actual_issuer_did {
-            return Ok(format!("Credential.issuer.did did not match the did of {}: Wanted did: {}: Actual did: {}", issuer_did_name, wanted_issuer_did, actual_issuer_did));
+            return Ok(format!("Credential.issuer.did did not match the did of {}: Wanted did: {}: Actual did: {}", issuer_connection_id, wanted_issuer_did, actual_issuer_did));
         }
     }
 
@@ -364,7 +365,7 @@ async fn verify(issuer_did_name: &str, dcem: &str) -> Result<String, std::io::Er
 // Commands: For viewing data at rest
 //
 fn messages() -> Result<String, std::io::Error> {
-    let mut result = String::from("");
+    let mut list = format!("{:16.16}{:16.16}{:16.16}{:16.16}\n", "ID", "Text", "From", "From DID");
 
     let mut entries: Vec<std::fs::DirEntry> = std::fs::read_dir(messages_path()).unwrap().filter_map(|f| f.ok()).collect();
     entries.sort_by_key(|e| e.path());
@@ -376,7 +377,7 @@ fn messages() -> Result<String, std::io::Error> {
         if entry.path().is_dir() {
             continue;
         }
-        let dcem = std::fs::read_to_string(entry.path())?;
+        let dcem = std::fs::read_to_string(entry.path()).unwrap();
 
         // 2. Get from-didkey
         let from_key = get_from_key_from_didcomm_message(&dcem);
@@ -388,17 +389,27 @@ fn messages() -> Result<String, std::io::Error> {
 
         // 4. Format
         let from_name = std::fs::read_to_string(did_path(&from_did))
-            .unwrap_or(from_did.clone());
+            .unwrap_or("".to_string());
         let file_name = String::from(entry.file_name().to_str().unwrap());
+        let message_id = file_name.replace(".dcem", "");
 
-        result.push_str(&format!("[{}] {} > {}\n", file_name, from_name, decrypted));
+        list.push_str(&format!("{:16.16}{:16.16}{:16.16}{:16.16}...\n", message_id, decrypted, from_name, from_did));
     }
 
-    Ok(result)
+    Ok(list)
+}
+
+fn message(message_id: &str) -> Result<String, std::io::Error> {
+    let dcem = std::fs::read_to_string(message_path(message_id)).unwrap();
+    let from_key = get_from_key_from_didcomm_message(&dcem);
+    let self_key = get_self_didkey();
+    let message = decrypt_didcomm(&from_key, &self_key, &dcem);
+
+    Ok(message)
 }
 
 fn credentials() -> Result<String, std::io::Error> {
-    let mut result = format!("{:16}{:16}{:16}\n", "Name", "Issuer", "Issuer DID");
+    let mut result = format!("{:16.16}{:16.20}{:16.16}{:16.16}\n", "ID", "Type", "Issuer", "Issuer DID");
 
     let mut entries: Vec<std::fs::DirEntry> = std::fs::read_dir(credentials_path())
         .unwrap()
@@ -413,7 +424,7 @@ fn credentials() -> Result<String, std::io::Error> {
         if entry.path().is_dir() {
             continue;
         }
-        let dcem = std::fs::read_to_string(entry.path())?;
+        let dcem = std::fs::read_to_string(entry.path()).unwrap();
 
         // 2. Get from-didkey
         let from_key = get_from_key_from_didcomm_message(&dcem);
@@ -436,7 +447,7 @@ fn credentials() -> Result<String, std::io::Error> {
         let file_name = String::from(entry.file_name().to_str().unwrap());
         let file_name = file_name.replace(".dcem", "");
 
-        result.push_str(&format!("{:16}{:16}{:16}\n", file_name, issuer_name, issuer_did));
+        result.push_str(&format!("{:16.16}{:16.20}{:16.16}{:16.16}...\n", file_name, vc.type_.into_iter().last().unwrap(), issuer_name, issuer_did));
     }
 
     Ok(result)
@@ -444,7 +455,7 @@ fn credentials() -> Result<String, std::io::Error> {
 
 fn credential(credential_name: &str) -> Result<String, std::io::Error> {
     let path = credential_path(credential_name);
-    let dcem = std::fs::read_to_string(path)?;
+    let dcem = std::fs::read_to_string(path).unwrap();
     let from_key = get_from_key_from_didcomm_message(&dcem);
     let self_key = get_self_didkey();
     let vc = decrypt_didcomm(&from_key, &self_key, &dcem);
@@ -453,7 +464,7 @@ fn credential(credential_name: &str) -> Result<String, std::io::Error> {
 }
 
 fn presentations() -> Result<String, std::io::Error> {
-    let mut result = format!("{:16}{:16}{:16}\n", "Name", "Holder", "Holder DID");
+    let mut list = format!("{:16.16}{:16.20}{:16.16}{:16.16}\n", "ID", "Type", "Holder", "Holder DID");
 
     let mut entries: Vec<std::fs::DirEntry> = std::fs::read_dir(presentations_path())
         .unwrap()
@@ -468,7 +479,7 @@ fn presentations() -> Result<String, std::io::Error> {
         if entry.path().is_dir() {
             continue;
         }
-        let dcem = std::fs::read_to_string(entry.path())?;
+        let dcem = std::fs::read_to_string(entry.path()).unwrap();
 
         // 2. Get from-didkey
         let from_key = get_from_key_from_didcomm_message(&dcem);
@@ -487,15 +498,15 @@ fn presentations() -> Result<String, std::io::Error> {
         let file_name = String::from(entry.file_name().to_str().unwrap());
         let file_name = file_name.replace(".dcem", "");
 
-        result.push_str(&format!("{:16}{:16}{:16}\n", file_name, holder_name, holder_did));
+        list.push_str(&format!("{:16.16}{:16.20}{:16.16}{:16.16}...\n", file_name, vp.type_.into_iter().last().unwrap(), holder_name, holder_did));
     }
 
-    Ok(result)
+    Ok(list)
 }
 
 fn presentation(presentation_name: &str) -> Result<String, std::io::Error> {
     let path = presentation_path(presentation_name);
-    let dcem = std::fs::read_to_string(path)?;
+    let dcem = std::fs::read_to_string(path).unwrap();
     let from_key = get_from_key_from_didcomm_message(&dcem);
     let self_key = get_self_didkey();
     let vp = decrypt_didcomm(&from_key, &self_key, &dcem);
@@ -505,8 +516,8 @@ fn presentation(presentation_name: &str) -> Result<String, std::io::Error> {
 
 
 fn connections() -> Result<String, std::io::Error> {
-    let mut result = format!("{:16}\t{}\n", "Name", "DID");
-    let mut entries: Vec<std::fs::DirEntry> = std::fs::read_dir(names_path())
+    let mut list = format!("{:16}{}\n", "ID", "DID");
+    let mut entries: Vec<std::fs::DirEntry> = std::fs::read_dir(connections_path())
         .unwrap()
         .filter_map(|f| f.ok()).collect();
     entries.sort_by_key(|e| e.path());
@@ -515,24 +526,19 @@ fn connections() -> Result<String, std::io::Error> {
         if entry.path().is_dir() {
             continue;
         }
-        let connection_did = std::fs::read_to_string(entry.path())?;
+        let connection_did = std::fs::read_to_string(entry.path()).unwrap();
         let connection_name = String::from(entry.file_name().to_str().unwrap());
-        result.push_str(&format!("{:16}\t{}\n", connection_name, connection_did));
+        list.push_str(&format!("{:16}{}\n", connection_name, connection_did));
     }
 
-    Ok(result)
+    Ok(list)
 }
 
 fn connection(connection_name: &str) -> Result<String, std::io::Error> {
-    let path = name_path(connection_name);
-    let connection_did = std::fs::read_to_string(path)?;
-    Ok(format!(
-        "{:16}\t{}\n{:16}\t{}",
-        "Name",
-        "DID",
-        connection_name,
-        connection_did
-    ))
+    let path = connection_path(connection_name);
+    let connection_did = std::fs::read_to_string(path).unwrap();
+
+    Ok(connection_did)
 }
 
 
@@ -545,22 +551,22 @@ fn root_path() -> String {
     String::from(ROOT_PATH)
 }
 
-fn didkey_jwk_path() -> String {
+fn key_jwk_path() -> String {
     std::path::Path::new(ROOT_PATH)
         .join("key.jwk")
         .to_str().unwrap().to_string()
 }
 
-fn names_path() -> String {
+fn connections_path() -> String {
     std::path::Path::new(ROOT_PATH)
-        .join("names/")
+        .join("connections/")
         .to_str().unwrap().to_string()
 }
 
-fn name_path(name: &str) -> String {
+fn connection_path(connection_id: &str) -> String {
     std::path::Path::new(ROOT_PATH)
-        .join("names/")
-        .join(name)
+        .join("connections/")
+        .join(format!("{}.did", connection_id))
         .to_str().unwrap().to_string()
 }
 
@@ -570,10 +576,10 @@ fn dids_path() -> String {
         .to_str().unwrap().to_string()
 }
 
-fn did_path(did_name: &str) -> String {
+fn did_path(did: &str) -> String {
     std::path::Path::new(ROOT_PATH)
         .join("dids/")
-        .join(did_name)
+        .join(did)
         .to_str().unwrap().to_string()
 }
 
@@ -592,7 +598,7 @@ fn credential_path(credential_name: &str) -> String {
 
 fn make_credential_path() -> String {
     std::path::Path::new(ROOT_PATH)
-        .join(format!("credentials/{}.dcem", seconds_since_epoch()))
+        .join(format!("credentials/{}.dcem", since_epoch()))
         .to_str().unwrap().to_string()
 }
 
@@ -610,9 +616,8 @@ fn presentation_path(presentation_name: &str) -> String {
 }
 
 fn make_presentation_path() -> String {
-
     std::path::Path::new(ROOT_PATH)
-        .join(format!("presentations/{}.dcem", seconds_since_epoch()))
+        .join(format!("presentations/{}.dcem", since_epoch()))
         .to_str().unwrap().to_string()
 }
 
@@ -622,16 +627,25 @@ fn messages_path() -> String {
         .to_str().unwrap().to_string()
 }
 
-fn make_message_path() -> String {
+fn message_path(message_id: &str) -> String {
     std::path::Path::new(ROOT_PATH)
-        .join(format!("messages/{}.dcem", seconds_since_epoch()))
+        .join("messages/")
+        .join(format!("{}.dcem", message_id))
         .to_str().unwrap().to_string()
 }
 
-fn seconds_since_epoch() -> u64 {
+fn make_message_path() -> String {
+    std::path::Path::new(ROOT_PATH)
+        .join(format!("messages/{}.dcem", since_epoch()))
+        .to_str().unwrap().to_string()
+}
+
+fn since_epoch() -> String {
     std::time::SystemTime::now()
         .duration_since(std::time::UNIX_EPOCH)
-        .expect("Time went backwards").as_secs()
+        .expect("Time went backwards")
+        .as_millis()
+        .to_string()
 }
 
 fn encrypt_didcomm(from_key: &did_key::Ed25519KeyPair, to_key: &did_key::Ed25519KeyPair, message: &str) -> String {
@@ -734,7 +748,7 @@ fn jwkstr_to_publicprivatebytes(jwkstr: &str) -> (Vec<u8>, Vec<u8>) {// -> (publ
 }
 
 fn get_self_jwk_and_didkey() -> (did_key::Ed25519KeyPair, ssi::jwk::JWK) {
-    let jwk = didkey_jwk_path();
+    let jwk = key_jwk_path();
     let jwk = std::fs::read(jwk).unwrap();
     let jwk = String::from_utf8(jwk).unwrap();
 
@@ -747,7 +761,7 @@ fn get_self_jwk_and_didkey() -> (did_key::Ed25519KeyPair, ssi::jwk::JWK) {
 }
 
 fn get_self_didkey() -> did_key::Ed25519KeyPair {
-    let jwk = didkey_jwk_path();
+    let jwk = key_jwk_path();
     let jwk = std::fs::read(jwk).unwrap();
     let jwk = String::from_utf8(jwk).unwrap();
 
@@ -758,7 +772,7 @@ fn get_self_didkey() -> did_key::Ed25519KeyPair {
 }
 
 fn get_other_didkey(other_did_name: &str) -> did_key::Ed25519KeyPair {
-    let path = name_path(other_did_name);
+    let path = connection_path(other_did_name);
     let other_did = std::fs::read_to_string(path).unwrap();
     let other_didkey = did_key::resolve(&other_did).unwrap();
 
@@ -789,28 +803,29 @@ enum CMD {
     // Basic commands
     DID,
     Doc,
-    Connect{ to_did_name: String, did: String },
-    Write{ to_did_name: String, message: String },
+    Connect{ connection_id: String, did: String },
+    Write{ connection_id: String, message: String },
     Read{ dcem: String },
     Help,
 
     // Verifiable Credentials commands
-    IssuePassport{ to_did_name: String },
-    IssueDriversLicense{ to_did_name: String },
-    IssueTrafficAuthority{ to_did_name: String },
-    IssueLawEnforcer{ to_did_name: String },
-    Hold{ credential_name: String, dcem: String },
-    Present{ credential_name: String, to_did_name: String },
-    Verify{ issuer_name: String, dcem: String },
+    IssuePassport{ connection_id: String },
+    IssueDriversLicense{ connection_id: String },
+    IssueTrafficAuthority{ connection_id: String },
+    IssueLawEnforcer{ connection_id: String },
+    Hold{ dcem: String },
+    Present{ credential_id: String, connection_id: String },
+    Verify{ dcem: String,  issuer_connection_id: String, },
 
     // View wallet data
     Messages,
+    Message{ message_id: String },
     Connections,
-    Connection{ connection_name: String },
+    Connection{ connection_id: String },
     Credentials,
-    Credential{ credential_name: String },
+    Credential{ credential_id: String },
     Presentations,
-    Presentation{ presentation_name: String }
+    Presentation{ presentation_id: String }
 }
 
 pub struct Config {
@@ -845,20 +860,17 @@ impl Config {
             "doc" => {
                 CMD::Doc
             },
-            "messages" => {
-                CMD::Messages
-            },
             "connect" => {
-                let to_did_name = get_arg_or_return_help!(2);
+                let connection_id = get_arg_or_return_help!(2);
                 let did = get_arg_or_return_help!(3);
 
-                CMD::Connect{ to_did_name, did }
+                CMD::Connect{ connection_id, did }
             },
             "write" => {
-                let to_did_name = get_arg_or_return_help!(2);
+                let connection_id = get_arg_or_return_help!(2);
                 let message = get_arg_or_return_help!(3);
 
-                CMD::Write{ to_did_name, message }
+                CMD::Write{ connection_id, message }
             },
             "read" => {
                 let dcem = get_arg_or_return_help!(2);
@@ -870,20 +882,20 @@ impl Config {
 
                 match &credential_type[..] {
                     "Passport" => {
-                        let to_did_name = get_arg_or_return_help!(3);
-                        CMD::IssuePassport{ to_did_name }
+                        let connection_id = get_arg_or_return_help!(3);
+                        CMD::IssuePassport{ connection_id }
                     },
                     "TrafficAuthority" => {
-                        let to_did_name = get_arg_or_return_help!(3);
-                        CMD::IssueTrafficAuthority{ to_did_name }
+                        let connection_id = get_arg_or_return_help!(3);
+                        CMD::IssueTrafficAuthority{ connection_id }
                     },
                     "LawEnforcer" => {
-                        let to_did_name = get_arg_or_return_help!(3);
-                        CMD::IssueLawEnforcer{ to_did_name }
+                        let connection_id = get_arg_or_return_help!(3);
+                        CMD::IssueLawEnforcer{ connection_id }
                     },
                     "DriversLicense" => {
-                        let to_did_name = get_arg_or_return_help!(3);
-                        CMD::IssueDriversLicense{ to_did_name }
+                        let connection_id = get_arg_or_return_help!(3);
+                        CMD::IssueDriversLicense{ connection_id }
                     },
                     &_ => {
                         CMD::Help
@@ -891,43 +903,49 @@ impl Config {
                 }
             },
             "hold" => {
-                let credential_name = get_arg_or_return_help!(2);
-                let dcem = get_arg_or_return_help!(3);
+                let dcem = get_arg_or_return_help!(2);
 
-                CMD::Hold{ credential_name, dcem }
+                CMD::Hold{ dcem }
             },
             "present" => {
-                let credential_name = get_arg_or_return_help!(2);
-                let to_did_name = get_arg_or_return_help!(3);
+                let credential_id = get_arg_or_return_help!(2);
+                let connection_id = get_arg_or_return_help!(3);
 
-                CMD::Present{ credential_name, to_did_name }
+                CMD::Present{ credential_id, connection_id }
             },
             "verify" => {
-                let issuer_name = get_arg_or_return_help!(2);
-                let dcem = get_arg_or_return_help!(3);
+                let dcem = get_arg_or_return_help!(2);
+                let issuer_connection_id = get_arg_or_return_help!(3);
 
-                CMD::Verify{ issuer_name, dcem }
+                CMD::Verify{ issuer_connection_id, dcem }
+            },
+            "messages" => {
+                CMD::Messages
+            },
+            "message" => {
+                let message_id = get_arg_or_return_help!(2);
+                CMD::Message{ message_id }
             },
             "credentials" => {
                 CMD::Credentials
             },
             "credential" => {
-                let credential_name = get_arg_or_return_help!(2);
-                CMD::Credential{ credential_name }
+                let credential_id = get_arg_or_return_help!(2);
+                CMD::Credential{ credential_id }
             },
             "presentations" => {
                 CMD::Presentations
             },
             "presentation" => {
-                let presentation_name = get_arg_or_return_help!(2);
-                CMD::Presentation{ presentation_name }
+                let presentation_id = get_arg_or_return_help!(2);
+                CMD::Presentation{ presentation_id }
             },
             "connections" => {
                 CMD::Connections
             },
             "connection" => {
-                let connection_name = get_arg_or_return_help!(2);
-                CMD::Connection{ connection_name }
+                let connection_id = get_arg_or_return_help!(2);
+                CMD::Connection{ connection_id }
             },
             "help" => CMD::Help,
             &_ => {
