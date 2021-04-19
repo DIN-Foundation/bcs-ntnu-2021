@@ -15,7 +15,7 @@ pub async fn run(config: Config) -> Result<String, std::io::Error> {
         CMD::IssueDriversLicense{ connection_id } => issue("DriversLicense", &connection_id).await,
         CMD::Hold{ dcem } => hold(&dcem),
         CMD::Present{ credential_id, connection_id } => present(&credential_id, &connection_id).await,
-        CMD::Verify{ issuer_connection_id, dcem } => verify(&dcem, &issuer_connection_id).await,
+        CMD::Verify{ issuer_connection_id, subject_connection_id, dcem } => verify(&issuer_connection_id, &subject_connection_id, &dcem).await,
 
         // View wallet data
         CMD::Messages => messages(),
@@ -47,10 +47,11 @@ fn help() -> Result<String, std::io::Error> {
         did issue   LawEnforcer      <connection id>  -->  <dcem>
         did hold    <dcem>                            -->  <credential id>
         did present <credential id>  <connection id>  -->  <dcem>
-        did verify  <dcem>    <issuer connection id>  -->  <presentation id>
+        did verify  <issuer connection id> <subject connection id> <dcem>  -->  <presentation id>
 
     View stored data:
         did messages
+        did message <message id>
         did connections
         did connection <connection id>
         did credentials
@@ -254,7 +255,7 @@ fn hold(dcem: &str) -> Result<String, std::io::Error> {
     let _ = decrypt_didcomm(&from_key, &to_key, dcem);
 
     // 3. Store incomming credential to file
-    let credential_id = since_epoch();
+    let credential_id = make_id();
     let mut file = std::fs::File::create(credential_path(&credential_id)).unwrap();
     use std::io::Write;
     file.write(dcem.as_bytes()).unwrap();
@@ -309,23 +310,28 @@ async fn present(credential_name: &str, to_did_name: &str) -> Result<String, std
     Ok(dcem)
 }
 
-async fn verify(dcem: &str, issuer_connection_id: &str) -> Result<String, std::io::Error> {
+async fn verify(issuer_connection_id: &str, subject_connection_id: &str, dcem: &str) -> Result<String, std::io::Error> {
     // 0. Get keys
+    let subject_key = get_other_didkey(subject_connection_id);
     let issuer_key = get_other_didkey(issuer_connection_id);
-    use did_key::DIDCore;
-    let wanted_issuer_did = issuer_key.get_did_document(did_key::CONFIG_LD_PUBLIC).id;
     let holder_key = get_from_key_from_didcomm_message(dcem);
     let verifier_key = get_self_didkey();
 
-    // 1. Decrypt vp
+    // 1. Get dids
+    use did_key::DIDCore;
+    let expected_issuer_did = issuer_key.get_did_document(did_key::CONFIG_LD_PUBLIC).id;
+    let expected_subject_did = subject_key.get_did_document(did_key::CONFIG_LD_PUBLIC).id;
+
+    // 2. Decrypt vp
     let vp = decrypt_didcomm(&holder_key, &verifier_key, dcem);
 
-    // 2. Store vp to file
-    let mut file = std::fs::File::create(make_presentation_path()).unwrap();
+    // 3. Store vp to file
+    let presentation_id = make_id();
+    let mut file = std::fs::File::create(presentation_path(&presentation_id)).unwrap();
     use std::io::Write;
     file.write(dcem.as_bytes()).unwrap();
 
-    // 3. Verify VP
+    // 4. Verify VP
     let vp: ssi::vc::Presentation = serde_json::from_str(&vp).unwrap();
     let result = vp.verify(None, &ssi_did_key::DIDKey).await;
 
@@ -333,7 +339,7 @@ async fn verify(dcem: &str, issuer_connection_id: &str) -> Result<String, std::i
         return Ok(format!("Verify presentation failed: {:#?}", result))
     }
 
-    // 4. Verify VC
+    // 5. Verify VC
     for vc in vp.verifiable_credential.unwrap().into_iter() {
         let vc: ssi::vc::Credential = match vc {
             ssi::vc::CredentialOrJWT::Credential(vc) => vc,
@@ -353,8 +359,20 @@ async fn verify(dcem: &str, issuer_connection_id: &str) -> Result<String, std::i
                 ssi::vc::URI::String(s) => s
             },
         };
-        if wanted_issuer_did != actual_issuer_did {
-            return Ok(format!("Credential.issuer.did did not match the did of {}: Wanted did: {}: Actual did: {}", issuer_connection_id, wanted_issuer_did, actual_issuer_did));
+        if expected_issuer_did != actual_issuer_did {
+            return Ok(format!(
+                "vc.issuer.did, did not match the did of {}: Expected did: {}: Actual did: {}",
+                issuer_connection_id, expected_issuer_did, actual_issuer_did));
+        }
+
+        let actual_subject: &ssi::vc::CredentialSubject = vc.credential_subject.to_single().unwrap();
+        let actual_subject_did = match actual_subject.id.clone().unwrap() {
+            ssi::vc::URI::String(s) => s
+        };
+        if expected_subject_did != actual_subject_did {
+            return Ok(format!(
+                "vc.subject.did, did not match the did of {}: Expected did: {}: Actual did: {}",
+                subject_connection_id, expected_issuer_did, actual_issuer_did));
         }
     }
 
@@ -598,7 +616,7 @@ fn credential_path(credential_name: &str) -> String {
 
 fn make_credential_path() -> String {
     std::path::Path::new(ROOT_PATH)
-        .join(format!("credentials/{}.dcem", since_epoch()))
+        .join(format!("credentials/{}.dcem", make_id()))
         .to_str().unwrap().to_string()
 }
 
@@ -617,7 +635,7 @@ fn presentation_path(presentation_name: &str) -> String {
 
 fn make_presentation_path() -> String {
     std::path::Path::new(ROOT_PATH)
-        .join(format!("presentations/{}.dcem", since_epoch()))
+        .join(format!("presentations/{}.dcem", make_id()))
         .to_str().unwrap().to_string()
 }
 
@@ -636,11 +654,11 @@ fn message_path(message_id: &str) -> String {
 
 fn make_message_path() -> String {
     std::path::Path::new(ROOT_PATH)
-        .join(format!("messages/{}.dcem", since_epoch()))
+        .join(format!("messages/{}.dcem", make_id()))
         .to_str().unwrap().to_string()
 }
 
-fn since_epoch() -> String {
+fn make_id() -> String {
     std::time::SystemTime::now()
         .duration_since(std::time::UNIX_EPOCH)
         .expect("Time went backwards")
@@ -815,7 +833,7 @@ enum CMD {
     IssueLawEnforcer{ connection_id: String },
     Hold{ dcem: String },
     Present{ credential_id: String, connection_id: String },
-    Verify{ dcem: String,  issuer_connection_id: String, },
+    Verify{ issuer_connection_id: String, subject_connection_id: String, dcem: String },
 
     // View wallet data
     Messages,
@@ -914,10 +932,11 @@ impl Config {
                 CMD::Present{ credential_id, connection_id }
             },
             "verify" => {
-                let dcem = get_arg_or_return_help!(2);
-                let issuer_connection_id = get_arg_or_return_help!(3);
+                let issuer_connection_id = get_arg_or_return_help!(2);
+                let subject_connection_id = get_arg_or_return_help!(3);
+                let dcem = get_arg_or_return_help!(4);
 
-                CMD::Verify{ issuer_connection_id, dcem }
+                CMD::Verify{ issuer_connection_id, subject_connection_id, dcem }
             },
             "messages" => {
                 CMD::Messages
