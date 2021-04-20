@@ -2,31 +2,31 @@ did CLI
 
 Example usage:
 ```
-    Usage:
-        did <command> <args>
-        did init
-        did did
+    Basic:
+        did
         did doc
-        did connect  <did name> <did>
+        did connect <connection id> <did>
 
-    Basic Didcomm Messaging:
-        did write    <to did name> <message>  -->  <dcem>
-        did read     <dcem>                   -->  <from did name> <message>
+    DIDComm v2 messaging:
+        did write  <connection id> <message>  -->  <dcem>
+        did read   <dcem>                     -->  <message id>
 
-    Verifiable Credentials:
-        did issue Passport         <to did name>  -->  <dcem>
-        did issue DriversLicense   <to did name>  -->  <dcem>
-        did issue TrafficAuthority <to did name>  -->  <dcem>
-        did issue LawEnforcer      <to did name>  -->  <dcem>
-
-        did hold    <credential name> <dcem>
-        did present <credential name> <to did name>  -->  <dcem>
-        did verify  <issuer did name> <dcem>
+    DIDComm v2 + Verifiable Credentials:
+        did issue   Passport         <connection id>  -->  <dcem>
+        did issue   DriversLicense   <connection id>  -->  <dcem>
+        did issue   TrafficAuthority <connection id>  -->  <dcem>
+        did issue   LawEnforcer      <connection id>  -->  <dcem>
+        did hold    <dcem>                            -->  <credential id>
+        did present <credential id>  <connection id>  -->  <dcem>
+        did verify  <issuer connection id> <subject connection id> <dcem>  -->  <presentation id>
 
     View stored data:
         did messages
+        did message <message id>
+        did connections
+        did connection <connection id>
         did credentials
-        did credential <credential name>
+        did credential <credential id>
         did presentations
-        did presentation <presentation name>
+        did presentation <presentation id>
 ```
