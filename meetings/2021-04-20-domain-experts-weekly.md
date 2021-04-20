@@ -16,3 +16,9 @@
 - Only small side-quests, which I can fiddle with, in-between paper writing, when I need a break from that.
 - I will be writing the paper in the markdown documents here -> https://github.com/DIN-Foundation/bcs-ntnu-2021/tree/main/paper
 - Evevntually the text will be copy-pasted into the fork of the NTNU Bachelor thesis template, hosted here -> https://github.com/DIN-Foundation/bcs-ntnu-2021-thesis
+
+## WIP Bachelor title
+
+```
+Exploring our Self-Sovereign-Identity future, by developing a Command-Line-Interface in Rust, using DID-Key, DIDComm V2 and Verifiable Credentials
+```
