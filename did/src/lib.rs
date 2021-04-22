@@ -277,9 +277,11 @@ async fn present(credential_id: &str, to_did_name: &str) -> Result<String, std::
     let (vc,_) = decrypt_didcomm(&from_key, &holder_key, &dcem);
 
     let vc: ssi::vc::Credential = serde_json::from_str(&vc).unwrap();
+    let vc_type = vc.type_.clone().into_iter().last().unwrap();
+
     let vp = serde_json::json!({
         "@context": ["https://www.w3.org/2018/credentials/v1"],
-        "type": ["VerifiablePresentation"],
+        "type": ["VerifiablePresentation", vc_type],
         "holder": holder_doc.id,
         "verifiableCredential": vc
     });
