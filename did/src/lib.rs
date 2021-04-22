@@ -382,7 +382,7 @@ async fn verify(issuer_connection_id: &str, subject_connection_id: &str, dcem: &
 // Commands: For viewing data at rest
 //
 fn messages() -> Result<String, std::io::Error> {
-    let mut list = format!("{:16.16}{:16.16}{:16.16}{:16.16}\n", "ID", "Text", "From", "From DID");
+    let mut list = format!("{:24.24}{:16.16}{}\n", "ID", "From", "Text");
 
     let mut entries: Vec<std::fs::DirEntry> = std::fs::read_dir(messages_path()).unwrap().filter_map(|f| f.ok()).collect();
     entries.sort_by_key(|e| e.path());
@@ -408,7 +408,7 @@ fn messages() -> Result<String, std::io::Error> {
         let from_name = std::fs::read_to_string(did_path(&from_did))
             .unwrap_or("".to_string());
 
-        list.push_str(&format!("{:16.16}{:16.16}{:16.16}{:16.16}...\n", message_id, message, from_name, from_did));
+        list.push_str(&format!("{:24.24}{:16.16}{}\n", message_id, from_name, message));
     }
 
     Ok(list)
@@ -424,7 +424,7 @@ fn message(message_id: &str) -> Result<String, std::io::Error> {
 }
 
 fn credentials() -> Result<String, std::io::Error> {
-    let mut result = format!("{:16.16}{:16.20}{:16.16}{:16.16}\n", "ID", "Type", "Issuer", "Issuer DID");
+    let mut result = format!("{:24.24}{:24.24}{:16.16}{:16.16}\n", "ID", "Type", "Issuer", "Subject");
 
     let mut entries: Vec<std::fs::DirEntry> = std::fs::read_dir(credentials_path())
         .unwrap()
@@ -447,6 +447,8 @@ fn credentials() -> Result<String, std::io::Error> {
         // 3. Decrypt message
         let (vc, vc_id) = decrypt_didcomm(&from_key, &to_key, &dcem);
         let vc: ssi::vc::Credential = serde_json::from_str(&vc).unwrap();
+
+        // 4. Get issuer and subject name
         let issuer_did: String = match vc.issuer.unwrap() {
             ssi::vc::Issuer::URI(s) => match s {
                 ssi::vc::URI::String(s) => s
@@ -455,13 +457,21 @@ fn credentials() -> Result<String, std::io::Error> {
                 ssi::vc::URI::String(s) => s
             },
         };
-
-        // 4. Format
         let issuer_name = std::fs::read_to_string(did_path(&issuer_did))
             .unwrap_or(issuer_did.clone());
 
-        result.push_str(&format!("{:16.16}{:16.20}{:16.16}{:16.16}...\n",
-            vc_id, vc.type_.into_iter().last().unwrap(), issuer_name, issuer_did));
+        let subject: &ssi::vc::CredentialSubject = vc.credential_subject.to_single().unwrap();
+        let subject_did = match subject.id.clone().unwrap() { ssi::vc::URI::String(s) => s };
+        let subject_name = std::fs::read_to_string(did_path(&subject_did))
+            .unwrap_or(subject_did.clone());
+
+        // 5. Format
+        result.push_str(&format!("{:24.24}{:24.24}{:16.16}{:16.16}\n",
+            vc_id,
+            vc.type_.into_iter().last().unwrap(),
+            issuer_name,
+            subject_name
+        ));
     }
 
     Ok(result)
@@ -478,7 +488,7 @@ fn credential(credential_name: &str) -> Result<String, std::io::Error> {
 }
 
 fn presentations() -> Result<String, std::io::Error> {
-    let mut list = format!("{:16.16}{:16.20}{:16.16}{:16.16}\n", "ID", "Type", "Holder", "Holder DID");
+    let mut list = format!("{:24.24}{:24.24}{:16.16}{:16.16}{:16.16}\n", "ID", "Type", "Holder", "Issuer", "Subject");
 
     let mut entries: Vec<std::fs::DirEntry> = std::fs::read_dir(presentations_path())
         .unwrap()
@@ -504,16 +514,43 @@ fn presentations() -> Result<String, std::io::Error> {
         let holder_did: String = match vp.holder.unwrap() {
             ssi::vc::URI::String(did) => did
         };
+        let vc = vp.verifiable_credential.unwrap();
+        let vc: &ssi::vc::Credential = match vc.to_single().unwrap() {
+            ssi::vc::CredentialOrJWT::Credential(vc) => vc,
+            ssi::vc::CredentialOrJWT::JWT(_) => panic!("presentations(): ssi::vc::CredentialOrJWT::JWT not supported")
+        };
 
-        // 4. Format
+        // 4. Get issuer and subject name
+        let issuer_did: String = match vc.issuer.clone().unwrap() {
+            ssi::vc::Issuer::URI(s) => match s {
+                ssi::vc::URI::String(s) => s
+            },
+            ssi::vc::Issuer::Object(s) => match s.id {
+                ssi::vc::URI::String(s) => s
+            },
+        };
+        let issuer_name = std::fs::read_to_string(did_path(&issuer_did))
+            .unwrap_or(issuer_did.clone());
+
+        let subject: &ssi::vc::CredentialSubject = vc.credential_subject.to_single().unwrap();
+        let subject_did = match subject.id.clone().unwrap() { ssi::vc::URI::String(s) => s };
+        let subject_name = std::fs::read_to_string(did_path(&subject_did))
+            .unwrap_or(subject_did.clone());
+
+        // 5. Format
         let path = did_path(&holder_did);
         let holder_name = std::fs::read_to_string(path)
             .unwrap_or(holder_did.clone());
         let file_name = String::from(entry.file_name().to_str().unwrap());
         let file_name = file_name.replace(".dcem", "");
 
-        list.push_str(&format!("{:16.16}{:16.20}{:16.16}{:16.16}...\n",
-            file_name, vp.type_.into_iter().last().unwrap(), holder_name, holder_did));
+        list.push_str(&format!("{:24.24}{:24.24}{:16.16}{:16.16}{:16.16}\n",
+            file_name,
+            vp.type_.into_iter().last().unwrap(),
+            holder_name,
+            issuer_name,
+            subject_name
+        ));
     }
 
     Ok(list)
@@ -529,7 +566,6 @@ fn presentation(presentation_name: &str) -> Result<String, std::io::Error> {
     Ok(vp)
 }
 
-
 fn connections() -> Result<String, std::io::Error> {
     let mut list = format!("{:16}{}\n", "ID", "DID");
     let mut entries: Vec<std::fs::DirEntry> = std::fs::read_dir(connections_path())
@@ -542,8 +578,8 @@ fn connections() -> Result<String, std::io::Error> {
             continue;
         }
         let connection_did = std::fs::read_to_string(entry.path()).unwrap();
-        let connection_name = String::from(entry.file_name().to_str().unwrap());
-        list.push_str(&format!("{:16}{}\n", connection_name, connection_did));
+        let connection_id = String::from(entry.file_name().to_str().unwrap()).replace(".did", "");
+        list.push_str(&format!("{:16}{}\n", connection_id, connection_did));
     }
 
     Ok(list)
@@ -604,10 +640,10 @@ fn credentials_path() -> String {
         .to_str().unwrap().to_string()
 }
 
-fn credential_path(credential_name: &str) -> String {
+fn credential_path(credential_id: &str) -> String {
     std::path::Path::new(ROOT_PATH)
         .join("credentials/")
-        .join(format!("{}.dcem", credential_name))
+        .join(format!("{}.dcem", credential_id))
         .to_str().unwrap().to_string()
 }
 
