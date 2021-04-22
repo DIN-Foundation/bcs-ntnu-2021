@@ -155,12 +155,12 @@ fn write(to_did_name: &str, message: &str) -> Result<String, std::io::Error> {
     let to_key = get_other_didkey(to_did_name);
 
     // 2. Encrypt message with from_key, to keep message history in local file
-    let dcem = encrypt_didcomm(&from_key, &from_key, message);
-    let mut file = std::fs::File::create(make_message_path()).unwrap();
+    let (dcem, dcem_id) = encrypt_didcomm(&from_key, &from_key, message);
+    let mut file = std::fs::File::create(message_path(&dcem_id)).unwrap();
     file.write(dcem.as_bytes()).unwrap();
 
     // 3. Encrypt message with to_key, to prepare it for transmission
-    let dcem = encrypt_didcomm(&from_key, &to_key, message);
+    let (dcem, _) = encrypt_didcomm(&from_key, &to_key, message);
 
     Ok(format!("{}", &dcem))
 }
@@ -174,10 +174,10 @@ fn read(dcem: &str) -> Result<String, std::io::Error> {
     let from_key = get_from_key_from_didcomm_message(dcem);
 
     // 2. Decrypt message
-    let decrypted = decrypt_didcomm(&from_key, &to_key, dcem);
+    let (decrypted, id) = decrypt_didcomm(&from_key, &to_key, dcem);
 
     // 3. Store incomming message to file, to keep the message history
-    let path = make_message_path();
+    let path = message_path(&id);
     let path = std::path::Path::new(&path);
     let mut file = std::fs::File::create(path).unwrap();
     file.write(dcem.as_bytes()).unwrap();
@@ -233,15 +233,15 @@ async fn issue(credential_type: &str, to_did_name: &str) -> Result<String, std::
 
     // 5. Serialize and encrypt with issuer_didkey
     let vc = serde_json::to_string_pretty(&vc).unwrap();
-    let dcem = encrypt_didcomm(&issuer_didkey, &issuer_didkey, &vc.clone());
+    let (dcem, dcem_id) = encrypt_didcomm(&issuer_didkey, &issuer_didkey, &vc.clone());
 
     // 6. Store vc to file
-    let mut file = std::fs::File::create(make_credential_path()).unwrap();
+    let mut file = std::fs::File::create(credential_path(&dcem_id)).unwrap();
     use std::io::Write;
     file.write(dcem.as_bytes()).unwrap();
 
     // 7. Serialize and encrypt with subject_didkey
-    let dcem = encrypt_didcomm(&issuer_didkey, &subject_didkey, &vc.clone());
+    let (dcem,_) = encrypt_didcomm(&issuer_didkey, &subject_didkey, &vc.clone());
 
     Ok(dcem)
 }
@@ -252,10 +252,9 @@ fn hold(dcem: &str) -> Result<String, std::io::Error> {
     let from_key = get_from_key_from_didcomm_message(dcem);
 
     // 2. Decrypt message, to check if it is intendend for me
-    let _ = decrypt_didcomm(&from_key, &to_key, dcem);
+    let (_,credential_id) = decrypt_didcomm(&from_key, &to_key, dcem);
 
     // 3. Store incomming credential to file
-    let credential_id = make_id();
     let mut file = std::fs::File::create(credential_path(&credential_id)).unwrap();
     use std::io::Write;
     file.write(dcem.as_bytes()).unwrap();
@@ -263,9 +262,9 @@ fn hold(dcem: &str) -> Result<String, std::io::Error> {
     Ok(credential_id)
 }
 
-async fn present(credential_name: &str, to_did_name: &str) -> Result<String, std::io::Error> {
+async fn present(credential_id: &str, to_did_name: &str) -> Result<String, std::io::Error> {
     // 0. Read from file
-    let credential_path = credential_path(&credential_name);
+    let credential_path = credential_path(&credential_id);
     let credential_path = std::path::Path::new(&credential_path);
     let dcem = std::fs::read_to_string(credential_path).unwrap();
 
@@ -275,7 +274,7 @@ async fn present(credential_name: &str, to_did_name: &str) -> Result<String, std
     use did_key::DIDCore;
     let holder_doc = holder_key.get_did_document(did_key::CONFIG_LD_PUBLIC);
     let from_key = get_from_key_from_didcomm_message(&dcem);
-    let vc = decrypt_didcomm(&from_key, &holder_key, &dcem);
+    let (vc,_) = decrypt_didcomm(&from_key, &holder_key, &dcem);
 
     let vc: ssi::vc::Credential = serde_json::from_str(&vc).unwrap();
     let vp = serde_json::json!({
@@ -296,16 +295,16 @@ async fn present(credential_name: &str, to_did_name: &str) -> Result<String, std
 
     // 3. Re-encrypt to holder_key
     let vp = serde_json::to_string_pretty(&vp).unwrap();
-    let dcem = encrypt_didcomm(&holder_key, &holder_key, &vp);
+    let (dcem, dcem_id) = encrypt_didcomm(&holder_key, &holder_key, &vp);
 
     // 4. Store outgoing presentation to file
-    let mut file = std::fs::File::create(make_presentation_path()).unwrap();
+    let mut file = std::fs::File::create(presentation_path(&dcem_id)).unwrap();
     use std::io::Write;
     file.write(dcem.as_bytes()).unwrap();
 
     // 5. Re-encrypt to to_key
     let to_key = get_other_didkey(&to_did_name);
-    let dcem = encrypt_didcomm(&holder_key, &to_key, &vp);
+    let (dcem,_) = encrypt_didcomm(&holder_key, &to_key, &vp);
 
     Ok(dcem)
 }
@@ -323,11 +322,10 @@ async fn verify(issuer_connection_id: &str, subject_connection_id: &str, dcem: &
     let expected_subject_did = subject_key.get_did_document(did_key::CONFIG_LD_PUBLIC).id;
 
     // 2. Decrypt vp
-    let vp = decrypt_didcomm(&holder_key, &verifier_key, dcem);
+    let (vp, vp_id) = decrypt_didcomm(&holder_key, &verifier_key, dcem);
 
     // 3. Store vp to file
-    let presentation_id = make_id();
-    let mut file = std::fs::File::create(presentation_path(&presentation_id)).unwrap();
+    let mut file = std::fs::File::create(presentation_path(&vp_id)).unwrap();
     use std::io::Write;
     file.write(dcem.as_bytes()).unwrap();
 
@@ -336,7 +334,7 @@ async fn verify(issuer_connection_id: &str, subject_connection_id: &str, dcem: &
     let result = vp.verify(None, &ssi_did_key::DIDKey).await;
 
     if result.errors.len() > 0 {
-        return Ok(format!("Verify presentation failed: {:#?}", result))
+        return Ok(format!("Failed to verify VP: {}: {:#?}", vp_id, result))
     }
 
     // 5. Verify VC
@@ -348,7 +346,8 @@ async fn verify(issuer_connection_id: &str, subject_connection_id: &str, dcem: &
 
         let result = vc.verify(None, &ssi_did_key::DIDKey).await;
         if result.errors.len() > 0 {
-            return Ok(format!("Verify credential failed: {:#?}", result))
+            return Ok(format!("Failed to verify VP: {}: Verify credential failed: {:#?}",
+                vp_id, result))
         }
 
         let actual_issuer_did: String = match vc.issuer.unwrap() {
@@ -361,8 +360,8 @@ async fn verify(issuer_connection_id: &str, subject_connection_id: &str, dcem: &
         };
         if expected_issuer_did != actual_issuer_did {
             return Ok(format!(
-                "vc.issuer.did, did not match the did of {}: Expected did: {}: Actual did: {}",
-                issuer_connection_id, expected_issuer_did, actual_issuer_did));
+                "Failed to verify VP: {}: vc.issuer.did, did not match the did of {}: Expected did: {}: Actual did: {}",
+                vp_id, issuer_connection_id, expected_issuer_did, actual_issuer_did));
         }
 
         let actual_subject: &ssi::vc::CredentialSubject = vc.credential_subject.to_single().unwrap();
@@ -371,12 +370,12 @@ async fn verify(issuer_connection_id: &str, subject_connection_id: &str, dcem: &
         };
         if expected_subject_did != actual_subject_did {
             return Ok(format!(
-                "vc.subject.did, did not match the did of {}: Expected did: {}: Actual did: {}",
-                subject_connection_id, expected_issuer_did, actual_issuer_did));
-        }
+                "Failed to verify VP: {}: vc.subject.did, did not match the did of {}: Expected did: {}: Actual did: {}",
+                vp_id, subject_connection_id, expected_issuer_did, actual_issuer_did));
+            }
     }
 
-    Ok("Verifiable Presentation verified!".to_string())
+    Ok(vp_id)
 }
 
 //
@@ -403,15 +402,13 @@ fn messages() -> Result<String, std::io::Error> {
         let from_did = from_key.get_did_document(did_key::CONFIG_LD_PUBLIC).id;
 
         // 3. Decrypt message
-        let decrypted = decrypt_didcomm(&from_key, &to_key, &dcem);
+        let (message, message_id) = decrypt_didcomm(&from_key, &to_key, &dcem);
 
         // 4. Format
         let from_name = std::fs::read_to_string(did_path(&from_did))
             .unwrap_or("".to_string());
-        let file_name = String::from(entry.file_name().to_str().unwrap());
-        let message_id = file_name.replace(".dcem", "");
 
-        list.push_str(&format!("{:16.16}{:16.16}{:16.16}{:16.16}...\n", message_id, decrypted, from_name, from_did));
+        list.push_str(&format!("{:16.16}{:16.16}{:16.16}{:16.16}...\n", message_id, message, from_name, from_did));
     }
 
     Ok(list)
@@ -421,7 +418,7 @@ fn message(message_id: &str) -> Result<String, std::io::Error> {
     let dcem = std::fs::read_to_string(message_path(message_id)).unwrap();
     let from_key = get_from_key_from_didcomm_message(&dcem);
     let self_key = get_self_didkey();
-    let message = decrypt_didcomm(&from_key, &self_key, &dcem);
+    let (message,_) = decrypt_didcomm(&from_key, &self_key, &dcem);
 
     Ok(message)
 }
@@ -448,7 +445,7 @@ fn credentials() -> Result<String, std::io::Error> {
         let from_key = get_from_key_from_didcomm_message(&dcem);
 
         // 3. Decrypt message
-        let vc = decrypt_didcomm(&from_key, &to_key, &dcem);
+        let (vc, vc_id) = decrypt_didcomm(&from_key, &to_key, &dcem);
         let vc: ssi::vc::Credential = serde_json::from_str(&vc).unwrap();
         let issuer_did: String = match vc.issuer.unwrap() {
             ssi::vc::Issuer::URI(s) => match s {
@@ -462,10 +459,9 @@ fn credentials() -> Result<String, std::io::Error> {
         // 4. Format
         let issuer_name = std::fs::read_to_string(did_path(&issuer_did))
             .unwrap_or(issuer_did.clone());
-        let file_name = String::from(entry.file_name().to_str().unwrap());
-        let file_name = file_name.replace(".dcem", "");
 
-        result.push_str(&format!("{:16.16}{:16.20}{:16.16}{:16.16}...\n", file_name, vc.type_.into_iter().last().unwrap(), issuer_name, issuer_did));
+        result.push_str(&format!("{:16.16}{:16.20}{:16.16}{:16.16}...\n",
+            vc_id, vc.type_.into_iter().last().unwrap(), issuer_name, issuer_did));
     }
 
     Ok(result)
@@ -476,7 +472,7 @@ fn credential(credential_name: &str) -> Result<String, std::io::Error> {
     let dcem = std::fs::read_to_string(path).unwrap();
     let from_key = get_from_key_from_didcomm_message(&dcem);
     let self_key = get_self_didkey();
-    let vc = decrypt_didcomm(&from_key, &self_key, &dcem);
+    let (vc,_) = decrypt_didcomm(&from_key, &self_key, &dcem);
 
     Ok(vc)
 }
@@ -503,7 +499,7 @@ fn presentations() -> Result<String, std::io::Error> {
         let from_key = get_from_key_from_didcomm_message(&dcem);
 
         // 3. Decrypt message
-        let vp = decrypt_didcomm(&from_key, &self_key, &dcem);
+        let (vp,_) = decrypt_didcomm(&from_key, &self_key, &dcem);
         let vp: ssi::vc::Presentation = serde_json::from_str(&vp).unwrap();
         let holder_did: String = match vp.holder.unwrap() {
             ssi::vc::URI::String(did) => did
@@ -516,7 +512,8 @@ fn presentations() -> Result<String, std::io::Error> {
         let file_name = String::from(entry.file_name().to_str().unwrap());
         let file_name = file_name.replace(".dcem", "");
 
-        list.push_str(&format!("{:16.16}{:16.20}{:16.16}{:16.16}...\n", file_name, vp.type_.into_iter().last().unwrap(), holder_name, holder_did));
+        list.push_str(&format!("{:16.16}{:16.20}{:16.16}{:16.16}...\n",
+            file_name, vp.type_.into_iter().last().unwrap(), holder_name, holder_did));
     }
 
     Ok(list)
@@ -527,7 +524,7 @@ fn presentation(presentation_name: &str) -> Result<String, std::io::Error> {
     let dcem = std::fs::read_to_string(path).unwrap();
     let from_key = get_from_key_from_didcomm_message(&dcem);
     let self_key = get_self_didkey();
-    let vp = decrypt_didcomm(&from_key, &self_key, &dcem);
+    let (vp,_) = decrypt_didcomm(&from_key, &self_key, &dcem);
 
     Ok(vp)
 }
@@ -614,12 +611,6 @@ fn credential_path(credential_name: &str) -> String {
         .to_str().unwrap().to_string()
 }
 
-fn make_credential_path() -> String {
-    std::path::Path::new(ROOT_PATH)
-        .join(format!("credentials/{}.dcem", make_id()))
-        .to_str().unwrap().to_string()
-}
-
 fn presentations_path() -> String {
     std::path::Path::new(ROOT_PATH)
         .join("presentations/")
@@ -630,12 +621,6 @@ fn presentation_path(presentation_name: &str) -> String {
     std::path::Path::new(ROOT_PATH)
         .join("presentations/")
         .join(format!("{}.dcem", presentation_name))
-        .to_str().unwrap().to_string()
-}
-
-fn make_presentation_path() -> String {
-    std::path::Path::new(ROOT_PATH)
-        .join(format!("presentations/{}.dcem", make_id()))
         .to_str().unwrap().to_string()
 }
 
@@ -652,21 +637,12 @@ fn message_path(message_id: &str) -> String {
         .to_str().unwrap().to_string()
 }
 
-fn make_message_path() -> String {
-    std::path::Path::new(ROOT_PATH)
-        .join(format!("messages/{}.dcem", make_id()))
-        .to_str().unwrap().to_string()
-}
+type DIDCommID = String;
 
-fn make_id() -> String {
-    std::time::SystemTime::now()
-        .duration_since(std::time::UNIX_EPOCH)
-        .expect("Time went backwards")
-        .as_millis()
-        .to_string()
-}
-
-fn encrypt_didcomm(from_key: &did_key::Ed25519KeyPair, to_key: &did_key::Ed25519KeyPair, message: &str) -> String {
+/**
+ * @returns (String, String) which is (didcomm encrypted message, didcomm header id)
+ */
+fn encrypt_didcomm(from_key: &did_key::Ed25519KeyPair, to_key: &did_key::Ed25519KeyPair, message: &str) -> (String, DIDCommID) {
     use did_key::Ecdh;
 
     // 1. Get dids
@@ -691,16 +667,18 @@ fn encrypt_didcomm(from_key: &did_key::Ed25519KeyPair, to_key: &did_key::Ed25519
         .body(message.as_bytes())
         .as_jwe(&didcomm_rs::crypto::CryptoAlgorithm::XC20P);
 
+    let id = message.get_didcomm_header().id.to_string();
+
     // 5. Seal message using shared secret
     let dcem = message
         .seal(&shared_secret)
         .unwrap();
 
-    dcem
+    (dcem, id)
 }
 
 
-fn decrypt_didcomm(from_key: &did_key::Ed25519KeyPair, to_key: &did_key::Ed25519KeyPair, dcem: &str)-> String {
+fn decrypt_didcomm(from_key: &did_key::Ed25519KeyPair, to_key: &did_key::Ed25519KeyPair, dcem: &str)-> (String, DIDCommID) {
     use did_key::Ecdh;
 
     // 1. Map Ed25519 -> x25519
@@ -711,11 +689,12 @@ fn decrypt_didcomm(from_key: &did_key::Ed25519KeyPair, to_key: &did_key::Ed25519
     let shared_secret = to_key.key_exchange(&from_key);
 
     // 3. Decrypt message
-    let decrypted = didcomm_rs::Message::receive(dcem, Some(&shared_secret), None);
-    let decrypted = decrypted.unwrap();
-    let decrypted = String::from_utf8(decrypted.body).unwrap();
+    let message = didcomm_rs::Message::receive(dcem, Some(&shared_secret), None);
+    let message = message.unwrap();
+    let id = message.get_didcomm_header().id.to_string();
+    let body = String::from_utf8(message.body).unwrap();
 
-    decrypted
+    (body, id)
 }
 
 
