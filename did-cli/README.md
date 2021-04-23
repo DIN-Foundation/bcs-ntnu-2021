@@ -1,4 +1,4 @@
-did CLI
+# did CLI
 
 Example usage:
 ```
@@ -20,7 +20,7 @@ Example usage:
         did present <credential id>  <connection id>  -->  <dcem>
         did verify  <issuer connection id> <subject connection id> <dcem>  -->  <presentation id>
 
-    View stored data:
+    View wallet data:
         did messages
         did message <message id>
         did connections
