@@ -2,8 +2,11 @@
 
 >@marni: Implementation - WHAT you have done, and how you have done it...
 
+## 5.1 CLI - Command line interface
 
-## 5.1 Usage of existing Rust libraries
+![](./images/did-help.png)
+
+## 5.2 Usage of existing Rust libraries
 
 ### 5.1.1 decentralized-identity/didcomm-rs
 
@@ -34,55 +37,3 @@
 - github.com: https://github.com/dalek-cryptography/x25519-dalek
 - docs.rs: https://docs.rs/x25519-dalek/1.1.0/x25519_dalek/
 - crates.io: https://crates.io/crates/x25519-dalek
-
-
-## 5.2 Universal resolver
-
-- Test deployment: https://dev.uniresolver.io/
-- github.com: https://github.com/decentralized-identity/universal-resolver
-
-
-#### Example from the README.md - Build, run and resolve on local machine
-```
-git clone https://github.com/decentralized-identity/universal-resolver
-cd universal-resolver/
-docker-compose -f docker-compose.yml pull
-docker-compose -f docker-compose.yml up
-```
-
-```
-$ curl -X GET http://localhost:8098/1.0/identifiers/did:key:z6Mkfriq1MqLBoPWecGoDLjguo1sB9brj6wT3qZ5BxkKpuP6
-{
-  "@context": [
-    "https://w3id.org/did/v0.11"
-  ],
-  "id": "did:key:z6Mkfriq1MqLBoPWecGoDLjguo1sB9brj6wT3qZ5BxkKpuP6",
-  "publicKey": [
-    {
-      "id": "did:key:z6Mkfriq1MqLBoPWecGoDLjguo1sB9brj6wT3qZ5BxkKpuP6#z6Mkfriq1MqLBoPWecGoDLjguo1sB9brj6wT3qZ5BxkKpuP6",
-      "type": "Ed25519VerificationKey2018",
-      "controller": "did:key:z6Mkfriq1MqLBoPWecGoDLjguo1sB9brj6wT3qZ5BxkKpuP6",
-      "publicKeyBase58": "2QTnR7atrFu3Y7S6Xmmr4hTsMaL1KDh6Mpe9MgnJugbi"
-    }
-  ],
-  "authentication": [
-    "did:key:z6Mkfriq1MqLBoPWecGoDLjguo1sB9brj6wT3qZ5BxkKpuP6#z6Mkfriq1MqLBoPWecGoDLjguo1sB9brj6wT3qZ5BxkKpuP6"
-  ],
-  "assertionMethod": [
-    "did:key:z6Mkfriq1MqLBoPWecGoDLjguo1sB9brj6wT3qZ5BxkKpuP6#z6Mkfriq1MqLBoPWecGoDLjguo1sB9brj6wT3qZ5BxkKpuP6"
-  ],
-  "capabilityDelegation": [
-    "did:key:z6Mkfriq1MqLBoPWecGoDLjguo1sB9brj6wT3qZ5BxkKpuP6#z6Mkfriq1MqLBoPWecGoDLjguo1sB9brj6wT3qZ5BxkKpuP6"
-  ],
-  "capabilityInvocation": [
-    "did:key:z6Mkfriq1MqLBoPWecGoDLjguo1sB9brj6wT3qZ5BxkKpuP6#z6Mkfriq1MqLBoPWecGoDLjguo1sB9brj6wT3qZ5BxkKpuP6"
-  ],
-  "keyAgreement": [
-    {
-      "id": "did:key:z6Mkfriq1MqLBoPWecGoDLjguo1sB9brj6wT3qZ5BxkKpuP6#z6LSbgq3GejX88eiAYWmZ9EiddS3GaXodvm8MJJyEH7bqXgz",
-      "type": "X25519KeyAgreementKey2019",
-      "controller": "did:key:z6Mkfriq1MqLBoPWecGoDLjguo1sB9brj6wT3qZ5BxkKpuP6",
-      "publicKeyBase58": "1eskLvf2fvy5A912VimK3DZRRzgwKayUKbHjpU589vE"
-    }
-  ]
-```

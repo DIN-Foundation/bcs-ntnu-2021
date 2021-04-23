@@ -21,6 +21,24 @@ In the end, which of them did we go for, and why?
 
 Very often, a specific programming language is chosen, because we want to re-use as much as possible of existing code. This is the main reason Rust was chosen. It has an existing library for all the standards we want to comply with.
 
+### 4.2.1 decentralized-identity/didcomm-rs
+
+- github.com: https://github.com/decentralized-identity/didcomm-rs
+- crates.io: https://crates.io/crates/didcomm-rs
+- docs.rs: https://docs.rs/didcomm-rs/0.2.4/didcomm_rs/
+
+### 4.2.2 spruceid/didkit
+
+- github.com: https://github.com/spruceid/didkit
+- docs: https://spruceid.dev/docs/didkit/
+
+### 4.2.3 trinsic-id/did-key.rs
+
+- github.com: https://github.com/trinsic-id/did-key.rs
+- crates.io: https://crates.io/crates/did-key
+- docs.rs: https://docs.rs/did-key/0.0.11/did_key/
+
+
 ## 4.3 Comply with standards (did, didcomm, vc)
 
 Using existing libraries, makes it easier to comply with standards:
