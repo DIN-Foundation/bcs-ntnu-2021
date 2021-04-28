@@ -9,7 +9,7 @@
 ## 5.2 Code organization
 
 The implementation is following the "guidelines for binary projects", given by the Rust-book, quoted in full below:
->## Separation of Concerns for Binary Projects
+>### Separation of Concerns for Binary Projects
 >
 >The organizational problem of allocating responsibility for multiple tasks to the main function is common to many binary projects. As a result, the Rust community has developed a process to use as a guideline for splitting the separate concerns of a binary program when main starts getting large. The process has the following steps:
 >
