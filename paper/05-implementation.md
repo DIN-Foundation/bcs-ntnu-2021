@@ -1,3 +1,4 @@
+
 # 5. Implementation
 ## 5.1 Code organization
 
@@ -31,6 +32,16 @@ Here is a screenshot of the file-structure, which follows from the guidelines:
 ## 5.2 CLI - Command line interface
 
 ![](./images/did-help.png)
+
+- Each command follows the same pattern `did <command> <...args>`.
+
+**Intentional limitations of the CLI**
+
+- None of the commands have any optional-arguments - e.g `--option=<arg>`. This is to keep program logic as simple as possible. If the CLI was intended for a broader audicene with multiple use-cases, options may be added. This CLI is a special purpose CLI, intended to solve a specific use-case, namely the specific proof-of-concept from the problem statement. This is why optional-arguments was not prioritized.
+- Options are much harder to parse correctly than fixed size positional arguments.
+- None of the commands required variable length arguments, which made the implementation easier.
+- None of the commands have filepath arguments. The user is expected to use `cat <filepath>` to read the contents of a file, which is then fed into a positional argument of one of the commands. Example: `did read $(cat ../message.dcem)` vs `did read ../message.dcem`. This was done to simplify implementation.
+- None of the commands support pipes. This could have been useful as an alternative to the example from the previous point. Example: `cat ../message.dcem | did read`. Since positional arguments + `cat` already solves the problem of reading from file, support for pipes was not prioritized.
 
 ## 5.3 Usage of existing Rust libraries
 
