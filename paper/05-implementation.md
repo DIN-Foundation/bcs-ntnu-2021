@@ -6,6 +6,15 @@
 - did-cli is the name of the rust-project, where the implementation was developed.
 - The rust-project is hosted here https://github.com/DIN-Foundation/bcs-ntnu-2021/tree/main/did-cli.
 
+### Getting started
+
+```
+cd did-cli/
+cargo build
+cp target/debug/did $HOME/bin/
+did help
+```
+
 ## 5.2 Code organization
 
 The implementation is following the "guidelines for binary projects", given by the Rust-book, quoted in full below:
