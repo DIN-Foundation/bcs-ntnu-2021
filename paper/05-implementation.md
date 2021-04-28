@@ -1,6 +1,12 @@
 
 # 5. Implementation
-## 5.1 Code organization
+
+## 5.1 did-cli
+
+- did-cli is the name of the rust-project, where the implementation was developed.
+- The rust-project is hosted here https://github.com/DIN-Foundation/bcs-ntnu-2021/tree/main/did-cli.
+
+## 5.2 Code organization
 
 The implementation is following the "guidelines for binary projects", given by the Rust-book, quoted in full below:
 >## Separation of Concerns for Binary Projects
@@ -28,7 +34,7 @@ Here is a screenshot of the file-structure, which follows from the guidelines:
 
 
 
-## 5.2 CLI - Command line interface
+## 5.3 The Command line interface
 
 ![](./images/did-help.png)
 
@@ -42,7 +48,7 @@ Here is a screenshot of the file-structure, which follows from the guidelines:
 - None of the commands have filepath arguments. The user is expected to use `cat <filepath>` to read the contents of a file, which is then fed into a positional argument of one of the commands. Example: `did read $(cat ../message.dcem)` vs `did read ../message.dcem`. This was done to simplify implementation.
 - None of the commands support pipes. This could have been useful as an alternative to the example from the previous point. Example: `cat ../message.dcem | did read`. Since positional arguments + `cat` already solves the problem of reading from file, support for pipes was not prioritized.
 
-## 5.3 Usage of existing Rust libraries
+## 5.4 Usage of existing Rust libraries
 
 ### decentralized-identity/didcomm-rs
 
