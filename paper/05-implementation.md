@@ -28,14 +28,13 @@ Here is a screenshot of the file-structure, which follows from the guidelines:
 
 
 
-
 ## 5.2 CLI - Command line interface
 
 ![](./images/did-help.png)
 
 - Each command follows the same pattern `did <command> <...args>`.
 
-**Intentional limitations of the CLI**
+### Intentional limitations of the CLI
 
 - None of the commands have any optional-arguments - e.g `--option=<arg>`. This is to keep program logic as simple as possible. If the CLI was intended for a broader audicene with multiple use-cases, options may be added. This CLI is a special purpose CLI, intended to solve a specific use-case, namely the specific proof-of-concept from the problem statement. This is why optional-arguments was not prioritized.
 - Options are much harder to parse correctly than fixed size positional arguments.
@@ -45,31 +44,31 @@ Here is a screenshot of the file-structure, which follows from the guidelines:
 
 ## 5.3 Usage of existing Rust libraries
 
-### 5.3.1 decentralized-identity/didcomm-rs
+### decentralized-identity/didcomm-rs
 
 - github.com: https://github.com/decentralized-identity/didcomm-rs
 - crates.io: https://crates.io/crates/didcomm-rs
 - docs.rs: https://docs.rs/didcomm-rs/0.2.4/didcomm_rs/
 
-### 5.3.2 spruceid/didkit
+### spruceid/didkit
 
 - github.com: https://github.com/spruceid/didkit
 - docs: https://spruceid.dev/docs/didkit/
 
-### 5.3.3 trinsic-id/did-key.rs
+### trinsic-id/did-key.rs
 
 - github.com: https://github.com/trinsic-id/did-key.rs
 - crates.io: https://crates.io/crates/did-key
 - docs.rs: https://docs.rs/did-key/0.0.11/did_key/
 
-### 5.3.4 dalek-cryptography/ed25519-dalek
+### dalek-cryptography/ed25519-dalek
 
 - github.com: https://github.com/dalek-cryptography/ed25519-dalek
 - docs.rs: https://docs.rs/ed25519-dalek/1.0.1/ed25519_dalek/
 - crates.io: https://crates.io/crates/ed25519-dalek
 
 
-### 5.3.5 dalek-cryptography/x25519-dalek
+### dalek-cryptography/x25519-dalek
 
 - github.com: https://github.com/dalek-cryptography/x25519-dalek
 - docs.rs: https://docs.rs/x25519-dalek/1.1.0/x25519_dalek/

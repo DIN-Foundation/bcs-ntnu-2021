@@ -10,42 +10,42 @@ Consider our 3 areas of investigation - DID's, DIDComm and VC's. When looking at
 - **DIDComm** - How are messages sent, mediated and received? (Envelope, address, correspondance, etc..)
 - **VC's** - What does messages contain? (Contracts, certificates, money, cat-videos, etc..)
 
-### 2.1.1 Decentralized identifiers (DID)
+### 2.2 Decentralized identifiers (DID)
 
-### 2.1.2 DID-comm (v2)
+### 2.3 DID-comm (v2)
 
-### 2.1.3 Verifiable Credentials (VC)
+### 2.4 Verifiable Credentials (VC)
 
 
 
 
 ## 2.2 DID methods
 
-### 2.2.1 did:key
+### did:key
 - self-resolving did
 
-### 2.2.2 did:peer
+### did:peer
 - self-resolving did.
 - One did per connection.
 
-### 2.2.3 did:uni
+### did:uni
 - Universal
 - Keri project
 
-### 2.2.4 Other
+### Other
 
 
 ## 2.3 DID-comm transports
 
-### 2.3.1 HTTP
+### HTTP
 
-### 2.3.2 Bluetooth
+### Bluetooth
 
-### 2.3.3 QR codes
+### QR codes
 
-### 2.3.4 STDIN/STDOUT
+### STDIN/STDOUT
 
-### 2.3.5 Other
+### Other
 
 
 
