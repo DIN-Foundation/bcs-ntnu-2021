@@ -5,8 +5,16 @@
 
 ### 5.1.1 Source code
 
-- `did-cli` is the name of the rust-project, where the implementation was developed.
-- The implementation can be found in the `did-cli/` sub-folder in the Github project hosted here: https://github.com/DIN-Foundation/bcs-ntnu-2021/tree/main/did-cli.
+- `did` is the name of the Rust-project, where the implementation resides. The rust project is declared in the [Cargo.toml](https://github.com/DIN-Foundation/bcs-ntnu-2021/blob/main/did-cli/Cargo.toml) file:
+```toml
+[package]
+name = "did"
+version = "0.1.0"
+authors = ["Jonas Johan Solsvik <jonasjso@protonmail.com>"]
+edition = "2021"
+```
+
+- The Rust-project can be found in the [did-cli](https://github.com/DIN-Foundation/bcs-ntnu-2021/tree/main/did-cli) sub-folder of the [bachelors Github-project](https://github.com/DIN-Foundation/bcs-ntnu-2021).
 
 ### 5.1.2 Build instructions
 
