@@ -21,7 +21,7 @@
     ...many things here
     ```
 
-- The entire Rust-package can be found in the [did-cli](https://github.com/DIN-Foundation/bcs-ntnu-2021/tree/main/did-cli) sub-folder of the [bachelors Github project](https://github.com/DIN-Foundation/bcs-ntnu-2021).
+- The entire Rust-package can be found in the [did-cli](https://github.com/DIN-Foundation/bcs-ntnu-2021/tree/main/did-cli) sub-folder of the [bachelor's Github project](https://github.com/DIN-Foundation/bcs-ntnu-2021).
 
 ## 5.2 Build instructions
 
@@ -69,40 +69,39 @@
     * DIDComm V2 + Verifiable Credentials
     * Wallet.
 
-*Example of running `did help`:*
+- Example of running `did help`:
+    ```shell
+    $ did help
 
-```shell
-$ did help
+        Basic:
+            did init
+            did doc
+            did connect <connection id> <did>
 
-    Basic:
-        did init
-        did doc
-        did connect <connection id> <did>
+        DIDComm v2 messaging:
+            did write  <connection id> <message>  -->  <dcem>
+            did read   <dcem>                     -->  <message id>
 
-    DIDComm v2 messaging:
-        did write  <connection id> <message>  -->  <dcem>
-        did read   <dcem>                     -->  <message id>
+        DIDComm v2 + Verifiable Credentials:
+            did issue   Passport         <connection id>  -->  <dcem>
+            did issue   DriversLicense   <connection id>  -->  <dcem>
+            did issue   TrafficAuthority <connection id>  -->  <dcem>
+            did issue   LawEnforcer      <connection id>  -->  <dcem>
+            did hold    <dcem>                            -->  <credential id>
+            did present <credential id>  <connection id>  -->  <dcem>
+            did verify  <issuer connection id> <subject connection id> <dcem>  -->  <presentation id>
 
-    DIDComm v2 + Verifiable Credentials:
-        did issue   Passport         <connection id>  -->  <dcem>
-        did issue   DriversLicense   <connection id>  -->  <dcem>
-        did issue   TrafficAuthority <connection id>  -->  <dcem>
-        did issue   LawEnforcer      <connection id>  -->  <dcem>
-        did hold    <dcem>                            -->  <credential id>
-        did present <credential id>  <connection id>  -->  <dcem>
-        did verify  <issuer connection id> <subject connection id> <dcem>  -->  <presentation id>
+        Wallet:
+            did messages
+            did message <message id>
+            did connections
+            did connection <connection id>
+            did credentials
+            did credential <credential id>
+            did presentations
+            did presentation <presentation id>
 
-    Wallet:
-        did messages
-        did message <message id>
-        did connections
-        did connection <connection id>
-        did credentials
-        did credential <credential id>
-        did presentations
-        did presentation <presentation id>
-
-```
+    ```
 
 ### 5.3.2 Command: `did init`
 
@@ -114,35 +113,34 @@ $ did help
 - Your agents `did` will be returned to `stdout` when running this command.
 - If a `.did/` already exists, this commands has no side-effects - the command is idempotent.
 
-*Example of creating an agent, using `did`:*
+- Example of creating an agent, using `did`:
+    1. Create empty folder and change working directory
+        ```shell
+        $ mkdir ola
+        $ cd ola/
+        $ ls -a
+        .  ..
+        ```
 
-1. Create empty folder and change working directory
-    ```shell
-    $ mkdir ola
-    $ cd ola/
-    $ ls -a
-    .  ..
-    ```
+    2. Create a new did-agent
+        ```shell
+        $ did init
+        did:key:z6Mkt8M2q23yEZHqo8CGbngpTKBDvdf3EazphaJRqNP3kXft
+        ```
 
-2. Create a new did-agent
-    ```shell
-    $ did init
-    did:key:z6Mkt8M2q23yEZHqo8CGbngpTKBDvdf3EazphaJRqNP3kXft
-    ```
+    3. Discover the new `.did/`-directory
+        ```shell
+        $ ls -a
+        .  ..  .did
+        $ ls -a .did/
+        .  ..  connections  credentials  dids  key.jwk  messages  presentations
+        ```
 
-3. Discover the new `.did/`-directory
-    ```shell
-    $ ls -a
-    .  ..  .did
-    $ ls -a .did/
-    .  ..  connections  credentials  dids  key.jwk  messages  presentations
-    ```
-
-4. Print `did` from existing agent
-    ```shell
-    $ did init
-    did:key:z6Mkt8M2q23yEZHqo8CGbngpTKBDvdf3EazphaJRqNP3kXft
-    ```
+    4. Print `did` from existing agent
+        ```shell
+        $ did init
+        did:key:z6Mkt8M2q23yEZHqo8CGbngpTKBDvdf3EazphaJRqNP3kXft
+        ```
 
 ### 5.3.3 Command: `did doc`
 
@@ -229,7 +227,7 @@ Ref: https://doc.rust-lang.org/book/ch12-03-improving-error-handling-and-modular
 
 ### 5.5 File structure
 
-Here is a screenshot of the file-structure, which follows from the guidelines:
+Here is a screenshot of the file-structure, which follows from the guidelines mentioned in 5.4:
 
 ![](./images/code-organization.png)
 
