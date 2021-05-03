@@ -20,7 +20,7 @@ Example usage:
         did present <credential id>  <connection id>  -->  <dcem>
         did verify  <issuer connection id> <subject connection id> <dcem>  -->  <presentation id>
 
-    View wallet data:
+    Wallet:
         did messages
         did message <message id>
         did connections
