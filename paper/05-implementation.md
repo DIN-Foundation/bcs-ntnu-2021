@@ -10,12 +10,35 @@
 
 ### 5.1.2 Build instructions
 
-```
-cd did-cli/
-cargo build
-cp target/debug/did $HOME/bin/
-did help
-```
+1. Make sure you have installed the latest rust toolchain on your machine.
+
+    *Example of using rustup to install the rust toolchain. See: https://rustup.rs/*
+    ```
+    curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+    ```
+
+2. Clone from github source code
+    ```
+    git clone git@github.com:DIN-Foundation/bcs-ntnu-2021.git
+    ```
+
+3. Build the `did-cli` using `cargo`
+    ```
+    cd bcs-ntnu-2021/did-cli/
+    cargo build
+    ```
+
+4. Copy the built executeable into some directory in your `$PATH`.
+
+    *Example of copying into `$HOME/bin/`*
+    ```
+    cp target/debug/did $HOME/bin/
+    ```
+
+5. Run `did-cli` by typing `did <command>` in your terminal.
+    ```
+    did help
+    ```
 
 ## 5.2 The CLI - Command Line Interface
 
