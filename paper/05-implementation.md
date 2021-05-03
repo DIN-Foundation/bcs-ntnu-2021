@@ -1,22 +1,29 @@
 
 # 5. Implementation
 
-## 5.1 Getting started
+## 5.1 Source code
 
-### 5.1.1 Source code
+- The source code is developed in the Rust programming language, as a Rust-package.
+- There are two kinds of Rust-packages - binary packages (standalone executeables) and library packages (meant to be reused in other packages).
+- Our Rust-package is named `did`, and is a binary package.
+- All Rust-packages contains a `Cargo.toml` file, for stating metainfo about the source code.
+- Here is a listing of the beginning of our [Cargo.toml](https://github.com/DIN-Foundation/bcs-ntnu-2021/blob/main/did-cli/Cargo.toml)
 
-- `did` is the name of the Rust-project, where the implementation resides. The rust project is declared in the [Cargo.toml](https://github.com/DIN-Foundation/bcs-ntnu-2021/blob/main/did-cli/Cargo.toml) file:
-```toml
-[package]
-name = "did"
-version = "0.1.0"
-authors = ["Jonas Johan Solsvik <jonasjso@protonmail.com>"]
-edition = "2021"
-```
+    *Filename: Cargo.toml*
+    ```toml
+    [package]
+    name = "did"
+    version = "0.1.0"
+    authors = ["Jonas Johan Solsvik <jonasjso@protonmail.com>"]
+    edition = "2018"
 
-- The Rust-project can be found in the [did-cli](https://github.com/DIN-Foundation/bcs-ntnu-2021/tree/main/did-cli) sub-folder of the [bachelors Github-project](https://github.com/DIN-Foundation/bcs-ntnu-2021).
+    [dependencies]
+    ...many things here
+    ```
 
-### 5.1.2 Build instructions
+- The entire Rust-package can be found in the [did-cli](https://github.com/DIN-Foundation/bcs-ntnu-2021/tree/main/did-cli) sub-folder of the [bachelors Github project](https://github.com/DIN-Foundation/bcs-ntnu-2021).
+
+## 5.2 Build instructions
 
 1. Make sure you have installed the latest rust toolchain on your machine.
 
@@ -30,7 +37,7 @@ edition = "2021"
     git clone git@github.com:DIN-Foundation/bcs-ntnu-2021.git
     ```
 
-3. Build the `did-cli` using `cargo`
+3. Build the `did`-CLI using `cargo`
     ```
     cd bcs-ntnu-2021/did-cli/
     cargo build
@@ -43,31 +50,63 @@ edition = "2021"
     cp target/debug/did $HOME/bin/
     ```
 
-5. Run `did-cli` by typing `did <command>` in your terminal.
+5. Run `did` by typing `did <command>` in your terminal.
     ```
     did help
     ```
 
-## 5.2 The CLI - Command Line Interface
+## 5.3 The CLI - Command Line Interface
 
-- The `did-cli`'s CLI follows principles laid out in the book `The Unix Programming environment` by `Brian W. Kernighan` and `Rob Pike`, 1984.
+- The main way to interact with the `did` executeable, is through it's CLI.
+- The `did`'s CLI follows principles laid out in the book `The Unix Programming environment` by `Brian W. Kernighan` and `Rob Pike`, 1984.
 - Each command follows the same pattern `did <command> <...args>`.
 
-### 5.2.1 Command: `did help`
+### 5.3.1 Command: `did help`
 
-List all commands together with their command-signature. The commands are grouped together in 4 groups:
-* Basic
-* DIDComm V2-messaging
-* DIDComm V2 + Verifiable Credentials
-* Wallet.
+- List all commands together with their command-signature. The commands are grouped together in 4 groups:
+    * Basic
+    * DIDComm V2-messaging
+    * DIDComm V2 + Verifiable Credentials
+    * Wallet.
 
 *Example of running `did help`:*
 
-![](./images/cmd-did-help.png)
+```shell
+$ did help
 
-### 5.2.2 Command: `did`
+    Basic:
+        did init
+        did doc
+        did connect <connection id> <did>
 
-- Initializes a did agent in the current directory.
+    DIDComm v2 messaging:
+        did write  <connection id> <message>  -->  <dcem>
+        did read   <dcem>                     -->  <message id>
+
+    DIDComm v2 + Verifiable Credentials:
+        did issue   Passport         <connection id>  -->  <dcem>
+        did issue   DriversLicense   <connection id>  -->  <dcem>
+        did issue   TrafficAuthority <connection id>  -->  <dcem>
+        did issue   LawEnforcer      <connection id>  -->  <dcem>
+        did hold    <dcem>                            -->  <credential id>
+        did present <credential id>  <connection id>  -->  <dcem>
+        did verify  <issuer connection id> <subject connection id> <dcem>  -->  <presentation id>
+
+    Wallet:
+        did messages
+        did message <message id>
+        did connections
+        did connection <connection id>
+        did credentials
+        did credential <credential id>
+        did presentations
+        did presentation <presentation id>
+
+```
+
+### 5.3.2 Command: `did init`
+
+- Initializes a did-agent in the working directory.
 - Run this command before running any other commands.
 - The command creates a new `.did/`-directory, inside your working directory.
 - A secret/private key is stored inside `.did/`.
@@ -75,57 +114,89 @@ List all commands together with their command-signature. The commands are groupe
 - Your agents `did` will be returned to `stdout` when running this command.
 - If a `.did/` already exists, this commands has no side-effects - the command is idempotent.
 
-### 5.2.3 Command: `did doc`
+*Example of creating an agent, using `did`:*
 
-### 5.2.4 Command: `did connect <connection id> <did>`
+1. Create empty folder and change working directory
+    ```shell
+    $ mkdir ola
+    $ cd ola/
+    $ ls -a
+    .  ..
+    ```
 
-### 5.2.5 Command: `did write <connection id> <message>`
+2. Create a new did-agent
+    ```shell
+    $ did init
+    did:key:z6Mkt8M2q23yEZHqo8CGbngpTKBDvdf3EazphaJRqNP3kXft
+    ```
 
-### 5.2.6 Command: `did read <dcem>`
+3. Discover the new `.did/`-directory
+    ```shell
+    $ ls -a
+    .  ..  .did
+    $ ls -a .did/
+    .  ..  connections  credentials  dids  key.jwk  messages  presentations
+    ```
 
-### 5.2.7 Command: `did issue <CredentialType> <connection id>`
+4. Print `did` from existing agent
+    ```shell
+    $ did init
+    did:key:z6Mkt8M2q23yEZHqo8CGbngpTKBDvdf3EazphaJRqNP3kXft
+    ```
 
-### 5.2.8 Command: `did hold <dcem>`
+### 5.3.3 Command: `did doc`
 
-### 5.2.9 Command: `did present <credential id> <connection id>`
+### 5.3.4 Command: `did connect <connection id> <did>`
 
-### 5.2.10 Command: `did verify <issuer connection id> <subject connection id> <dcem>`
+### 5.3.5 Command: `did write <connection id> <message>`
 
-### 5.2.11 Command: `did messages`
+### 5.3.6 Command: `did read <dcem>`
+
+### 5.3.7 Command: `did issue <CredentialType> <connection id>`
+
+### 5.3.8 Command: `did hold <dcem>`
+
+### 5.3.9 Command: `did present <credential id> <connection id>`
+
+### 5.3.10 Command: `did verify <issuer connection id> <subject connection id> <dcem>`
+
+### 5.3.11 Command: `did messages`
 
 - List all didcomm messages stored in the wallet.
 - Messages are added to the wallet when using the `did write` and `did read` commands.
-### 5.2.12 Command: `did message <message id>`
+
+### 5.3.12 Command: `did message <message id>`
 
 - Show the contents of a single didcomm message based on the given `<message id>`.
 
-### 5.2.13 Command: `did connections`
+### 5.3.13 Command: `did connections`
 
 - List all did connections stored in the wallet.
 - Connections are added to the wallet when using the `did connect` command.
 
-### 5.2.14 Command: `did connection <connection id>`
+### 5.3.14 Command: `did connection <connection id>`
 
 - Show the did of a single did connection based on `<connection id>`.
-### 5.2.15 Command: `did credentials`
+
+### 5.3.15 Command: `did credentials`
 
 - List all verifiable credentials stored in the wallet.
 - Credentials are added to the wallet when using the `did issue` and `did hold` commands.
 
-### 5.2.16 Command: `did credential <credential id>`
+### 5.3.16 Command: `did credential <credential id>`
 
 - Show a single verifiable credential based on the given `<credential id>`.
 
-### 5.2.17 Command: `did presentations`
+### 5.3.17 Command: `did presentations`
 
 - List all verifiable presentations stored in the wallet.
 - Presentations are added to the wallet when using the `did present` and `did verify` commands.
 
-### 5.2.18 Command: `did presentation <presentation id>`
+### 5.3.18 Command: `did presentation <presentation id>`
 
 - Show a single verifiable presentation based on the given `<presentation id>`.
 
-### 5.2.19 Intentional limitations of the CLI
+### 5.3.19 Intentional limitations of the CLI
 
 - None of the commands have any optional-arguments - e.g `--option=<arg>`. This is to keep program logic as simple as possible. If the CLI was intended for a broader audicene with multiple use-cases, options may be added. This CLI is a special purpose CLI, intended to solve a specific use-case, namely the specific proof-of-concept from the problem statement. This is why optional-arguments was not prioritized.
 - Options are much harder to parse correctly than fixed size positional arguments.
@@ -134,8 +205,7 @@ List all commands together with their command-signature. The commands are groupe
 - None of the commands support pipes. This could have been useful as an alternative to the example from the previous point. Example: `cat ../message.dcem | did read`. Since positional arguments + `cat` already solves the problem of reading from file, support for pipes was not prioritized.
 
 
-## 5.3 Code organization
-### 5.3.1 Rust book guidelines
+## 5.4 Rust book guidelines
 
 The implementation is following the "guidelines for binary projects", given by the Rust-book, quoted in full below:
 >### Separation of Concerns for Binary Projects
@@ -157,14 +227,14 @@ The implementation is following the "guidelines for binary projects", given by t
 
 Ref: https://doc.rust-lang.org/book/ch12-03-improving-error-handling-and-modularity.html#separation-of-concerns-for-binary-projects
 
-### 5.3.2 File structure
+### 5.5 File structure
 
 Here is a screenshot of the file-structure, which follows from the guidelines:
 
 ![](./images/code-organization.png)
 
 
-## 5.4 Usage of existing Rust libraries
+## 5.6 Usage of existing Rust libraries
 
 ### decentralized-identity/didcomm-rs
 
