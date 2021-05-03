@@ -21,7 +21,7 @@
     ...many things here
     ```
 
-- The entire Rust-package can be found in the [did-cli](https://github.com/DIN-Foundation/bcs-ntnu-2021/tree/main/did-cli) sub-folder of the [bachelor's Github project](https://github.com/DIN-Foundation/bcs-ntnu-2021).
+- The Rust-package's source code can be found in the [did-cli](https://github.com/DIN-Foundation/bcs-ntnu-2021/tree/main/did-cli) sub-folder of our [bachelor's Github project](https://github.com/DIN-Foundation/bcs-ntnu-2021).
 
 ## 5.2 Build instructions
 
