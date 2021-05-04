@@ -1,51 +1,51 @@
+
 pub async fn run(config: Config) -> Result<String, std::io::Error> {
     match config.cmd {
-        // Basic
-        CMD::DID => did(),
-        CMD::Doc => doc(),
-        CMD::Connect{ connection_id, did } => connect(&connection_id, &did),
-        CMD::Write{ connection_id, message } => write(&connection_id, &message),
-        CMD::Read{ dcem } => read(&dcem),
         CMD::Help => help(),
 
-        // Verifiable Credentials
+        // Basic
+        CMD::Init => init(),
+        CMD::Doc => doc(),
+        CMD::Connect{ connection_id, did } => connect(&connection_id, &did),
+
+        // DIDComm messaging
+        CMD::Write{ connection_id, message } => write(&connection_id, &message),
+        CMD::Read{ dcem } => read(&dcem),
+        CMD::Hold{ dcem } => hold(&dcem),
+
+        // DIDComm + Verifiable Credentials
         CMD::IssuePassport{ connection_id } => issue("Passport", &connection_id).await,
         CMD::IssueLawEnforcer{ connection_id } => issue("LawEnforcer", &connection_id).await,
         CMD::IssueTrafficAuthority{ connection_id } => issue("TrafficAuthority", &connection_id).await,
         CMD::IssueDriversLicense{ connection_id } => issue("DriversLicense", &connection_id).await,
-        CMD::Hold{ dcem } => hold(&dcem),
         CMD::Present{ credential_id, connection_id } => present(&credential_id, &connection_id).await,
         CMD::Verify{ issuer_connection_id, subject_connection_id, dcem } => verify(&issuer_connection_id, &subject_connection_id, &dcem).await,
 
-        // View wallet data
+        // Wallet
         CMD::Messages => messages(),
         CMD::Message{ message_id } => message(&message_id),
         CMD::Connections => connections(),
         CMD::Connection{ connection_id } => connection(&connection_id),
-        CMD::Credentials => credentials(),
-        CMD::Credential{ credential_id } => credential(&credential_id),
-        CMD::Presentations => presentations(),
-        CMD::Presentation{ presentation_id } => presentation(&presentation_id),
     }
 }
 
 fn help() -> Result<String, std::io::Error> {
     Ok(String::from("
     Basic:
-        did
+        did init
         did doc
         did connect <connection id> <did>
 
     DIDComm v2 messaging:
         did write  <connection id> <message>  -->  <dcem>
-        did read   <dcem>                     -->  <message id>
+        did hold   <dcem>                     -->  <dcem>
+        did read   <dcem>                     -->  <message>
 
     DIDComm v2 + Verifiable Credentials:
         did issue   Passport         <connection id>  -->  <dcem>
         did issue   DriversLicense   <connection id>  -->  <dcem>
         did issue   TrafficAuthority <connection id>  -->  <dcem>
         did issue   LawEnforcer      <connection id>  -->  <dcem>
-        did hold    <dcem>                            -->  <credential id>
         did present <credential id>  <connection id>  -->  <dcem>
         did verify  <issuer connection id> <subject connection id> <dcem>  -->  <presentation id>
 
@@ -54,17 +54,13 @@ fn help() -> Result<String, std::io::Error> {
         did message <message id>
         did connections
         did connection <connection id>
-        did credentials
-        did credential <credential id>
-        did presentations
-        did presentation <presentation id>
 "))
 }
 
 //
 // Commands: Basic
 //
-fn did() -> Result<String, std::io::Error> {
+fn init() -> Result<String, std::io::Error> {
     use std::io::Write;
 
     // 1. Create empty folders, if not exists
@@ -79,12 +75,6 @@ fn did() -> Result<String, std::io::Error> {
     }
     if !std::fs::metadata(messages_path()).is_ok() {
         std::fs::create_dir_all(messages_path()).unwrap();
-    }
-    if !std::fs::metadata(credentials_path()).is_ok() {
-        std::fs::create_dir_all(credentials_path()).unwrap();
-    }
-    if !std::fs::metadata(presentations_path()).is_ok() {
-        std::fs::create_dir_all(presentations_path()).unwrap();
     }
 
     let did_doc = if !std::fs::metadata(key_jwk_path()).is_ok() {
@@ -121,7 +111,6 @@ fn did() -> Result<String, std::io::Error> {
     Ok(format!("{}", did))
 }
 
-
 fn doc() -> Result<String, std::io::Error> {
     let self_didkey = get_self_didkey();
 
@@ -146,50 +135,46 @@ fn connect(connection_id: &str, did: &str) -> Result<String, std::io::Error> {
     Ok(format!("{}\n{}", connection_path(connection_id), did_path(did)))
 }
 
-
 fn write(to_did_name: &str, message: &str) -> Result<String, std::io::Error> {
-    use std::io::Write;
-
     // 1. Get did:keys
     let from_key = get_self_didkey();
     let to_key = get_other_didkey(to_did_name);
 
-    // 2. Encrypt message with from_key, to keep message history in local file
-    let (dcem, dcem_id) = encrypt_didcomm(&from_key, &from_key, message);
-    let mut file = std::fs::File::create(message_path(&dcem_id)).unwrap();
-    file.write(dcem.as_bytes()).unwrap();
-
-    // 3. Encrypt message with to_key, to prepare it for transmission
+    // 2. Encrypt message with to_key, to prepare it for transmission
     let (dcem, _) = encrypt_didcomm(&from_key, &to_key, message);
 
     Ok(format!("{}", &dcem))
 }
 
-
-fn read(dcem: &str) -> Result<String, std::io::Error> {
+fn hold(dcem: &str) -> Result<String, std::io::Error> {
     use std::io::Write;
 
-    // 1. Get did:keys
-    let to_key = get_self_didkey();
-    let from_key = get_from_key_from_didcomm_message(dcem);
+    // 1. Deserialize message
+    let message: DIDCommEncryptedMessage = serde_json::from_str(dcem).unwrap();
 
-    // 2. Decrypt message
-    let (decrypted, id) = decrypt_didcomm(&from_key, &to_key, dcem);
-
-    // 3. Store incomming message to file, to keep the message history
-    let path = message_path(&id);
+    // 2. Store incomming message to file with didcomm_header.id as filename.
+    let message_id = message.didcomm_header.id.to_string();
+    let path = message_path(&message_id);
     let path = std::path::Path::new(&path);
     let mut file = std::fs::File::create(path).unwrap();
     file.write(dcem.as_bytes()).unwrap();
 
-    // 4. Format message
-    use did_key::DIDCore;
-    let from_did = from_key.get_did_document(did_key::CONFIG_LD_PUBLIC).id;
-    let from_name = std::fs::read_to_string(did_path(&from_did))
-        .unwrap_or(from_did.clone());
-    let filename = &path.file_name().unwrap().to_str().unwrap();
+    // 3. Print message to stdout, to support piping commands together
+    //
+    //    Example: did write self "Hello" | did hold | did read
+    //
+    Ok(format!("{}", dcem))
+}
 
-    Ok(format!("[{}] {} > {}", filename, from_name, decrypted))
+fn read(dcem: &str) -> Result<String, std::io::Error> {
+    // 1. Get did:keys
+    let to_key = get_self_didkey();
+    let from_key = get_from_key_from_didcomm_message(dcem);
+
+    // 2. Decrypt message, to get the contents of the message-body
+    let (body, _) = decrypt_didcomm(&from_key, &to_key, dcem);
+
+    Ok(format!("{}", body))
 }
 
 
@@ -231,51 +216,25 @@ async fn issue(credential_type: &str, to_did_name: &str) -> Result<String, std::
     let proof = vc.generate_proof(&issuer_jwk, &proof_options).await.unwrap();
     vc.add_proof(proof);
 
-    // 5. Serialize and encrypt with issuer_didkey
+    // 5. Serialize and encrypt with subject_didkey
     let vc = serde_json::to_string_pretty(&vc).unwrap();
-    let (dcem, dcem_id) = encrypt_didcomm(&issuer_didkey, &issuer_didkey, &vc.clone());
-
-    // 6. Store vc to file
-    let mut file = std::fs::File::create(credential_path(&dcem_id)).unwrap();
-    use std::io::Write;
-    file.write(dcem.as_bytes()).unwrap();
-
-    // 7. Serialize and encrypt with subject_didkey
     let (dcem,_) = encrypt_didcomm(&issuer_didkey, &subject_didkey, &vc.clone());
 
     Ok(dcem)
 }
 
-fn hold(dcem: &str) -> Result<String, std::io::Error> {
-    // 1. Get did:keys
-    let to_key = get_self_didkey();
-    let from_key = get_from_key_from_didcomm_message(dcem);
+async fn present(message_id: &str, to_did_name: &str) -> Result<String, std::io::Error> {
+    // 0. Open file
+    let dcem = std::fs::read_to_string(message_path(&message_id)).unwrap();
 
-    // 2. Decrypt message, to check if it is intendend for me
-    let (_,credential_id) = decrypt_didcomm(&from_key, &to_key, dcem);
-
-    // 3. Store incomming credential to file
-    let mut file = std::fs::File::create(credential_path(&credential_id)).unwrap();
-    use std::io::Write;
-    file.write(dcem.as_bytes()).unwrap();
-
-    Ok(credential_id)
-}
-
-async fn present(credential_id: &str, to_did_name: &str) -> Result<String, std::io::Error> {
-    // 0. Read from file
-    let credential_path = credential_path(&credential_id);
-    let credential_path = std::path::Path::new(&credential_path);
-    let dcem = std::fs::read_to_string(credential_path).unwrap();
-
-    // 1. Un-encrypt
+    // 1. Un-e ncrypt vc
     let (holder_key, holder_jwk) = get_self_jwk_and_didkey();
-
     use did_key::DIDCore;
     let holder_doc = holder_key.get_did_document(did_key::CONFIG_LD_PUBLIC);
     let from_key = get_from_key_from_didcomm_message(&dcem);
     let (vc,_) = decrypt_didcomm(&from_key, &holder_key, &dcem);
 
+    // 2. De-serialize an create verifiable presentation - vp
     let vc: ssi::vc::Credential = serde_json::from_str(&vc).unwrap();
     let vc_type = vc.type_.clone().into_iter().last().unwrap();
 
@@ -295,16 +254,8 @@ async fn present(credential_id: &str, to_did_name: &str) -> Result<String, std::
     let proof = vp.generate_proof(&holder_jwk, &proof_options).await.unwrap();
     vp.add_proof(proof);
 
-    // 3. Re-encrypt to holder_key
+    // 3. Re-encrypt to to_key
     let vp = serde_json::to_string_pretty(&vp).unwrap();
-    let (dcem, dcem_id) = encrypt_didcomm(&holder_key, &holder_key, &vp);
-
-    // 4. Store outgoing presentation to file
-    let mut file = std::fs::File::create(presentation_path(&dcem_id)).unwrap();
-    use std::io::Write;
-    file.write(dcem.as_bytes()).unwrap();
-
-    // 5. Re-encrypt to to_key
     let to_key = get_other_didkey(&to_did_name);
     let (dcem,_) = encrypt_didcomm(&holder_key, &to_key, &vp);
 
@@ -326,12 +277,7 @@ async fn verify(issuer_connection_id: &str, subject_connection_id: &str, dcem: &
     // 2. Decrypt vp
     let (vp, vp_id) = decrypt_didcomm(&holder_key, &verifier_key, dcem);
 
-    // 3. Store vp to file
-    let mut file = std::fs::File::create(presentation_path(&vp_id)).unwrap();
-    use std::io::Write;
-    file.write(dcem.as_bytes()).unwrap();
-
-    // 4. Verify VP
+    // 3. Verify VP
     let vp: ssi::vc::Presentation = serde_json::from_str(&vp).unwrap();
     let result = vp.verify(None, &ssi_did_key::DIDKey).await;
 
@@ -339,7 +285,7 @@ async fn verify(issuer_connection_id: &str, subject_connection_id: &str, dcem: &
         return Ok(format!("Failed to verify VP: {}: {:#?}", vp_id, result))
     }
 
-    // 5. Verify VC
+    // 4. Verify VC
     for vc in vp.verifiable_credential.unwrap().into_iter() {
         let vc: ssi::vc::Credential = match vc {
             ssi::vc::CredentialOrJWT::Credential(vc) => vc,
@@ -377,40 +323,52 @@ async fn verify(issuer_connection_id: &str, subject_connection_id: &str, dcem: &
             }
     }
 
-    Ok(vp_id)
+    Ok(dcem.to_string())
 }
 
 //
 // Commands: For viewing data at rest
 //
 fn messages() -> Result<String, std::io::Error> {
-    let mut list = format!("{:24.24}{:16.16}{}\n", "ID", "From", "Text");
+    let mut list = format!(
+        "{:16}\t{:14}\t{:14}\t{:>12}\t{:>9}",
+        "ID", "From", "To", "Created", "Length");
 
-    let mut entries: Vec<std::fs::DirEntry> = std::fs::read_dir(messages_path()).unwrap().filter_map(|f| f.ok()).collect();
-    entries.sort_by_key(|e| e.path());
+    // 1. Get messages from message directory
+    let mut messages: Vec<DIDCommEncryptedMessage> = std::fs::read_dir(messages_path())
+        .unwrap()
+        .filter_map(|f| f.ok())
+        .filter(|f| !f.path().is_dir())
+        .map(|entry| {
+            let dcem = std::fs::read_to_string(entry.path()).unwrap();
+            let dcem: DIDCommEncryptedMessage = serde_json::from_str(&dcem).unwrap();
 
-    // 1. Get to-key
-    let to_key = get_self_didkey();
+            dcem
+        })
+        .collect();
 
-    for entry in entries {
-        if entry.path().is_dir() {
-            continue;
-        }
-        let dcem = std::fs::read_to_string(entry.path()).unwrap();
+    // 2. Sort by created time
+    messages.sort_by_key(|dcem| dcem.didcomm_header.created_time.unwrap());
 
-        // 2. Get from-didkey
-        let from_key = get_from_key_from_didcomm_message(&dcem);
-        use did_key::DIDCore;
-        let from_did = from_key.get_did_document(did_key::CONFIG_LD_PUBLIC).id;
+    for dcem in messages {
+        let message_id = dcem.didcomm_header.id.to_string();
+        let from_did = dcem.didcomm_header.from.clone().unwrap();
+        let to_did = dcem.didcomm_header.to.first().unwrap().clone();
 
-        // 3. Decrypt message
-        let (message, message_id) = decrypt_didcomm(&from_key, &to_key, &dcem);
-
-        // 4. Format
+        // 3. Map dids to names, if exists
         let from_name = std::fs::read_to_string(did_path(&from_did))
-            .unwrap_or("".to_string());
+            .unwrap_or(from_did);
 
-        list.push_str(&format!("{:24.24}{:16.16}{}\n", message_id, from_name, message));
+        let to_name = std::fs::read_to_string(did_path(&to_did))
+            .unwrap_or(to_did);
+
+        list.push_str(&format!(
+            "\n{:16}\t{:14}\t{:14}\t{:>12}\t{:>9}",
+            message_id,
+            from_name,
+            to_name,
+            dcem.didcomm_header.created_time.unwrap(),
+            dcem.ciphertext.len()));
     }
 
     Ok(list)
@@ -418,154 +376,7 @@ fn messages() -> Result<String, std::io::Error> {
 
 fn message(message_id: &str) -> Result<String, std::io::Error> {
     let dcem = std::fs::read_to_string(message_path(message_id)).unwrap();
-    let from_key = get_from_key_from_didcomm_message(&dcem);
-    let self_key = get_self_didkey();
-    let (message,_) = decrypt_didcomm(&from_key, &self_key, &dcem);
-
-    Ok(message)
-}
-
-fn credentials() -> Result<String, std::io::Error> {
-    let mut result = format!("{:24.24}{:24.24}{:16.16}{:16.16}\n", "ID", "Type", "Issuer", "Subject");
-
-    let mut entries: Vec<std::fs::DirEntry> = std::fs::read_dir(credentials_path())
-        .unwrap()
-        .filter_map(|f| f.ok()).collect();
-
-    entries.sort_by_key(|e| e.path());
-
-    // 1. Get to-key
-    let to_key = get_self_didkey();
-
-    for entry in entries {
-        if entry.path().is_dir() {
-            continue;
-        }
-        let dcem = std::fs::read_to_string(entry.path()).unwrap();
-
-        // 2. Get from-didkey
-        let from_key = get_from_key_from_didcomm_message(&dcem);
-
-        // 3. Decrypt message
-        let (vc, vc_id) = decrypt_didcomm(&from_key, &to_key, &dcem);
-        let vc: ssi::vc::Credential = serde_json::from_str(&vc).unwrap();
-
-        // 4. Get issuer and subject name
-        let issuer_did: String = match vc.issuer.unwrap() {
-            ssi::vc::Issuer::URI(s) => match s {
-                ssi::vc::URI::String(s) => s
-            },
-            ssi::vc::Issuer::Object(s) => match s.id {
-                ssi::vc::URI::String(s) => s
-            },
-        };
-        let issuer_name = std::fs::read_to_string(did_path(&issuer_did))
-            .unwrap_or(issuer_did.clone());
-
-        let subject: &ssi::vc::CredentialSubject = vc.credential_subject.to_single().unwrap();
-        let subject_did = match subject.id.clone().unwrap() { ssi::vc::URI::String(s) => s };
-        let subject_name = std::fs::read_to_string(did_path(&subject_did))
-            .unwrap_or(subject_did.clone());
-
-        // 5. Format
-        result.push_str(&format!("{:24.24}{:24.24}{:16.16}{:16.16}\n",
-            vc_id,
-            vc.type_.into_iter().last().unwrap(),
-            issuer_name,
-            subject_name
-        ));
-    }
-
-    Ok(result)
-}
-
-fn credential(credential_name: &str) -> Result<String, std::io::Error> {
-    let path = credential_path(credential_name);
-    let dcem = std::fs::read_to_string(path).unwrap();
-    let from_key = get_from_key_from_didcomm_message(&dcem);
-    let self_key = get_self_didkey();
-    let (vc,_) = decrypt_didcomm(&from_key, &self_key, &dcem);
-
-    Ok(vc)
-}
-
-fn presentations() -> Result<String, std::io::Error> {
-    let mut list = format!("{:24.24}{:24.24}{:16.16}{:16.16}{:16.16}\n", "ID", "Type", "Holder", "Issuer", "Subject");
-
-    let mut entries: Vec<std::fs::DirEntry> = std::fs::read_dir(presentations_path())
-        .unwrap()
-        .filter_map(|f| f.ok()).collect();
-
-    entries.sort_by_key(|e| e.path());
-
-    // 1. Get to-key
-    let self_key = get_self_didkey();
-
-    for entry in entries {
-        if entry.path().is_dir() {
-            continue;
-        }
-        let dcem = std::fs::read_to_string(entry.path()).unwrap();
-
-        // 2. Get from-didkey
-        let from_key = get_from_key_from_didcomm_message(&dcem);
-
-        // 3. Decrypt message
-        let (vp,_) = decrypt_didcomm(&from_key, &self_key, &dcem);
-        let vp: ssi::vc::Presentation = serde_json::from_str(&vp).unwrap();
-        let holder_did: String = match vp.holder.unwrap() {
-            ssi::vc::URI::String(did) => did
-        };
-        let vc = vp.verifiable_credential.unwrap();
-        let vc: &ssi::vc::Credential = match vc.to_single().unwrap() {
-            ssi::vc::CredentialOrJWT::Credential(vc) => vc,
-            ssi::vc::CredentialOrJWT::JWT(_) => panic!("presentations(): ssi::vc::CredentialOrJWT::JWT not supported")
-        };
-
-        // 4. Get issuer and subject name
-        let issuer_did: String = match vc.issuer.clone().unwrap() {
-            ssi::vc::Issuer::URI(s) => match s {
-                ssi::vc::URI::String(s) => s
-            },
-            ssi::vc::Issuer::Object(s) => match s.id {
-                ssi::vc::URI::String(s) => s
-            },
-        };
-        let issuer_name = std::fs::read_to_string(did_path(&issuer_did))
-            .unwrap_or(issuer_did.clone());
-
-        let subject: &ssi::vc::CredentialSubject = vc.credential_subject.to_single().unwrap();
-        let subject_did = match subject.id.clone().unwrap() { ssi::vc::URI::String(s) => s };
-        let subject_name = std::fs::read_to_string(did_path(&subject_did))
-            .unwrap_or(subject_did.clone());
-
-        // 5. Format
-        let path = did_path(&holder_did);
-        let holder_name = std::fs::read_to_string(path)
-            .unwrap_or(holder_did.clone());
-        let file_name = String::from(entry.file_name().to_str().unwrap());
-        let file_name = file_name.replace(".dcem", "");
-
-        list.push_str(&format!("{:24.24}{:24.24}{:16.16}{:16.16}{:16.16}\n",
-            file_name,
-            vp.type_.into_iter().last().unwrap(),
-            holder_name,
-            issuer_name,
-            subject_name
-        ));
-    }
-
-    Ok(list)
-}
-
-fn presentation(presentation_name: &str) -> Result<String, std::io::Error> {
-    let path = presentation_path(presentation_name);
-    let dcem = std::fs::read_to_string(path).unwrap();
-    let from_key = get_from_key_from_didcomm_message(&dcem);
-    let self_key = get_self_didkey();
-    let (vp,_) = decrypt_didcomm(&from_key, &self_key, &dcem);
-
-    Ok(vp)
+    Ok(dcem)
 }
 
 fn connections() -> Result<String, std::io::Error> {
@@ -633,32 +444,6 @@ fn did_path(did: &str) -> String {
     std::path::Path::new(ROOT_PATH)
         .join("dids/")
         .join(did)
-        .to_str().unwrap().to_string()
-}
-
-fn credentials_path() -> String {
-    std::path::Path::new(ROOT_PATH)
-        .join("credentials/")
-        .to_str().unwrap().to_string()
-}
-
-fn credential_path(credential_id: &str) -> String {
-    std::path::Path::new(ROOT_PATH)
-        .join("credentials/")
-        .join(format!("{}.dcem", credential_id))
-        .to_str().unwrap().to_string()
-}
-
-fn presentations_path() -> String {
-    std::path::Path::new(ROOT_PATH)
-        .join("presentations/")
-        .to_str().unwrap().to_string()
-}
-
-fn presentation_path(presentation_name: &str) -> String {
-    std::path::Path::new(ROOT_PATH)
-        .join("presentations/")
-        .join(format!("{}.dcem", presentation_name))
         .to_str().unwrap().to_string()
 }
 
@@ -835,32 +620,31 @@ fn get_from_key_from_didcomm_message(dcem: &str) -> did_key::Ed25519KeyPair {
 
 #[derive(Debug)]
 enum CMD {
-    // Basic commands
-    DID,
-    Doc,
-    Connect{ connection_id: String, did: String },
-    Write{ connection_id: String, message: String },
-    Read{ dcem: String },
     Help,
 
-    // Verifiable Credentials commands
+    // Basic commands
+    Init,
+    Doc,
+    Connect{ connection_id: String, did: String },
+
+    // DIDComm v2 messaging
+    Write{ connection_id: String, message: String },
+    Read{ dcem: String },
+    Hold{ dcem: String },
+
+    // DIDComm v2 + Verifiable Credentials
     IssuePassport{ connection_id: String },
     IssueDriversLicense{ connection_id: String },
     IssueTrafficAuthority{ connection_id: String },
     IssueLawEnforcer{ connection_id: String },
-    Hold{ dcem: String },
     Present{ credential_id: String, connection_id: String },
     Verify{ issuer_connection_id: String, subject_connection_id: String, dcem: String },
 
-    // View wallet data
+    // Wallet
     Messages,
     Message{ message_id: String },
     Connections,
     Connection{ connection_id: String },
-    Credentials,
-    Credential{ credential_id: String },
-    Presentations,
-    Presentation{ presentation_id: String }
 }
 
 pub struct Config {
@@ -874,7 +658,7 @@ impl Config {
         let cmd = args.get(1).unwrap_or(&default_cmd).clone();
 
         let cmd = if args.len() < 2 {
-            "did".to_string()
+            "help".to_string()
         } else {
             cmd.clone()
         };
@@ -888,29 +672,48 @@ impl Config {
             };
         }
 
+        let get_arg_or_read_from_stdin = |arg_number: usize| -> String {
+            let arg = match args.get(arg_number) {
+                Some(arg) => arg.clone(),
+                None => {
+                    use std::io::{Read};
+                    let mut buffer = String::new();
+                    let _ = std::io::stdin().read_to_string(&mut buffer);
+
+                    buffer.trim().to_string()
+                },
+            };
+
+            arg
+        };
+
         let cmd: CMD = match &cmd[..] {
-            "did" => {
-                CMD::DID
+            "help" => CMD::Help,
+            "init" => {
+                CMD::Init
             },
             "doc" => {
                 CMD::Doc
             },
             "connect" => {
                 let connection_id = get_arg_or_return_help!(2);
-                let did = get_arg_or_return_help!(3);
+                let did = get_arg_or_read_from_stdin(3);
 
                 CMD::Connect{ connection_id, did }
             },
             "write" => {
                 let connection_id = get_arg_or_return_help!(2);
-                let message = get_arg_or_return_help!(3);
+                let message = get_arg_or_read_from_stdin(3);
 
                 CMD::Write{ connection_id, message }
             },
             "read" => {
-                let dcem = get_arg_or_return_help!(2);
-
+                let dcem = get_arg_or_read_from_stdin(2);
                 CMD::Read{ dcem }
+            },
+            "hold" => {
+                let dcem = get_arg_or_read_from_stdin(2);
+                CMD::Hold{ dcem }
             },
             "issue" => {
                 let credential_type = get_arg_or_return_help!(2);
@@ -937,11 +740,6 @@ impl Config {
                     }
                 }
             },
-            "hold" => {
-                let dcem = get_arg_or_return_help!(2);
-
-                CMD::Hold{ dcem }
-            },
             "present" => {
                 let credential_id = get_arg_or_return_help!(2);
                 let connection_id = get_arg_or_return_help!(3);
@@ -951,7 +749,7 @@ impl Config {
             "verify" => {
                 let issuer_connection_id = get_arg_or_return_help!(2);
                 let subject_connection_id = get_arg_or_return_help!(3);
-                let dcem = get_arg_or_return_help!(4);
+                let dcem = get_arg_or_read_from_stdin(4);
 
                 CMD::Verify{ issuer_connection_id, subject_connection_id, dcem }
             },
@@ -959,31 +757,16 @@ impl Config {
                 CMD::Messages
             },
             "message" => {
-                let message_id = get_arg_or_return_help!(2);
+                let message_id = get_arg_or_read_from_stdin(2);
                 CMD::Message{ message_id }
-            },
-            "credentials" => {
-                CMD::Credentials
-            },
-            "credential" => {
-                let credential_id = get_arg_or_return_help!(2);
-                CMD::Credential{ credential_id }
-            },
-            "presentations" => {
-                CMD::Presentations
-            },
-            "presentation" => {
-                let presentation_id = get_arg_or_return_help!(2);
-                CMD::Presentation{ presentation_id }
             },
             "connections" => {
                 CMD::Connections
             },
             "connection" => {
-                let connection_id = get_arg_or_return_help!(2);
+                let connection_id = get_arg_or_read_from_stdin(2);
                 CMD::Connection{ connection_id }
             },
-            "help" => CMD::Help,
             &_ => {
                 eprintln!("{} not a valid command!", cmd);
                 CMD::Help
@@ -992,4 +775,18 @@ impl Config {
 
         Ok(Config { cmd })
     }
+}
+
+// A DIDComm v2 encrypted message as specified by: https://identity.foundation/didcomm-messaging/spec/#didcomm-encrypted-message
+#[derive(serde::Serialize, serde::Deserialize)]
+struct DIDCommEncryptedMessage {
+    /// JOSE header, which is sent as public part with JWE.
+    #[serde(flatten)]
+    pub jwm_header: didcomm_rs::JwmHeader,
+    /// DIDComm headers part, sent as part of encrypted message in JWE.
+    #[serde(flatten)]
+    pub didcomm_header: didcomm_rs::DidcommHeader,
+    /// Message payload, which can be basically anything (JSON, text, file, etc.) represented
+    ///     as bytes of data.
+    pub ciphertext: Vec<u8>,
 }
