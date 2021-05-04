@@ -4,4 +4,28 @@
 
 ## 6.2 Learning a new, difficult language like Rust
 
-## 6.3 Writers block
+## 6.3 Writers block. How to overcome?
+
+## 6.4 Getting involved with a new field like SSI, where there are few experts, and fewer learning resources
+
+## 6.5 How to talk to regular people about Self-Sovereign Identity?
+
+- Attester
+- Vitnemål
+- Kursbevis
+- Kontrakter
+- Personindikatorer
+- Skjøter
+- Titler
+- Fødselsattest
+- Pass
+- BankID
+- Førerkort
+- Bankkontoer
+- Lånebevis
+- Penger (cryptocurrency)
+- Helsejournal - 200 different countries, 200 different helth care apps?
+- Resepter
+- ...and more
+
+## 6.6 How to avoid an Apple/Google/"Whatever-is-in-china" triopoly?

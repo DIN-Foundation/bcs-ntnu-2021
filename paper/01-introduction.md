@@ -1,4 +1,4 @@
-# Exploring our Self-Sovereign-Identity future, by developing a Command-Line-Interface in Rust, using DID-Key, DIDComm V2 and Verifiable Credentials
+# Exploring our Self-Sovereign Identity future, by developing a Command-Line-Interface in Rust, using DID-Key, DIDComm V2 and Verifiable Credentials
 
 # 1 Introduction
 
