@@ -35,6 +35,7 @@
 2. Clone from github source code
     ```
     git clone git@github.com:DIN-Foundation/bcs-ntnu-2021.git
+    git submodule update --init --recursive
     ```
 
 3. Build the `did`-CLI using `cargo`
@@ -110,7 +111,7 @@
 - Your agents `did` will be returned to `stdout` when running this command.
 - If a `.did/` already exists, this commands has no side-effects - the command is idempotent.
 
-- Example of creating an agent, using `did`:
+- Example of creating an agent, using `did init`:
     1. Create empty folder and change working directory
         ```shell
         $ mkdir ola
@@ -130,7 +131,7 @@
         $ ls -a
         .  ..  .did
         $ ls -a .did/
-        .  ..  connections  credentials  dids  key.jwk  messages  presentations
+        .  ..  connections  dids  key.jwk  messages
         ```
 
     4. Print `did` from existing agent
@@ -187,20 +188,29 @@
     }
     ```
 
-### 5.3.4 Command: `did connect <connection id> <did>`
+### 5.3.4 Command: `did connect <name> <did>`
 
-- `did connect` stores a did, and gives it a `<connection id>`
-- The `<connection id>` is supposed to be a shorter, human readable, identifier, defined by the user, to make it easy to refer to the underlying `did` in subsequent commands.
-- Example of using `did connect` to store a `did`:
+- `did connect` connects a `<name>` to `<did>`
+- `did connect` gives a `<did>` a `<name>`.
+- The `<name>` is used in other commands, as an easy way to refer to another agent's `<did>`.
+- Example of using `did connect`:
+
+    1. Giving a `<did>` a `<name>`:
     ```shell
     $ did connect police did:key:z6Mkt8M2q23yEZHqo8CGbngpTKBDvdf3EazphaJRqNP3kXft
     ./.did/connections/police.did
     ./.did/dids/did:key:z6Mkt8M2q23yEZHqo8CGbngpTKBDvdf3EazphaJRqNP3kXft
     ```
-### 5.3.5 Command: `did write <connection id> <message>`
+
+    2. Using that `<name>` in a subsequent command as an alias for the `<did>`:
+    ```shell
+    $ did write police "What seems to be the problem, officer?"
+    ```
+
+### 5.3.5 Command: `did write <name> <message>`
 
 - Wraps a user defined message inside a `<dcem>`-envelope.
-- Sets the `to`-header of the `<dcem>` to the underlying `<did>` refered to by the `<connection id>`.
+- Sets the `to`-header of the `<dcem>` to the underlying `<did>` refered to by the `<name>`.
 - `did write` also stores the `<dcem>`-message in the agent's wallet message history.
 - Gives the message a new globally unique `id`.
 - Example usage of `did write`:
@@ -212,6 +222,7 @@
     ```shell
     $ did write police "What seems to be the officer problem?" > ../police.message.dcem
     ```
+
 ### 5.3.6 Command: `did read <dcem>`
 
 - Unwraps an incomming `<dcem>` message.
@@ -265,25 +276,7 @@
 
 - Show the did of a single did connection based on `<connection id>`.
 
-### 5.3.15 Command: `did credentials`
-
-- List all verifiable credentials stored in the wallet.
-- Credentials are added to the wallet when using the `did issue` and `did hold` commands.
-
-### 5.3.16 Command: `did credential <credential id>`
-
-- Show a single verifiable credential based on the given `<credential id>`.
-
-### 5.3.17 Command: `did presentations`
-
-- List all verifiable presentations stored in the wallet.
-- Presentations are added to the wallet when using the `did present` and `did verify` commands.
-
-### 5.3.18 Command: `did presentation <presentation id>`
-
-- Show a single verifiable presentation based on the given `<presentation id>`.
-
-### 5.3.19 Intentional limitations of the CLI
+### 5.3.15 Intentional limitations of the CLI
 
 - None of the commands have any optional-arguments - e.g `--option=<arg>`. This is to keep program logic as simple as possible. If the CLI was intended for a broader audicene with multiple use-cases, options may be added. This CLI is a special purpose CLI, intended to solve a specific use-case, namely the specific proof-of-concept from the problem statement. This is why optional-arguments was not prioritized.
 - Options are much harder to parse correctly than fixed size positional arguments.
@@ -295,6 +288,7 @@
 ## 5.4 Rust book guidelines
 
 The implementation is following the "guidelines for binary projects", given by the Rust-book, quoted in full below:
+
 >### Separation of Concerns for Binary Projects
 >
 >The organizational problem of allocating responsibility for multiple tasks to the main function is common to many binary projects. As a result, the Rust community has developed a process to use as a guideline for splitting the separate concerns of a binary program when main starts getting large. The process has the following steps:
