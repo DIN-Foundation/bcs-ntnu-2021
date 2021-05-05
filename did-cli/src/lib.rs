@@ -34,26 +34,27 @@ fn help() -> Result<String, std::io::Error> {
     Basic:
         did init
         did doc
-        did connect <connection id> <did>
+        did connect <name> <did>
 
     DIDComm v2 messaging:
-        did write  <connection id> <message>  -->  <dcem>
-        did hold   <dcem>                     -->  <dcem>
-        did read   <dcem>                     -->  <message>
+        did write  <subject name> <message>  -->  <dcem>
+        did hold   <dcem>                    -->  <dcem>
+        did read   <dcem>                    -->  <plaintext message>
 
     DIDComm v2 + Verifiable Credentials:
-        did issue   Passport         <connection id>  -->  <dcem>
-        did issue   DriversLicense   <connection id>  -->  <dcem>
-        did issue   TrafficAuthority <connection id>  -->  <dcem>
-        did issue   LawEnforcer      <connection id>  -->  <dcem>
-        did present <credential id>  <connection id>  -->  <dcem>
-        did verify  <issuer connection id> <subject connection id> <dcem>  -->  <presentation id>
+        did issue   Passport         <subject name>      -->  <dcem>
+        did issue   DriversLicense   <subject name>      -->  <dcem>
+        did issue   TrafficAuthority <subject name>      -->  <dcem>
+        did issue   LawEnforcer      <subject name>      -->  <dcem>
+
+        did present <verifier name>              <dcem>  -->  <dcem>
+        did verify  <issuer name> <subject name> <dcem>  -->  <dcem>
 
     Wallet:
         did messages
         did message <message id>
         did connections
-        did connection <connection id>
+        did connection <name>
 "))
 }
 
