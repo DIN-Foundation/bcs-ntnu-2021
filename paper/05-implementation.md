@@ -204,7 +204,7 @@
 
     2. Using that `<name>` in a subsequent command as an alias for the `<did>`:
     ```shell
-    $ did write police "What seems to be the problem, officer?"
+    $ did write police "What seems to be the officer, problem?"
     ```
 
 ### 5.3.5 Command: `did write <name> <message>`
