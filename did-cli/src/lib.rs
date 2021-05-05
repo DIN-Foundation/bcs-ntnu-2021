@@ -18,7 +18,7 @@ pub async fn run(config: Config) -> Result<String, std::io::Error> {
         CMD::IssueLawEnforcer{ connection_id } => issue("LawEnforcer", &connection_id).await,
         CMD::IssueTrafficAuthority{ connection_id } => issue("TrafficAuthority", &connection_id).await,
         CMD::IssueDriversLicense{ connection_id } => issue("DriversLicense", &connection_id).await,
-        CMD::Present{ credential_id, connection_id } => present(&credential_id, &connection_id).await,
+        CMD::Present{ connection_id, dcem } => present(&connection_id, &dcem).await,
         CMD::Verify{ issuer_connection_id, subject_connection_id, dcem } => verify(&issuer_connection_id, &subject_connection_id, &dcem).await,
 
         // Wallet
@@ -224,10 +224,7 @@ async fn issue(credential_type: &str, to_did_name: &str) -> Result<String, std::
     Ok(dcem)
 }
 
-async fn present(message_id: &str, to_did_name: &str) -> Result<String, std::io::Error> {
-    // 0. Open file
-    let dcem = std::fs::read_to_string(message_path(&message_id)).unwrap();
-
+async fn present(connection_id: &str, dcem: &str) -> Result<String, std::io::Error> {
     // 1. Un-e ncrypt vc
     let (holder_key, holder_jwk) = get_self_jwk_and_didkey();
     use did_key::DIDCore;
@@ -257,7 +254,7 @@ async fn present(message_id: &str, to_did_name: &str) -> Result<String, std::io:
 
     // 3. Re-encrypt to to_key
     let vp = serde_json::to_string_pretty(&vp).unwrap();
-    let to_key = get_other_didkey(&to_did_name);
+    let to_key = get_other_didkey(&connection_id);
     let (dcem,_) = encrypt_didcomm(&holder_key, &to_key, &vp);
 
     Ok(dcem)
@@ -638,7 +635,7 @@ enum CMD {
     IssueDriversLicense{ connection_id: String },
     IssueTrafficAuthority{ connection_id: String },
     IssueLawEnforcer{ connection_id: String },
-    Present{ credential_id: String, connection_id: String },
+    Present{ connection_id: String, dcem: String },
     Verify{ issuer_connection_id: String, subject_connection_id: String, dcem: String },
 
     // Wallet
@@ -742,10 +739,10 @@ impl Config {
                 }
             },
             "present" => {
-                let credential_id = get_arg_or_return_help!(2);
-                let connection_id = get_arg_or_return_help!(3);
+                let connection_id = get_arg_or_return_help!(2);
+                let dcem = get_arg_or_read_from_stdin(3);
 
-                CMD::Present{ credential_id, connection_id }
+                CMD::Present{ connection_id, dcem }
             },
             "verify" => {
                 let issuer_connection_id = get_arg_or_return_help!(2);
