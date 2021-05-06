@@ -29,3 +29,10 @@
 - ...and more
 
 ## 6.6 How to avoid an Apple/Google/"Whatever-is-in-china" triopoly?
+
+
+## 6.7 On working alone in a bachelor project
+
+- Information gathering
+- Coding
+- Writing the paper - Takes longer time with a single person. 2-3 months. 4 people, 1 month per person.

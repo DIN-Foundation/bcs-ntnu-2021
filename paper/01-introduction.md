@@ -1,28 +1,32 @@
 # Exploring our Self-Sovereign Identity future, by developing a Command-Line-Interface in Rust, using DID-Key, DIDComm V2 and Verifiable Credentials
 
 # 1 Introduction
+## 1.1 Problem domain
 
-Self-Sovereign-Identity (SSI) is an evolving ecosystem which - although still in it's infancy - already has established a solid foundation of technologies, which when implemented will seed a system-wide disruption of what we know today as "The Internet".
+Self-Sovereign-Identity (SSI) is an umbrella-term for a bunch of novel, evolving technologies, hosted by well-known standards-organizations such as World Wide Web Consortium ([W3C](https://www.w3.org/)) and Decentralized Identity Foundation ([DIF](https://github.com/decentralized-identity)).
 
-## 1.1 A theoretical investigation
+SSI tries to solve many problems of the internet today. Decentralized identifiers (DID's) is a core SSI-technology, and it's design goals gives us a hint about which problems SSI as a whole is a solution to:
 
-This paper investigates 3 core technologies of SSI:
+*The three first design goals from [DID - 1.2 Design Goals](https://www.w3.org/TR/did-core/#design-goals)*:
+>- **Decentralization** - Eliminate the requirement for centralized authorities or single point failure in identifier management, including the registration of globally unique identifiers, public verification keys, services, and other information.
+>
+>- **Control** - Give entities, both human and non-human, the power to directly control their digital identifiers without the need to rely on external authorities.
+>
+>- **Privacy** - Enable entities to control the privacy of their information, including minimal, selective, and progressive disclosure of attributes or other data.
 
-1. **Decentralized identifiers or DID's** - Facilitates the creation of decentralized, persistent, verifiable and resolvable agents in any network.
-2. **DIDComm Messaging** - Establishes protocols for the exchange of information between networked DID-agents.
-3. **Verifiable Credentials** - Specifies how to express any piece of information as a "cryptographically secure, privacy respecting and machine verifiable" data-structure.
+The standards developed within the realm of SSI, are developed as open-source collaborative documents. The documents, when finalized, become specifications which is intended to be used by developers for implementing SSI-applications.
 
-All these 3 innovations are big on their own, and fairly independent of one another. It is when combined they truly realize their full potential, and become a whole that is much more than the sum of it's parts. This whole is what we refer to as Self-Sovereign-Identity.
+To read on, it is highly recommended that you have a surface-level understanding of the following three core SSI-specifications, and how they relate to one another:
 
-## 1.2 A practical experiment
+- Decentralized Identifiers (DIDs) v1.0 - https://www.w3.org/TR/did-core/
+- DIDComm messaging (v2) - https://identity.foundation/didcomm-messaging/spec/
+- Verifiable Credentials Data Model 1.0 - https://www.w3.org/TR/vc-data-model/
 
-This paper also includes details about a practical experiment which was conducted. The experiment implements an SSI-agent as a CLI application, in the Rust programming language.
+## 1.2 Scope
 
-The experiment was conducted to better understand how `didcomm-rs` - a novel implementation of the `DIDComm v2`-spec hosted by DIF - could interoperate with existing `Aries`-hosted implementations - which tradiationally have been `"DIDComm v1"`-implementations, but should now support `DIDComm v2` as well.
+O
 
-To learn more about DIF, Aries, DIDComm v1 and v2, and much more, read the next chapter: [2 Background](./2-background.md).
-
-## 1.3 Refs
+## Sources
 * [did-core]: https://www.w3.org/TR/did-core/ - 2021-03-30
 * [did-use-cases]: https://www.w3.org/TR/did-use-cases/ - 2021-03-30
 * [didcomm-messaging-v1]: https://github.com/hyperledger/aries-rfcs/tree/master/concepts/0005-didcomm - 2021-03-30
