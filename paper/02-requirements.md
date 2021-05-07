@@ -24,7 +24,7 @@ Without further ado, here is the list of functional requirements:
 
 - **Given** I navigate to an empty directory
 - **When** I run `did init`
-- **Then** the sub-directory `.did/` should be created, containing the minimum files required for running all other CLI commands. This should be similar to how `git`-CLI works, when creating the `.git/`-directory after running `git init`.
+- **Then** the sub-directory `.did/` should be created. As a user I should never have to know what are the contents of `.did/`. The only thing I have to care about is that `.did/` in practice, IS my agent. If I move `.did/` to a different location, it will be like moving the agent to a different location. This should be similar to how `git`-CLI works, when creating the `.git/`-directory after running `git init`.
 ---
 
 - **Or Given** I navigate to a directory where a `.did/` already exists
