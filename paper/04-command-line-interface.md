@@ -82,6 +82,8 @@
         $ did init
         did:key:z6Mkt8M2q23yEZHqo8CGbngpTKBDvdf3EazphaJRqNP3kXft
         ```
+- `did init` is intentionally almost identical to `git init`, to make it easier for new users to understand the CLI by reusing a good design-pattern from a well-known CLI like `git`-CLI.
+
 
 ### 4.3 Command: `did doc`
 

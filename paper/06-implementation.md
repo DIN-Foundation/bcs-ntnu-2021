@@ -1,5 +1,5 @@
 
-# 5. Implementation - `did-cli/`
+# 5. Implementation
 
 ## 5.1 Source code
 
