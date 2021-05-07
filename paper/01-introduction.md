@@ -77,6 +77,8 @@ Statens Vegvesen wants the application to follow open standards which will enabl
 
 ## 1.4.4 Læringsmål
 
+@TODO
+
 ## 1.5 Target audience
 
 ### 1.5.1 Government institutions
@@ -107,6 +109,8 @@ Statens Vegvesen wants the application to follow open standards which will enabl
 | Deepti      | Academic supervisor
 
 ## 1.8 The Report
+
+@TODO
 
 ## 1.9 Sources
 
