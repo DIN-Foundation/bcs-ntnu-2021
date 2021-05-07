@@ -60,22 +60,22 @@ Statens Vegvesen wants the application to follow open standards which will enabl
 
 ## 1.4 Motivation and goals
 
+## 1.4.1 Motivation
 - Inspire people and organizations to see the potential of SSI, by solving a real world scenario.
 - Create an example codebase for developers who are getting started with SSI-application development.
 - Give specification writers some feedback about how easy it is to adopt their specifications.
 - Prove and reflect on interoperability in the SSI-space.
 
-## 1.4.1 Effektmål
+## 1.4.2 Effektmål
 
 - Engage with the broader DIF-community during development.
 
-## 1.4.2 Resultatmål
+## 1.4.3 Resultatmål
 
 - Present and demonstrate an application which solves a real-world SSI-problem in a Nordic Context.
 - Develop the application as an open-source project, on behalf, and in the name of, the DIN-Foundation.
 
-## 1.4.3 Læringsmål
-
+## 1.4.4 Læringsmål
 
 ## 1.5 Target audience
 
@@ -108,13 +108,16 @@ Statens Vegvesen wants the application to follow open standards which will enabl
 
 ## 1.8 The Report
 
+## 1.9 Sources
 
-## Sources
-* [W3C]: https://www.w3.org - 2021-05-06
-* [DIF]: https://github.com/decentralized-identity - 2021-05-06
-* [did-core]: https://www.w3.org/TR/did-core/ - 2021-03-30
-* [did-core 1.2 design goals]: https://www.w3.org/TR/did-core/#design-goals - 2021-05-06
-* [did-use-cases]: https://www.w3.org/TR/did-use-cases/ - 2021-03-30
-* [didcomm-messaging-v1]: https://github.com/hyperledger/aries-rfcs/tree/master/concepts/0005-didcomm - 2021-03-30
-* [didcomm-messaging-v2]: https://identity.foundation/didcomm-messaging/spec/ - 2021-03-30
-* [vc-data-model]: https://www.w3.org/TR/vc-data-model/ - 2021-03-30
+| # | Who | What                         | Where              | When        |
+|---|-----|------------------------------|--------------------|------------|
+| 1 | W3C | Home Page                    | https://www.w3.org | 2021-05-06 |
+| 2 | DIF | Home Page                    | https://identity.foundation/ | 2021-05-06 |
+| 3 | W3C | DID Core                     | https://www.w3.org/TR/did-core/ | 2021-03-30 |
+| 4 | W3C | DID Core 1.2 design goals    | https://www.w3.org/TR/did-core/#design-goals | 2021-05-06 |
+| 5 | W3C | did-use-cases                | https://www.w3.org/TR/did-use-cases/ | 2021-03-30 |
+| 6 | Hyperledger | didcomm-messaging-v1 | https://github.com/hyperledger/aries-rfcs/tree/master/concepts/0005-didcomm | 2021-03-30 |
+| 7 | DIF         | didcomm-messaging-v2 | https://identity.foundation/didcomm-messaging/spec/ | 2021-03-30 |
+| 8 | W3C | vc-data-model                | https://www.w3.org/TR/vc-data-model/ | 2021-03-30 |
+
