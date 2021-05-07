@@ -37,19 +37,19 @@ All of these specifications are work-in-progress as of today - 2021-05-06 - and 
 - For instance a "Wallet", is a specific kind of agent, used to store and manage personal credentials.
 
 ## 1.3 Problem statement
-- This project will develop a proof-of-concept agent.
 
-### 1.3.1 User story
-- The proof-of-concept application should solve the following scenario, written as a user-story:
-    ```
-    The norwegian driver license issuer, Statens Vegvesen, is considering to start issuing it's driver licenses as verifiable credentials (VCs). Statens Vegvesen is not sure if verifiable credentials is the future yet, but are willing to try and dip it's toes in the water. Statens vegvesen will still issue credentials in the traditional way for the forseeable future.
+This project will develop a proof-of-concept agent application. The proof-of-concept application should solve the following scenario:
 
-    What Statens Veivesen want is a proof-of-concept SSI-application which will issue, hold and verify driver-licenses. They are hoping that this will bootstrap SSI in Norway, as this will enable other individuals and organizations to start experimenting with holding and verifying a serious credentials which actually are useful.
+### 1.3.1 Scenario
 
-    The proof-of-concept may demonstrate, that a driver license as a verifiable credential could be considered on par, legally speaking, with traditional driver licenses.
+The norwegian driver license issuer, Statens Vegvesen, is considering to start issuing it's driver licenses as verifiable credentials (VCs). Statens Vegvesen is not sure if verifiable credentials is the future yet, but are willing to try and dip it's toes in the water. Statens vegvesen will still issue credentials in the traditional way for the forseeable future.
 
-    Statens Vegvesen wants the application to follow open standards which will enable the application to be agnostic about where and how credentials are issued, stored and verified. In other words Statens Vegvesen want to avoid the application to be locked to a specific ledger and a specific wallet.
-    ```
+What Statens Veivesen want is a proof-of-concept SSI-application which will issue, hold and verify driver-licenses. They are hoping that this will bootstrap SSI in Norway, as this will enable other individuals and organizations to start experimenting with holding and verifying a serious credentials which actually are useful.
+
+The proof-of-concept may demonstrate, that a driver license as a verifiable credential could be considered on par, legally speaking, with traditional driver licenses.
+
+Statens Vegvesen wants the application to follow open standards which will enable the application to be agnostic about where and how credentials are issued, stored and verified. In other words Statens Vegvesen want to avoid the application to be locked to a specific ledger and a specific wallet.
+
 
 ### 1.3.2 Deliverables
 
@@ -65,11 +65,16 @@ All of these specifications are work-in-progress as of today - 2021-05-06 - and 
 - Give specification writers some feedback about how easy it is to adopt their specifications.
 - Prove and reflect on interoperability in the SSI-space.
 
-## 1.4.1 Goals
+## 1.4.1 Effektmål
 
-1. Present and demonstrate an application which solves a real-world SSI-problem in a Nordic Context.
-2. Develop the application as an open-source project, on behalf, and in the name of, the DIN-Foundation.
-3. Engage with the broader DIF-community during development.
+- Engage with the broader DIF-community during development.
+
+## 1.4.2 Resultatmål
+
+- Present and demonstrate an application which solves a real-world SSI-problem in a Nordic Context.
+- Develop the application as an open-source project, on behalf, and in the name of, the DIN-Foundation.
+
+## 1.4.3 Læringsmål
 
 
 ## 1.5 Target audience
