@@ -35,10 +35,10 @@ Without further ado, here is the list of functional requirements:
 
 - **Given** there is a `.did/` in my working directory
 - **When** I run `did did`
-- **Then** my DID should be printed to `stdout`.
+- **Then** my DID should be written to `stdout`.
 
 ### 2.3.4 As a user I want to view my DID document
 
 - **Given** there is a `.did/` in my working directory
 - **When** I run `did doc`
-- **Then** my DID-document should be printed to `stdout` as prettified JSON.
+- **Then** my DID-document should be written to `stdout` as prettified JSON.
