@@ -18,11 +18,10 @@ Making the bridge between requirements and manual or automated tests as small as
 
 Without further ado, here is the list of functional requirements:
 
-## 2.3 Functional requirements
+## 2.3 DID functional requirements
 
 ### 2.3.2 As a user I want to create a DID-agent contained within a directory on my machine
 
----
 
 - **Given** I navigate to an empty directory
 - **When** I run `did init`
@@ -35,38 +34,88 @@ Without further ado, here is the list of functional requirements:
 - **When** I run `did init`
 - **Then** my DID should be written to `stdout`.
 
----
-
 Note: As a user I should never have to know the contents of `.did/`. The only thing I have to care about is that `.did/`, in practice, IS my agent. If I move `.did/` to a different location, it will be like moving my agent to a different location. This should be similar to how `git`-CLI works, which creates the `.git/`-directory when running `git init`.
 
 ### 2.3.3 As a user I want to view my DID
 
----
 - **Given** there is a `.did/` in my working directory
 - **When** I run `did init`
 - **Then** my DID should be written to `stdout`.
----
 
 ### 2.3.4 As a user I want to view my DID document
 
----
 - **Given** there is a `.did/` in my working directory
 - **When** I run `did doc`
 - **Then** my DID-document should be written to `stdout` as prettified JSON.
----
 
-
-### 2.3.x As a user I want to refer to a DID by name
-
----
+### 2.3.x As a user I want to store and refer to DIDs by name
 
 - **Given** I have a DID `did:key:z6MkjidGmTqu3jG73hVdz5MKEGtVLCLof9ctxTXHMomNcivxA
 - **When** I run `did connect doctor did:key:z6MkjidGmTqu3jG73hVdz5MKEGtVLCLof9ctxTXHMomNcivx`
-- **Then** I should be able to refer to the DID in other commands, by the name `doctor`.
----
+- **Then** the relationship between `doctor` <--> `DID` should be stored in my agent
+- **And** I should be able to refer to the DID in other commands, by the name `doctor`
+- **And** the name `doctor` should be written to `stdout` (@TODO implement this requirement)
 
-### 2.3.x As a user, I want to view all my DID's
+### 2.3.x As a user I want to view all my DID's
 
-### 2.3.x As a user I want to write a message from one agent to another
+- **Given** I have stored some DIDs in my agent
+- **When** I run `did dids`
+- **Then** a list of all my DIDs and DIDNames should be written to `stdout`.
 
-### 2.3.x As a user I want to read a message from
+### 2.3.x As a user I want to view the DID referred to by a DIDName
+
+- **Given** I have stored a DIDName `police`
+- **When** I run `did did police`
+- **Then** the DID referred to by `police` should be written to `stdout`.
+
+
+## 2.4 DIDComm v2 functional requirements
+
+### 2.4.x As a user I want to write a DCEM to another agent
+
+- **Given** I have initialized two agents on my machine
+- **And** I have stored the DID of the other agent by the name `other`
+- **When** I run `did write other hello`
+- **Then** a DCEM should be written to `stdout`, addressed to the DID referred to by `other`.
+
+*DCEM - DIDComm encrypted Message*
+
+### 2.4.x As a user I want to read the contents of a DCEM addressed to me
+
+- **Given** I have received a file - `hello.dcem` - containing a DCEM addressed to me
+- **When** I run `did read $(cat hello.dcem)` or `cat hello.dcem | did read`
+- **Then** the contents of the DCEM should be written to `stdout`.
+
+### 2.4.x As a user I want to store (hold) DCEM's inside my agent
+
+- **Given** I have received a file - `hello.dcem`
+- **When** I run `did hold $(cat hello.dcem)` or `cat hello.dcem | did hold`
+- **Then** the DCEM should be stored inside my agent, for later usage
+
+### 2.4.x As a user I want to view a list of all my stored DCEM's
+
+- **Given** I am holding 1 or more DCEM's
+- **When** I run `did messages`
+- **Then** a list of all my DCEM's together with their ids, should be written to `stdout`
+
+### 2.4.x As a user I want to view a single DCEM I am holding
+
+- **Given** a DCEM's id is `7497036273686508746`
+- **When** I run `did message 7497036273686508746`
+- **Then** the DCEM should be written to `stdout`.
+
+## 2.5 Verifiable Credentials functional requirements
+
+
+### 2.5.x As an issuer I want to issue a predefined set of verifiable credentials to a subject
+
+
+### 2.5.x As a holder I want to present a verifiable credential I am holding as a verifiable presentation to a verifier
+
+### 2.5.x As a verifier I want to verify that a verifiable presentation I have received is valid
+
+
+
+
+## 2.6 Scenario functional requirements
+
