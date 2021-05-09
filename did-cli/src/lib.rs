@@ -3,63 +3,59 @@ pub async fn run(config: Config) -> Result<String, std::io::Error> {
     match config.cmd {
         CMD::Help => help(),
 
-        // Basic
+        // DID
         CMD::Init => init(),
         CMD::Doc => doc(),
-        CMD::Connect{ connection_id, did } => connect(&connection_id, &did),
+        CMD::Connect{ didname, did } => connect(&didname, &did),
+        CMD::Dids => dids(),
+        CMD::Did{ didname } => did(&didname),
 
-        // DIDComm messaging
-        CMD::Write{ connection_id, message } => write(&connection_id, &message),
+        // DIDComm v2
+        CMD::Write{ didname, message } => write(&didname, &message),
         CMD::Read{ dcem } => read(&dcem),
         CMD::Hold{ dcem } => hold(&dcem),
-
-        // DIDComm + Verifiable Credentials
-        CMD::IssuePassport{ connection_id } => issue("Passport", &connection_id).await,
-        CMD::IssueLawEnforcer{ connection_id } => issue("LawEnforcer", &connection_id).await,
-        CMD::IssueTrafficAuthority{ connection_id } => issue("TrafficAuthority", &connection_id).await,
-        CMD::IssueDriversLicense{ connection_id } => issue("DriversLicense", &connection_id).await,
-        CMD::Present{ connection_id, dcem } => present(&connection_id, &dcem).await,
-        CMD::Verify{ issuer_connection_id, subject_connection_id, dcem } => verify(&issuer_connection_id, &subject_connection_id, &dcem).await,
-
-        // Wallet
         CMD::Messages => messages(),
         CMD::Message{ message_id } => message(&message_id),
-        CMD::Connections => connections(),
-        CMD::Connection{ connection_id } => connection(&connection_id),
+
+        // Verifiable Credentials
+        CMD::IssuePassport{ didname } => issue("Passport", &didname).await,
+        CMD::IssueLawEnforcer{ didname } => issue("LawEnforcer", &didname).await,
+        CMD::IssueTrafficAuthority{ didname } => issue("TrafficAuthority", &didname).await,
+        CMD::IssueDriversLicense{ didname } => issue("DriversLicense", &didname).await,
+        CMD::Present{ didname, dcem } => present(&didname, &dcem).await,
+        CMD::Verify{ issuer_didname, subject_didname, dcem } => verify(&issuer_didname, &subject_didname, &dcem).await,
     }
 }
 
 fn help() -> Result<String, std::io::Error> {
     Ok(String::from("
-    Basic:
+    DID:
         did init
         did doc
-        did connect <name> <did>
+        did connect <didname> <did>
+        did dids
+        did did <didname>
 
-    DIDComm v2 messaging:
-        did write  <subject name> <message>  -->  <dcem>
-        did hold   <dcem>                    -->  <dcem>
-        did read   <dcem>                    -->  <plaintext message>
-
-    DIDComm v2 + Verifiable Credentials:
-        did issue   Passport         <subject name>      -->  <dcem>
-        did issue   DriversLicense   <subject name>      -->  <dcem>
-        did issue   TrafficAuthority <subject name>      -->  <dcem>
-        did issue   LawEnforcer      <subject name>      -->  <dcem>
-
-        did present <verifier name>              <dcem>  -->  <dcem>
-        did verify  <issuer name> <subject name> <dcem>  -->  <dcem>
-
-    Wallet:
+    DIDComm v2:
+        did write  <subject didname> <message>  -->  <dcem>
+        did hold   <dcem>                       -->  <dcem>
+        did read   <dcem>                       -->  <plaintext message>
         did messages
         did message <message id>
-        did connections
-        did connection <name>
+
+    Verifiable Credentials over DIDComm v2:
+        did issue   Passport         <subject didname>      -->  <dcem>
+        did issue   DriversLicense   <subject didname>      -->  <dcem>
+        did issue   TrafficAuthority <subject didname>      -->  <dcem>
+        did issue   LawEnforcer      <subject didname>      -->  <dcem>
+
+        did present <verifier didname>                 <dcem>  -->  <dcem>
+        did verify  <issuer didname> <subject didname> <dcem>  -->  <dcem>
 "))
 }
 
 //
-// Commands: Basic
+// Commands: DID
 //
 fn init() -> Result<String, std::io::Error> {
     use std::io::Write;
@@ -68,11 +64,11 @@ fn init() -> Result<String, std::io::Error> {
     if !std::fs::metadata(root_path()).is_ok() {
         std::fs::create_dir_all(root_path()).unwrap();
     }
-    if !std::fs::metadata(connections_path()).is_ok() {
-        std::fs::create_dir_all(connections_path()).unwrap();
-    }
     if !std::fs::metadata(dids_path()).is_ok() {
         std::fs::create_dir_all(dids_path()).unwrap();
+    }
+    if !std::fs::metadata(did_names_path()).is_ok() {
+        std::fs::create_dir_all(did_names_path()).unwrap();
     }
     if !std::fs::metadata(messages_path()).is_ok() {
         std::fs::create_dir_all(messages_path()).unwrap();
@@ -122,24 +118,54 @@ fn doc() -> Result<String, std::io::Error> {
     Ok(format!("{}", did_doc))
 }
 
-fn connect(connection_id: &str, did: &str) -> Result<String, std::io::Error> {
+fn connect(did_name: &str, did: &str) -> Result<String, std::io::Error> {
     use std::io::Write;
 
     // 1. Create 'name' -> 'did'-mapping
-    let mut file = std::fs::File::create(connection_path(connection_id)).unwrap();
+    let mut file = std::fs::File::create(did_path(did_name)).unwrap();
     file.write(did.as_bytes()).unwrap();
 
     // 2. Create 'did' -> 'name'-mapping
-    let mut file = std::fs::File::create(did_path(did)).unwrap();
-    file.write(connection_id.as_bytes()).unwrap();
+    let mut file = std::fs::File::create(did_name_path(did)).unwrap();
+    file.write(did_name.as_bytes()).unwrap();
 
-    Ok(format!("{}\n{}", connection_path(connection_id), did_path(did)))
+    Ok(format!("{}\n{}", did_path(did_name), did_name_path(did)))
 }
 
-fn write(to_did_name: &str, message: &str) -> Result<String, std::io::Error> {
+fn dids() -> Result<String, std::io::Error> {
+    let mut list = format!("{:16}{}\n", "ID", "DID");
+    let mut entries: Vec<std::fs::DirEntry> = std::fs::read_dir(dids_path())
+        .unwrap()
+        .filter_map(|f| f.ok()).collect();
+    entries.sort_by_key(|e| e.path());
+
+    for entry in entries {
+        if entry.path().is_dir() {
+            continue;
+        }
+        let did = std::fs::read_to_string(entry.path()).unwrap();
+        let did_name = String::from(entry.file_name().to_str().unwrap()).replace(".did", "");
+        list.push_str(&format!("{:16}{}\n", did_name, did));
+    }
+
+    Ok(list)
+}
+
+fn did(did_name: &str) -> Result<String, std::io::Error> {
+    let path = did_path(did_name);
+    let did = std::fs::read_to_string(path).unwrap();
+
+    Ok(did)
+}
+
+
+//
+// Commands: DIDComm v2
+//
+fn write(subject_didname: &str, message: &str) -> Result<String, std::io::Error> {
     // 1. Get did:keys
     let from_key = get_self_didkey();
-    let to_key = get_other_didkey(to_did_name);
+    let to_key = get_other_didkey(subject_didname);
 
     // 2. Encrypt message with to_key, to prepare it for transmission
     let (dcem, _) = encrypt_didcomm(&from_key, &to_key, message);
@@ -178,14 +204,64 @@ fn read(dcem: &str) -> Result<String, std::io::Error> {
     Ok(format!("{}", body))
 }
 
+fn messages() -> Result<String, std::io::Error> {
+    let mut list = format!(
+        "{:16}\t{:14}\t{:14}\t{:>12}\t{:>9}",
+        "ID", "From", "To", "Created", "Length");
+
+    // 1. Get messages from message directory
+    let mut messages: Vec<DIDCommEncryptedMessage> = std::fs::read_dir(messages_path())
+        .unwrap()
+        .filter_map(|f| f.ok())
+        .filter(|f| !f.path().is_dir())
+        .map(|entry| {
+            let dcem = std::fs::read_to_string(entry.path()).unwrap();
+            let dcem: DIDCommEncryptedMessage = serde_json::from_str(&dcem).unwrap();
+
+            dcem
+        })
+        .collect();
+
+    // 2. Sort by created time
+    messages.sort_by_key(|dcem| dcem.didcomm_header.created_time.unwrap());
+
+    for dcem in messages {
+        let message_id = dcem.didcomm_header.id.to_string();
+        let from_did = dcem.didcomm_header.from.clone().unwrap();
+        let to_did = dcem.didcomm_header.to.first().unwrap().clone();
+
+        // 3. Map dids to names, if exists
+        let from_name = std::fs::read_to_string(did_name_path(&from_did))
+            .unwrap_or(from_did);
+
+        let to_name = std::fs::read_to_string(did_name_path(&to_did))
+            .unwrap_or(to_did);
+
+        list.push_str(&format!(
+            "\n{:16}\t{:14}\t{:14}\t{:>12}\t{:>9}",
+            message_id,
+            from_name,
+            to_name,
+            dcem.didcomm_header.created_time.unwrap(),
+            dcem.ciphertext.len()));
+    }
+
+    Ok(list)
+}
+
+fn message(message_id: &str) -> Result<String, std::io::Error> {
+    let dcem = std::fs::read_to_string(message_path(message_id)).unwrap();
+    Ok(dcem)
+}
+
 
 //
 // Commands: Verifiable credentials
 //
-async fn issue(credential_type: &str, to_did_name: &str) -> Result<String, std::io::Error> {
+async fn issue(credential_type: &str, subject_didname: &str) -> Result<String, std::io::Error> {
     // 1. Get did docs
     let (issuer_didkey, issuer_jwk) = get_self_jwk_and_didkey();
-    let subject_didkey = get_other_didkey(to_did_name);
+    let subject_didkey = get_other_didkey(subject_didname);
 
     use did_key::DIDCore;
     let issuer_doc = issuer_didkey.get_did_document(did_key::CONFIG_LD_PUBLIC);
@@ -224,7 +300,7 @@ async fn issue(credential_type: &str, to_did_name: &str) -> Result<String, std::
     Ok(dcem)
 }
 
-async fn present(connection_id: &str, dcem: &str) -> Result<String, std::io::Error> {
+async fn present(verifier_didname: &str, dcem: &str) -> Result<String, std::io::Error> {
     // 1. Un-e ncrypt vc
     let (holder_key, holder_jwk) = get_self_jwk_and_didkey();
     use did_key::DIDCore;
@@ -254,16 +330,16 @@ async fn present(connection_id: &str, dcem: &str) -> Result<String, std::io::Err
 
     // 3. Re-encrypt to to_key
     let vp = serde_json::to_string_pretty(&vp).unwrap();
-    let to_key = get_other_didkey(&connection_id);
-    let (dcem,_) = encrypt_didcomm(&holder_key, &to_key, &vp);
+    let verifier_key = get_other_didkey(&verifier_didname);
+    let (dcem,_) = encrypt_didcomm(&holder_key, &verifier_key, &vp);
 
     Ok(dcem)
 }
 
-async fn verify(issuer_connection_id: &str, subject_connection_id: &str, dcem: &str) -> Result<String, std::io::Error> {
+async fn verify(issuer_didname: &str, subject_didname: &str, dcem: &str) -> Result<String, std::io::Error> {
     // 0. Get keys
-    let subject_key = get_other_didkey(subject_connection_id);
-    let issuer_key = get_other_didkey(issuer_connection_id);
+    let subject_key = get_other_didkey(subject_didname);
+    let issuer_key = get_other_didkey(issuer_didname);
     let holder_key = get_from_key_from_didcomm_message(dcem);
     let verifier_key = get_self_didkey();
 
@@ -307,7 +383,7 @@ async fn verify(issuer_connection_id: &str, subject_connection_id: &str, dcem: &
         if expected_issuer_did != actual_issuer_did {
             return Ok(format!(
                 "Failed to verify VP: {}: vc.issuer.did, did not match the did of {}: Expected did: {}: Actual did: {}",
-                vp_id, issuer_connection_id, expected_issuer_did, actual_issuer_did));
+                vp_id, issuer_didname, expected_issuer_did, actual_issuer_did));
         }
 
         let actual_subject: &ssi::vc::CredentialSubject = vc.credential_subject.to_single().unwrap();
@@ -317,90 +393,11 @@ async fn verify(issuer_connection_id: &str, subject_connection_id: &str, dcem: &
         if expected_subject_did != actual_subject_did {
             return Ok(format!(
                 "Failed to verify VP: {}: vc.subject.did, did not match the did of {}: Expected did: {}: Actual did: {}",
-                vp_id, subject_connection_id, expected_issuer_did, actual_issuer_did));
+                vp_id, subject_didname, expected_issuer_did, actual_issuer_did));
             }
     }
 
     Ok(dcem.to_string())
-}
-
-//
-// Commands: For viewing data at rest
-//
-fn messages() -> Result<String, std::io::Error> {
-    let mut list = format!(
-        "{:16}\t{:14}\t{:14}\t{:>12}\t{:>9}",
-        "ID", "From", "To", "Created", "Length");
-
-    // 1. Get messages from message directory
-    let mut messages: Vec<DIDCommEncryptedMessage> = std::fs::read_dir(messages_path())
-        .unwrap()
-        .filter_map(|f| f.ok())
-        .filter(|f| !f.path().is_dir())
-        .map(|entry| {
-            let dcem = std::fs::read_to_string(entry.path()).unwrap();
-            let dcem: DIDCommEncryptedMessage = serde_json::from_str(&dcem).unwrap();
-
-            dcem
-        })
-        .collect();
-
-    // 2. Sort by created time
-    messages.sort_by_key(|dcem| dcem.didcomm_header.created_time.unwrap());
-
-    for dcem in messages {
-        let message_id = dcem.didcomm_header.id.to_string();
-        let from_did = dcem.didcomm_header.from.clone().unwrap();
-        let to_did = dcem.didcomm_header.to.first().unwrap().clone();
-
-        // 3. Map dids to names, if exists
-        let from_name = std::fs::read_to_string(did_path(&from_did))
-            .unwrap_or(from_did);
-
-        let to_name = std::fs::read_to_string(did_path(&to_did))
-            .unwrap_or(to_did);
-
-        list.push_str(&format!(
-            "\n{:16}\t{:14}\t{:14}\t{:>12}\t{:>9}",
-            message_id,
-            from_name,
-            to_name,
-            dcem.didcomm_header.created_time.unwrap(),
-            dcem.ciphertext.len()));
-    }
-
-    Ok(list)
-}
-
-fn message(message_id: &str) -> Result<String, std::io::Error> {
-    let dcem = std::fs::read_to_string(message_path(message_id)).unwrap();
-    Ok(dcem)
-}
-
-fn connections() -> Result<String, std::io::Error> {
-    let mut list = format!("{:16}{}\n", "ID", "DID");
-    let mut entries: Vec<std::fs::DirEntry> = std::fs::read_dir(connections_path())
-        .unwrap()
-        .filter_map(|f| f.ok()).collect();
-    entries.sort_by_key(|e| e.path());
-
-    for entry in entries {
-        if entry.path().is_dir() {
-            continue;
-        }
-        let connection_did = std::fs::read_to_string(entry.path()).unwrap();
-        let connection_id = String::from(entry.file_name().to_str().unwrap()).replace(".did", "");
-        list.push_str(&format!("{:16}{}\n", connection_id, connection_did));
-    }
-
-    Ok(list)
-}
-
-fn connection(connection_name: &str) -> Result<String, std::io::Error> {
-    let path = connection_path(connection_name);
-    let connection_did = std::fs::read_to_string(path).unwrap();
-
-    Ok(connection_did)
 }
 
 
@@ -419,28 +416,28 @@ fn key_jwk_path() -> String {
         .to_str().unwrap().to_string()
 }
 
-fn connections_path() -> String {
-    std::path::Path::new(ROOT_PATH)
-        .join("connections/")
-        .to_str().unwrap().to_string()
-}
-
-fn connection_path(connection_id: &str) -> String {
-    std::path::Path::new(ROOT_PATH)
-        .join("connections/")
-        .join(format!("{}.did", connection_id))
-        .to_str().unwrap().to_string()
-}
-
 fn dids_path() -> String {
     std::path::Path::new(ROOT_PATH)
         .join("dids/")
         .to_str().unwrap().to_string()
 }
 
-fn did_path(did: &str) -> String {
+fn did_path(did_name: &str) -> String {
     std::path::Path::new(ROOT_PATH)
         .join("dids/")
+        .join(format!("{}.did", did_name))
+        .to_str().unwrap().to_string()
+}
+
+fn did_names_path() -> String {
+    std::path::Path::new(ROOT_PATH)
+        .join("did-names/")
+        .to_str().unwrap().to_string()
+}
+
+fn did_name_path(did: &str) -> String {
+    std::path::Path::new(ROOT_PATH)
+        .join("did-names/")
         .join(did)
         .to_str().unwrap().to_string()
 }
@@ -590,7 +587,7 @@ fn get_self_didkey() -> did_key::Ed25519KeyPair {
 }
 
 fn get_other_didkey(other_did_name: &str) -> did_key::Ed25519KeyPair {
-    let path = connection_path(other_did_name);
+    let path = did_path(other_did_name);
     let other_did = std::fs::read_to_string(path).unwrap();
     let other_didkey = did_key::resolve(&other_did).unwrap();
 
@@ -620,29 +617,27 @@ fn get_from_key_from_didcomm_message(dcem: &str) -> did_key::Ed25519KeyPair {
 enum CMD {
     Help,
 
-    // Basic commands
+    // DID
     Init,
     Doc,
-    Connect{ connection_id: String, did: String },
+    Connect{ didname: String, did: String },
+    Dids,
+    Did{ didname: String },
 
     // DIDComm v2 messaging
-    Write{ connection_id: String, message: String },
+    Write{ didname: String, message: String },
     Read{ dcem: String },
     Hold{ dcem: String },
-
-    // DIDComm v2 + Verifiable Credentials
-    IssuePassport{ connection_id: String },
-    IssueDriversLicense{ connection_id: String },
-    IssueTrafficAuthority{ connection_id: String },
-    IssueLawEnforcer{ connection_id: String },
-    Present{ connection_id: String, dcem: String },
-    Verify{ issuer_connection_id: String, subject_connection_id: String, dcem: String },
-
-    // Wallet
     Messages,
     Message{ message_id: String },
-    Connections,
-    Connection{ connection_id: String },
+
+    // DIDComm v2 + Verifiable Credentials
+    IssuePassport{ didname: String },
+    IssueDriversLicense{ didname: String },
+    IssueTrafficAuthority{ didname: String },
+    IssueLawEnforcer{ didname: String },
+    Present{ didname: String, dcem: String },
+    Verify{ issuer_didname: String, subject_didname: String, dcem: String },
 }
 
 pub struct Config {
@@ -694,16 +689,16 @@ impl Config {
                 CMD::Doc
             },
             "connect" => {
-                let connection_id = get_arg_or_return_help!(2);
+                let didname = get_arg_or_return_help!(2);
                 let did = get_arg_or_read_from_stdin(3);
 
-                CMD::Connect{ connection_id, did }
+                CMD::Connect{ didname, did }
             },
             "write" => {
-                let connection_id = get_arg_or_return_help!(2);
+                let didname = get_arg_or_return_help!(2);
                 let message = get_arg_or_read_from_stdin(3);
 
-                CMD::Write{ connection_id, message }
+                CMD::Write{ didname, message }
             },
             "read" => {
                 let dcem = get_arg_or_read_from_stdin(2);
@@ -718,20 +713,20 @@ impl Config {
 
                 match &credential_type[..] {
                     "Passport" => {
-                        let connection_id = get_arg_or_return_help!(3);
-                        CMD::IssuePassport{ connection_id }
+                        let didname = get_arg_or_return_help!(3);
+                        CMD::IssuePassport{ didname }
                     },
                     "TrafficAuthority" => {
-                        let connection_id = get_arg_or_return_help!(3);
-                        CMD::IssueTrafficAuthority{ connection_id }
+                        let didname = get_arg_or_return_help!(3);
+                        CMD::IssueTrafficAuthority{ didname }
                     },
                     "LawEnforcer" => {
-                        let connection_id = get_arg_or_return_help!(3);
-                        CMD::IssueLawEnforcer{ connection_id }
+                        let didname = get_arg_or_return_help!(3);
+                        CMD::IssueLawEnforcer{ didname }
                     },
                     "DriversLicense" => {
-                        let connection_id = get_arg_or_return_help!(3);
-                        CMD::IssueDriversLicense{ connection_id }
+                        let didname = get_arg_or_return_help!(3);
+                        CMD::IssueDriversLicense{ didname }
                     },
                     &_ => {
                         CMD::Help
@@ -739,17 +734,17 @@ impl Config {
                 }
             },
             "present" => {
-                let connection_id = get_arg_or_return_help!(2);
+                let didname = get_arg_or_return_help!(2);
                 let dcem = get_arg_or_read_from_stdin(3);
 
-                CMD::Present{ connection_id, dcem }
+                CMD::Present{ didname, dcem }
             },
             "verify" => {
-                let issuer_connection_id = get_arg_or_return_help!(2);
-                let subject_connection_id = get_arg_or_return_help!(3);
+                let issuer_didname = get_arg_or_return_help!(2);
+                let subject_didname = get_arg_or_return_help!(3);
                 let dcem = get_arg_or_read_from_stdin(4);
 
-                CMD::Verify{ issuer_connection_id, subject_connection_id, dcem }
+                CMD::Verify{ issuer_didname, subject_didname, dcem }
             },
             "messages" => {
                 CMD::Messages
@@ -758,12 +753,12 @@ impl Config {
                 let message_id = get_arg_or_read_from_stdin(2);
                 CMD::Message{ message_id }
             },
-            "connections" => {
-                CMD::Connections
+            "dids" => {
+                CMD::Dids
             },
-            "connection" => {
-                let connection_id = get_arg_or_read_from_stdin(2);
-                CMD::Connection{ connection_id }
+            "did" => {
+                let didname = get_arg_or_read_from_stdin(2);
+                CMD::Did{ didname }
             },
             &_ => {
                 eprintln!("{} not a valid command!", cmd);
