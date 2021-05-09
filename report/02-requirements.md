@@ -54,3 +54,19 @@ Note: As a user I should never have to know the contents of `.did/`. The only th
 - **When** I run `did doc`
 - **Then** my DID-document should be written to `stdout` as prettified JSON.
 ---
+
+
+### 2.3.x As a user I want to refer to a DID by name
+
+---
+
+- **Given** I have a DID `did:key:z6MkjidGmTqu3jG73hVdz5MKEGtVLCLof9ctxTXHMomNcivxA
+- **When** I run `did connect doctor did:key:z6MkjidGmTqu3jG73hVdz5MKEGtVLCLof9ctxTXHMomNcivx`
+- **Then** I should be able to refer to the DID in other commands, by the name `doctor`.
+---
+
+### 2.3.x As a user, I want to view all my DID's
+
+### 2.3.x As a user I want to write a message from one agent to another
+
+### 2.3.x As a user I want to read a message from
