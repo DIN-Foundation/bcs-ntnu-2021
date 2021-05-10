@@ -44,7 +44,7 @@ Each layer solves the problem on a different layer in the SSI-stack.
 
 ## 2.x Layer 1 - DID Functional Requirements
 
-### 2.x.x As a user I want to create a DID-agent contained within a directory on my machine
+### 2.x.x As a user I want to initiate a DID-agent inside a directory on my machine
 
 **Scenario 1:**
 
@@ -61,7 +61,7 @@ Each layer solves the problem on a different layer in the SSI-stack.
 - **Then** the existing sub-directory `.did/` should be left as is
 - **And** my DID should be written to `stdout`
 
-Note: As a user I should never have to know the contents of `.did/`. The only thing I have to care about is that `.did/`, in practice, IS my agent. If I move `.did/` to a different location, it will be like moving my agent to a different location. This should be similar to how `git`-CLI works, which creates the `.git/`-directory when running `git init`.
+*Note: As a user I should never have to know the contents of `.did/`. The only thing I have to care about is that `.did/`, in practice, IS my agent. If I move `.did/` to a different location, it will be like moving my agent to a different location. This should be similar to how `git`-CLI works, which creates the `.git/`-directory when running `git init`.*
 
 ### 2.x.x As a user I want to view my DID
 
@@ -155,7 +155,7 @@ Note: As a user I should never have to know the contents of `.did/`. The only th
 
 ## 2.x Layer 3 - Verifiable Credentials Functional Requirements
 
-### 2.x.x As an issuer I want to issue a verifiable credentials of a specific type to a subject
+### 2.x.x As an issuer I want to issue a verifiable credentials to a subject
 
 **Scenario:**
 - **Given** I have connected a DID to the name `jonny`
@@ -165,7 +165,7 @@ Note: As a user I should never have to know the contents of `.did/`. The only th
 - **And with** `subject.did` of `jonny`
 - **And with** `issuer.did` of `self`.
 
-### 2.x.x As a holder I want to present a verifiable credential I am holding as a verifiable presentation to a verifier
+### 2.x.x As a holder I want to present a verifiable credential as a verifiable presentation to a verifier
 
 **Scenario:**
 - **Given** I have connected a DID to the name `police`
@@ -177,7 +177,7 @@ Note: As a user I should never have to know the contents of `.did/`. The only th
 - **And with** a Verifiable Credential of type `Passport`
 - **With** address to the `police`
 
-### 2.x.x As a verifier I want to verify that a verifiable presentation I have received from a holder, has been issued by the correct issuer, and was issued to the correct subject
+### 2.x.x As a verifier I want to verify a verifiable presentation
 
 **Scenario:**
 - **Given** I have connected a DID to the name `jonny`
