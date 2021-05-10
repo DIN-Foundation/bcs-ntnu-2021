@@ -13,7 +13,7 @@ All functional requirements are written solve the following scenario:
 >Statens Vegvesen wants the application to follow open standards which will enable the application to be agnostic about where and how credentials are issued, stored and verified. In other words Statens Vegvesen want to avoid the application to be locked to a specific ledger and a specific wallet.
 
 
-## 2.1 Non-functional requirements
+## 2.1 Non-functional Requirements
 
 - The application needs to have a CLI.
 - No GUI.
@@ -23,15 +23,23 @@ All functional requirements are written solve the following scenario:
 - Only support one DID-method - did-key
 - Only support one cryptographic-method - x25519/ed25519
 
-## 2.2 Functional requirements writing style
+## 2.2 Functional Requirements Writing Style
 
 The functional requirement are written with User-Stories as titles, with BDD-style tests as descriptions. BDD-style tests are written in a way that is easy to translate to a code-test. The BDD-style tests are also easy for a human to follow, if a human wants to do a manual test.
 
 Making the bridge between requirements and manual or automated tests as small as possible, saves time later in the development process. It also makes the gap between technical and non-technical team-members as small as possible, making it possible to iterate on the requirements faster. Requirements are usually developed by non-technical people. If they can write in a way that is as structured as possible, it will be benefitial to everyone on the team.
 
-Without further ado, here is the list of functional requirements:
+## 2.3 Functional Requirement Layers
 
-## 2.3 DID functional requirements
+The functional requirements are divided into 4 layers:
+- 2.4 DID Functional Requirements
+- 2.5 DIDComm Functional Requirements
+- 2.6 Verifiable Credentials Functional Requirements
+- 2.7 Scenario Functional Requirements
+
+Each layer solves the problem on a different layer in the SSI-stack.
+
+## 2.4 DID Functional Requirements
 
 ### 2.3.2 As a user I want to create a DID-agent contained within a directory on my machine
 
@@ -88,7 +96,7 @@ Note: As a user I should never have to know the contents of `.did/`. The only th
 - **Then** the DID referred to by `police` should be written to `stdout`.
 
 
-## 2.4 DIDComm v2 functional requirements
+## 2.4 DIDComm Functional Requirements
 
 ### 2.4.1 As a user I want to write a DCEM to another agent
 
@@ -125,7 +133,7 @@ Note: As a user I should never have to know the contents of `.did/`. The only th
 - **When** I run `did message 7497036273686508746`
 - **Then** the DCEM should be written to `stdout`.
 
-## 2.5 Verifiable Credentials functional requirements
+## 2.5 Verifiable Credentials Functional Requirements
 
 ### 2.5.x As an issuer I want to issue a verifiable credentials of a specific type to a subject
 
@@ -160,4 +168,67 @@ Note: As a user I should never have to know the contents of `.did/`. The only th
 - **And** that `passport.vp.dcem` will be written to `stdout`
 
 ## 2.6 Scenario functional requirements
+
+
+### 2.6.x As a citizen I want to publish my DID to a file
+
+**Given** I have an agent
+**When** I run `did init > self.did`
+**Or** `did did self > self.did`
+**Then** a file with the name `self.did` should contain my DID.
+
+### 2.6.x As governemnt I want to connect my citizens DIDs to names
+
+**Given** my citizens each have their own agents
+**And** each citizens has published their DIDs as files: `snorre.did`, `abylay.did`, `jonas.did`
+**When** I run `cat jonas.did | did connect jonas`
+**And** I run `cat abylay.did | did connect abylay`
+**And** I run `cat snorre.did | did snorre snorre`
+**Then** I should be able to refer to my citizens DIDnames `jonas`,`abylay` and `snorre`, in other commands.
+
+### 2.6.x As a citizen I want to connect to my governemnt DID
+
+**Given** my governemnt has a DID published as `government.did`
+**When** I run `cat governemnt.did | did connect government`
+**Then** I should be able to refer to the name `government` in other commands.
+
+### 2.6.x As government I want issue Passports to my citizens as files
+
+**Given** I have stored the DIDnames of my citizens
+**When** I run `did issue Passport jonas > jonas.passport.vc.dcem`
+**and** I run `did issue Passport abylay > abylay.passport.vc.dcem`
+**and** I run `did issue Passport snorre > snorre.passport.vc.dcem`
+**Then** my citizens passports should be stored as files that can be shared
+**And** the files can only be read by their intended recipient.
+
+### 2.6.x As a citizen I want to hold Passports issued to me
+
+**Given** my governemnt has issued a Passport to in a file `jonas.passport.vc.dcem`
+**When** I run `cat jonas.passport.vc.dcem | did hold`
+**Then** the Passport is stored in my agent as a DCEM
+**And** and the DCEM can be later refered to by the DCEM.id
+**And** the DCEM can be looked up by using `did messages`.
+
+### 2.6.x As a citizen I want to view my Passport in plaintext
+
+**Given** I have am holding a Passport as a DCEM with id 340340032
+**When** I run `did message 340340032 | did read`
+**Then** my Passport should be written to `stdout` in cleartext.
+
+### 2.6.x As a citizen I want to present my Passport to the Police
+
+**Given** I have am holding a Passport as a DCEM with id 340340032
+**And** I have connected a DID to the DIDName `police`
+**When** I run `did message 340340032 | did present police > jonas.passport.vp.dcem`
+**Then** my Passport should be stored in a file
+**And** it should only be able to be viewed and verified by the `police`.
+
+### 2.6.x As the Police I want to verify a Passport from a citizen I am controlling
+
+**Given** I have approached a citizen which has a agent
+**And** the citizens DID is stored in my agent with name `jonas`
+**And** the governments DID is stored in my agent with name `government`
+**And** the citizen present his passport to me as the file `jonas.passport.vp.dcem`
+**When** I run `cat jonas.passport.vp.dcem | did verify government jonas Passport`
+**Then** I can be sure that the Passport is valid, and issued by the `government`.
 
