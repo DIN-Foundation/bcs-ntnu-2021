@@ -1,5 +1,5 @@
 
-## 4 The CLI - Command Line Interface
+## 3 The CLI - Command Line Interface
 
 - The main way to interact with the `did` executeable, is through it's CLI.
 - The `did`'s CLI follows principles laid out in the book `The Unix Programming environment` by `Brian W. Kernighan` and `Rob Pike`, 1984.
