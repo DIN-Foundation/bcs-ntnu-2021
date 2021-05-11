@@ -1,0 +1,98 @@
+{
+  "main": {
+    "id": "af97fe7a8723cfcf",
+    "type": "split",
+    "children": [
+      {
+        "id": "44138a5144faf1d5",
+        "type": "leaf",
+        "state": {
+          "type": "markdown",
+          "state": {
+            "file": "00-header.md",
+            "mode": "source"
+          }
+        }
+      }
+    ],
+    "direction": "vertical"
+  },
+  "left": {
+    "id": "383b2a6becd433ed",
+    "type": "split",
+    "children": [
+      {
+        "id": "9c0d7bb7f321f2d3",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "f9d49a8758df184c",
+            "type": "leaf",
+            "state": {
+              "type": "file-explorer",
+              "state": {}
+            }
+          },
+          {
+            "id": "a5c1c309e7bdef98",
+            "type": "leaf",
+            "state": {
+              "type": "search",
+              "state": {
+                "query": "",
+                "matchingCase": false,
+                "explainSearch": false,
+                "collapseAll": false,
+                "extraContext": false,
+                "sortOrder": "alphabetical"
+              }
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "horizontal",
+    "width": 300
+  },
+  "right": {
+    "id": "159b69e1d2d0438a",
+    "type": "split",
+    "children": [
+      {
+        "id": "7c8fcca41b58f9a8",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "136a24f9a362c179",
+            "type": "leaf",
+            "state": {
+              "type": "backlink",
+              "state": {
+                "file": "00-header.md",
+                "collapseAll": false,
+                "extraContext": false,
+                "sortOrder": "alphabetical",
+                "showSearch": false,
+                "searchQuery": "",
+                "backlinkCollapsed": false,
+                "unlinkedCollapsed": true
+              }
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "horizontal",
+    "width": 300,
+    "collapsed": true
+  },
+  "active": "44138a5144faf1d5",
+  "lastOpenFiles": [
+    "00-header.md",
+    "Pasted image 20210511103816.png",
+    "02-requirements.md",
+    "01-introduction.md",
+    "Untitled.md",
+    "images/code-organization.png"
+  ]
+}

@@ -1,8 +1,6 @@
-# Exploring our Self-Sovereign Identity future, by developing a Command-Line-Interface in Rust, using DID-Key, DIDComm V2 and Verifiable Credentials
-
 # 1 Introduction
 
-## 1.1 Problem domain
+## 1.1 Problem domain: Self-Sovereign Identity
 
 Self-Sovereign-Identity (SSI) is an umbrella-term for a bunch of novel, evolving technologies, hosted by well-known standards-organizations such as World Wide Web Consortium ([W3C](https://www.w3.org/)) and Decentralized Identity Foundation ([DIF](https://github.com/decentralized-identity)).
 
