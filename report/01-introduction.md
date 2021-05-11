@@ -1,8 +1,6 @@
-# Exploring our Self-Sovereign Identity future, by developing a Command-Line-Interface in Rust, using DID-Key, DIDComm V2 and Verifiable Credentials
-
 # 1 Introduction
 
-## 1.1 Problem domain
+## 1.x Problem domain - Self-Sovereign Identity
 
 Self-Sovereign-Identity (SSI) is an umbrella-term for a bunch of novel, evolving technologies, hosted by well-known standards-organizations such as World Wide Web Consortium ([W3C](https://www.w3.org/)) and Decentralized Identity Foundation ([DIF](https://github.com/decentralized-identity)).
 
@@ -15,19 +13,19 @@ SSI attempts to solve many problems present in today's internet. Decentralized i
 >
 >- **Privacy** - Enable entities to control the privacy of their information, including minimal, selective, and progressive disclosure of attributes or other data.
 
-The standards developed within the realm of SSI, are developed as open-source collaborative documents. The documents, when finalized, become specifications which is intended to be used by developers for implementing SSI-applications.
+The standards developed within the realm of SSI, are developed as open-source collaborative documents. The documents, when finalized, become specifications which is intended to be used by developers whenementing SSI-applications.
 
 To read on, it is highly recommended that you atleast have a surface-level understanding of the following three core SSI-specifications, and how they relate to one another:
 
 | Title | Description | Living Document |
 |-------|-------------|---------------|
-| **Decentralized Identifiers (DIDs) v1.0** | How to create and control decentralized, digital agents, represented by a globally unique identifier called a `DID`. | https://www.w3.org/TR/did-core/ |
+| **Descentralized Identifiers (DIDs) v1.0** | How to create and control decentralized, digital agents, represented by a globally unique identifier called a `DID`. | https://www.w3.org/TR/did-core/ |
 | **DIDComm messaging v2** | How `DID`-agents should communicate with each other. | https://identity.foundation/didcomm-messaging/spec/ |
 | **Verifiable Credentials Data Model 1.0** | How `DID`-agents issue verifiable claims about the attributes of each other and their relationships. | https://www.w3.org/TR/vc-data-model/ |
 
 All of these specifications are work-in-progress as of today - 2021-05-06 - and thus are subject to change, though they are considered stable enough for the SSI-community to have started developing serious applications based on them.
 
-## 1.2 Scope
+## 1.x Agent software
 
 - Within the SSI space, there is a need to develop a specific type of software, called an agent.
 - An agent is a piece of software which implements protocols defined by the different SSI-specifications.
@@ -36,69 +34,60 @@ All of these specifications are work-in-progress as of today - 2021-05-06 - and 
 - Each type of agent implements a different subset of protocols. This is because different agents are made to solve different problems.
 - For instance a "Wallet", is a specific kind of agent, used to store and manage personal credentials.
 
-## 1.3 Problem statement
+## 1.x Product Owner - Decentralized Identity Norden
 
-This project will develop a proof-of-concept agent application. The proof-of-concept application should solve the following scenario:
+Decentalized Identity Norden, or DIN, is a non-profit organization devoted to promote decentralized identity in a nordic context, and highlight the consequences this may have for individuals and society as a whole. See: https://www.din.foundation/om.
 
-### 1.3.1 Scenario
+## 1.x Scenario
 
-The norwegian driver license issuer, Statens Vegvesen, is considering to start issuing it's driver licenses as verifiable credentials (VCs). Statens Vegvesen is not sure if verifiable credentials is the future yet, but are willing to try and dip it's toes in the water. Statens vegvesen will still issue credentials in the traditional way for the forseeable future.
+This project will develop a proof-of-concept agent. The proof-of-concept agent should solve a specific scenario put forward by our product owner DIN.
 
-What Statens Veivesen want is a proof-of-concept SSI-application which will issue, hold and verify driver-licenses. They are hoping that this will bootstrap SSI in Norway, as this will enable other individuals and organizations to start experimenting with holding and verifying a serious credentials which actually are useful.
+>The norwegian driver license issuer, Statens Vegvesen, is considering to start issuing it's driver licenses as verifiable credentials (VCs). Statens Vegvesen is not sure if verifiable credentials is the future yet, but are willing to try and dip it's toes in the water. Statens vegvesen will still issue credentials in the traditional way for the forseeable future.
+>
+>What Statens Veivesen want is a proof-of-concept SSI-application which will issue, hold and verify driver-licenses. They are hoping that this will bootstrap SSI in Norway, as this will enable other individuals and organizations to start experimenting with holding and verifying a serious credentials which actually are useful.
+>
+>The proof-of-concept may demonstrate, that a driver license as a verifiable credential could be considered on par, legally speaking, with traditional driver licenses.
+>
+>Statens Vegvesen wants the application to follow open standards which will enable the application to be agnostic about where and how credentials are issued, stored and verified. In other words Statens Vegvesen want to avoid the application to be locked to a specific ledger and a specific wallet.
 
-The proof-of-concept may demonstrate, that a driver license as a verifiable credential could be considered on par, legally speaking, with traditional driver licenses.
 
-Statens Vegvesen wants the application to follow open standards which will enable the application to be agnostic about where and how credentials are issued, stored and verified. In other words Statens Vegvesen want to avoid the application to be locked to a specific ledger and a specific wallet.
+## 1.x Goals
 
+## 1.x.x Resultatmål
 
-### 1.3.2 Deliverables
+- Deliver a high-level design document.
+- Develop the application as an open-source project inside DIN-Foundation's Github organization, which solves the scenario.
+- Present and demonstrate that the application implemented solves the scenario.
+- Develop a discussion about interoperability in the SSI ecosystem.
 
-- High-level design document.
-- Source code of a proof-of-concept SSI application.
-- Demonstration of a proof-of-concept SSI application.
-- A table giving an overview of interoperability findings.
-
-## 1.4 Motivation and goals
-
-## 1.4.1 Motivation
-- Inspire people and organizations to see the potential of SSI, by solving a real world scenario.
-- Create an example codebase for developers who are getting started with SSI-application development.
-- Give specification writers some feedback about how easy it is to adopt their specifications.
-- Prove and reflect on interoperability in the SSI-space.
-
-## 1.4.2 Effektmål
+## 1.x.x Effektmål
 
 - Engage with the broader DIF-community during development.
+- Educate people about a practical application of SSI technology.
 
-## 1.4.3 Resultatmål
+## 1.x.x Læringsmål
 
-- Present and demonstrate an application which solves a real-world SSI-problem in a Nordic Context.
-- Develop the application as an open-source project, on behalf, and in the name of, the DIN-Foundation.
+- Gain deep understand SSI's layered tech stack - Layer 1 (DID), Layer2 (DIDComm), Layer 3 (VC), Layer 4 (Applications)
+- Gain hands-on experience with developing a SSI agent.
+- Learn a new programming language like Rust.
+- Learn how to work on a project 100% remotely from start to finish.
 
-## 1.4.4 Læringsmål
 
-@TODO
+## 1.x Target audience
 
-## 1.5 Target audience
-
-### 1.5.1 Government institutions
+### 1.x.x Government institutions
 - The proof-of-concepts is developed specifically to solve the problem of a government institution.
 - The demonstration could inspire lawmakers and government officials to see the true potential of how SSI could make a real change for the better.
 
-### 1.5.2 Developers who are new into SSI
+### 1.x.x Developers who are new into SSI
 - When getting into SSI for the first time, the landscape can be a bit difficult to navigate.
 - This project navigates the SSI landscape from a beginners perspective, and by doing so hopes to make the "Getting started"-part for other developers a bit easier.
 
-### 1.5.3 Specification writers
+### 1.x.x Specification writers
 - Specification writers - people who write the documents that dictate implementations of SSI - are concerned with how beginner-friendly their specifications are.
 - This work may shed some light on how easy it is for new-comers to get started, and may as a result lead to suggested improvements to current specs.
 
-## 1.6 Requirements
-
-- Kanban
-- Git + Github
-
-## 1.7 Roles
+## 1.x Roles
 
 | Name        | Role                                                            |
 |-------------|-----------------------------------------------------------------|
@@ -108,11 +97,21 @@ Statens Vegvesen wants the application to follow open standards which will enabl
 | Abylay      | SSI expert 3                                                 |
 | Deepti      | Academic supervisor
 
-## 1.8 The Report
+## 1.x The Report
 
-@TODO
+**Chapter 2: Requirements** - A list of functional and non-functional requirements of the agent.
 
-## 1.9 Sources
+**Chapter 3: Command-Line Interface** - A description of the user-interface of the agent.
+
+**Chapter 4: Architecture** - A description of the high-level design of the agent.
+
+**Chapter 5: Implementation** - A summary of the agents low-level source-code.
+
+**Chapter 6: Testing** - How testing of the agent is done.
+
+**Chapter 7,8,9,10,11,12** - Discussion. Chapter layout is @WIP @TODO.
+
+## 1.x Sources
 
 | # | Who | What                         | Where              | When        |
 |---|-----|------------------------------|--------------------|------------|
@@ -124,4 +123,5 @@ Statens Vegvesen wants the application to follow open standards which will enabl
 | 6 | Hyperledger | didcomm-messaging-v1 | https://github.com/hyperledger/aries-rfcs/tree/master/concepts/0005-didcomm | 2021-03-30 |
 | 7 | DIF         | didcomm-messaging-v2 | https://identity.foundation/didcomm-messaging/spec/ | 2021-03-30 |
 | 8 | W3C | vc-data-model                | https://www.w3.org/TR/vc-data-model/ | 2021-03-30 |
+| 9 | DIN | About page                   |  https://www.din.foundation/om       | 2021-05-11 |
 

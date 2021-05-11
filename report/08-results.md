@@ -103,3 +103,6 @@ Using existing libraries, makes it easier to comply with standards:
 
 ## 4.11 Weekly meetings (Domain expert tuesdays, Supervisor wednesdays)
 
+
+## 8.x Learning something about the SSI stack and it's layers
+

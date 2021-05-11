@@ -1,4 +1,4 @@
-# 5 Development Process
+# 5 Development
 
 ## 5.1 Kanban
 
