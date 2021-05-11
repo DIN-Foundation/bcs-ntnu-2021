@@ -56,8 +56,8 @@ This project will develop a proof-of-concept agent. The proof-of-concept agent s
 ## 1.x.x Resultatmål
 
 - Deliver a high-level design document.
-- Develop the application as an open-source project inside DIN-Foundation's Github organization.
-- Present and demonstrate an application which solves a real-world SSI-problem in a Nordic Context.
+- Develop the application as an open-source project inside DIN-Foundation's Github organization, which solves the scenario.
+- Present and demonstrate that the application implemented solves the scenario.
 - Develop a discussion about interoperability in the SSI ecosystem.
 
 ## 1.x.x Effektmål
