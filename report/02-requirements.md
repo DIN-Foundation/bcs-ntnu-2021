@@ -11,22 +11,9 @@
 - Only support one cryptographic-method - x25519/ed25519
 
 
-## 2.x Scenario
-
-All functional requirements are written solve the following scenario:
-
->The norwegian driver license issuer, Statens Vegvesen, is considering to start issuing it's driver licenses as verifiable credentials (VCs). Statens Vegvesen is not sure if verifiable credentials is the future yet, but are willing to try and dip it's toes in the water. Statens vegvesen will still issue credentials in the traditional way for the forseeable future.
->
->What Statens Veivesen want is a proof-of-concept SSI-application which will issue, hold and verify driver-licenses. They are hoping that this will bootstrap SSI in Norway, as this will enable other individuals and organizations to start experimenting with holding and verifying a serious credentials which actually are useful.
->
->The proof-of-concept may demonstrate, that a driver license as a verifiable credential could be considered on par, legally speaking, with traditional driver licenses.
->
->Statens Vegvesen wants the application to follow open standards which will enable the application to be agnostic about where and how credentials are issued, stored and verified. In other words Statens Vegvesen want to avoid the application to be locked to a specific ledger and a specific wallet.
-
-
 ## 2.x Functional Requirements Writing Style
 
-The functional requirement are written with User-Stories as titles, with BDD-style tests as descriptions. BDD-style tests are written in a way that is easy to translate to a code-test. The BDD-style tests are also easy for a human to follow, if a human wants to do a manual test.
+The functional requirement are written with User-Stories as titles, with BDD-style tests as descriptions. BDD-style tests are written in a way that is easy to translate to a code-test. The BDD-style tests are also easy for a human to follow, if a human wants to do a manual test. For an introduction to BDD, read Dan North's original post about BDD here: https://dannorth.net/introducing-bdd/.
 
 Making the bridge between requirements and manual or automated tests as small as possible, saves time later in the development process. It also makes the gap between technical and non-technical team-members as small as possible, making it possible to iterate on the requirements faster. Requirements are usually developed by non-technical people. If they can write in a way that is as structured as possible, it will be benefitial to everyone on the team.
 
