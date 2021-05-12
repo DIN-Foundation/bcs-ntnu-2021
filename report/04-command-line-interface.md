@@ -1,11 +1,11 @@
 
-## 5 The CLI - Command Line Interface
+## 4 The CLI - Command Line Interface
 
 - The main way to interact with the `did` executeable, is through it's CLI.
 - The `did`'s CLI follows principles laid out in the book `The Unix Programming environment` by `Brian W. Kernighan` and `Rob Pike`, 1984.
 - Each command follows the same pattern `did <command> <...args>`.
 
-### 5.1 Command: `did help`
+### 4.1 Command: `did help`
 
 - List all commands together with their command-signature. The commands are grouped together in 4 groups:
     * Basic
@@ -13,8 +13,9 @@
     * DIDComm V2 + Verifiable Credentials
     * Wallet
 
-- Example of running `did help`:
-    ```shell
+**Example**:
+
+	```shell
     $ did help
 
         Basic:
@@ -41,10 +42,9 @@
             did message <message id>
             did connections
             did connection <name>
+		```
 
-    ```
-
-### 5.2 Command: `did init`
+### 4.2 Command: `did init`
 
 - Initializes a did-agent in the working directory.
 - Run this command before running any other commands.
@@ -54,38 +54,35 @@
 - Your agents `did` will be returned to `stdout` when running this command.
 - If a `.did/` already exists, this commands has no side-effects - the command is idempotent.
 
-- Example of creating an agent, using `did init`:
-    1. Create empty folder and change working directory
-        ```shell
-        $ mkdir ola
-        $ cd ola/
-        $ ls -a
-        .  ..
-        ```
-
-    2. Create a new did-agent
-        ```shell
-        $ did init
-        did:key:z6Mkt8M2q23yEZHqo8CGbngpTKBDvdf3EazphaJRqNP3kXft
-        ```
-
-    3. Discover the new `.did/`-directory
-        ```shell
-        $ ls -a
-        .  ..  .did
-        $ ls -a .did/
-        .  ..  connections  dids  key.jwk  messages
-        ```
-
-    4. Print `did` from existing agent
-        ```shell
-        $ did init
-        did:key:z6Mkt8M2q23yEZHqo8CGbngpTKBDvdf3EazphaJRqNP3kXft
-        ```
+**Example**:
+	1. Create empty folder and change working directory
+		```shell
+		$ mkdir ola
+		$ cd ola/
+		$ ls -a
+		.  ..
+		```
+	2. Create a new did-agent
+		```shell
+		$ did init
+		did:key:z6Mkt8M2q23yEZHqo8CGbngpTKBDvdf3EazphaJRqNP3kXft
+		```
+	3. Discover the new `.did/`-directory
+			```shell
+			$ ls -a
+			.  ..  .did
+			$ ls -a .did/
+			.  ..  connections  dids  key.jwk  messages
+			```
+	4. Print `did` from existing agent
+			```shell
+			$ did init
+			did:key:z6Mkt8M2q23yEZHqo8CGbngpTKBDvdf3EazphaJRqNP3kXft
+			```
 - `did init` is intentionally almost identical to `git init`, to make it easier for new users to understand the CLI by reusing a good design-pattern from a well-known CLI like `git`-CLI.
 
 
-### 5.3 Command: `did doc`
+### 4.3 Command: `did doc`
 
 - Prints the did-document, controlled by the did agent.
 - Since the did-agent uses did-key as it's underlying did-method, the did-document is generated from the public-private keypair.
@@ -93,8 +90,9 @@
 - This is a limitation of the did-key method, and how it is specified.
 - Once created, the did-document pinned to a did-key did, is not possible to edit.
 
-- Example of running `did doc`:
-    ```shell
+**Example**:
+
+	```shell
     $ did doc
     {
         "@context": "https://www.w3.org/ns/did/v1",
@@ -133,24 +131,23 @@
     }
     ```
 
-### 5.4 Command: `did connect <name> <did>`
+### 4.4 Command: `did connect <name> <did>`
 
 - `did connect` connects a `<name>` to `<did>`
 - `did connect` gives a `<did>` a `<name>`.
 - The `<name>` is used in other commands, as an easy way to refer to another agent's `<did>`.
-- Example of using `did connect`:
 
-    1. Giving a `<did>` a `<name>`:
-    ```shell
-    $ did connect police did:key:z6Mkt8M2q23yEZHqo8CGbngpTKBDvdf3EazphaJRqNP3kXft
-    ./.did/connections/police.did
-    ./.did/dids/did:key:z6Mkt8M2q23yEZHqo8CGbngpTKBDvdf3EazphaJRqNP3kXft
-    ```
-
-    2. Using that `<name>` in a subsequent command as an alias for the `<did>`:
-    ```shell
-    $ did write police "What seems to be the officer, problem?"
-    ```
+**Example**:
+	1. Giving a `<did>` a `<name>`:
+		```shell
+		$ did connect police did:key:z6Mkt8M2q23yEZHqo8CGbngpTKBDvdf3EazphaJRqNP3kXft
+		./.did/connections/police.did
+		./.did/dids/did:key:z6Mkt8M2q23yEZHqo8CGbngpTKBDvdf3EazphaJRqNP3kXft
+		```
+	2. Using that `<name>` in a subsequent command as an alias for the `<did>`:
+		```shell
+		$ did write police "What seems to be the officer, problem?"
+		```
 
 ### 5.5 Command: `did write <name> <message>`
 
@@ -158,23 +155,25 @@
 - Sets the `to`-header of the `<dcem>` to the underlying `<did>` refered to by the `<name>`.
 - `did write` also stores the `<dcem>`-message in the agent's wallet message history.
 - Gives the message a new globally unique `id`.
-- Example usage of `did write`:
-    ```shell
-    $ did write police "What seems to be the officer problem?"
-    {"typ":"JWM","enc":"XC20P","alg":"ECDH-ES+A256KW","iv":[134,248,143,87,90,74,69,229,36,243,233,26,193,215,193,137,174,135,176,13,57,86,229,147],"id":3873621411577106446,"type":"didcomm/unknown","to":["did:key:z6Mkt8M2q23yEZHqo8CGbngpTKBDvdf3EazphaJRqNP3kXft"],"from":"did:key:z6MkvXgAryPrx1ob7YPbbkArL55TUTnYuJ4dtRrD6ZPWepHA","created_time":1620059562,"expires_time":3600,"ciphertext":[.....,226,186,104,176]}
-    ```
-- Example storing the message in a file:
-    ```shell
-    $ did write police "What seems to be the officer problem?" > ../police.message.dcem
-    ```
+
+**Example**:
+	```shell
+	$ did write police "What seems to be the officer problem?"
+	{"typ":"JWM","enc":"XC20P","alg":"ECDH-ES+A256KW","iv":[134,248,143,87,90,74,69,229,36,243,233,26,193,215,193,137,174,135,176,13,57,86,229,147],"id":3873621411577106446,"type":"didcomm/unknown","to":["did:key:z6Mkt8M2q23yEZHqo8CGbngpTKBDvdf3EazphaJRqNP3kXft"],"from":"did:key:z6MkvXgAryPrx1ob7YPbbkArL55TUTnYuJ4dtRrD6ZPWepHA","created_time":1620059562,"expires_time":3600,"ciphertext":[.....,226,186,104,176]}
+	```
+
+	```shell
+	$ did write police "What seems to be the officer problem?" > ../police.message.dcem
+	```
 
 ### 5.6 Command: `did read <dcem>`
 
 - Unwraps an incomming `<dcem>` message.
 - Stores the message in the agent's wallet message history.
 - Returns the `id`, of the `<dcem>`'s `id`-header. This `id` may be used to read the contents of the message using `did message <message id>`
-- Example usage of `did read`:
-    ```shell
+
+**Example**:
+	```shell
     $ did read $(cat ../hello.tor.dcem)
     10757017092234814547
     ```
@@ -187,15 +186,16 @@
     * DriversLicense
     * TrafficAuthority
     * LawEnforcer
-- Example usage of `did issue`:
-    ```shell
-    $ did issue Passport tor
-    {"typ":"JWM","enc":"XC20P","alg":"ECDH-ES+A256KW","iv":[245,193,71,215,42,199,187,139,24,252,177,47,67,183,44,194,54,135,53,178,42,20,101,226],"id":14914780140536880416,"type":"didcomm/unknown","to":["did:key:z6MkfPkLRLftwqUSjxPgJHiTAoSLE6WcBoeWMZJ2KD3j6CoM"],"from":"did:key:z6Mkt8M2q23yEZHqo8CGbngpTKBDvdf3EazphaJRqNP3kXft","created_time":1620060256,"expires_time":3600,"ciphertext":[....216,34,58,164,150]}
-    ```
-- Example storing the Verifiable Credential in a file:
-    ```shell
-    $ did issue Passport tor > ../tor.passport.vc.dcem
-    ```
+
+**Example**:
+	```shell
+	$ did issue Passport tor
+	{"typ":"JWM","enc":"XC20P","alg":"ECDH-ES+A256KW","iv":[245,193,71,215,42,199,187,139,24,252,177,47,67,183,44,194,54,135,53,178,42,20,101,226],"id":14914780140536880416,"type":"didcomm/unknown","to":["did:key:z6MkfPkLRLftwqUSjxPgJHiTAoSLE6WcBoeWMZJ2KD3j6CoM"],"from":"did:key:z6Mkt8M2q23yEZHqo8CGbngpTKBDvdf3EazphaJRqNP3kXft","created_time":1620060256,"expires_time":3600,"ciphertext":[....216,34,58,164,150]}
+	```
+
+	```shell
+	$ did issue Passport tor > ../tor.passport.vc.dcem
+	```
 
 ### 5.8 Command: `did hold <dcem>`
 

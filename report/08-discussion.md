@@ -81,19 +81,6 @@ Using existing libraries, makes it easier to comply with standards:
 - One is enough to prove the point.
 - One could rewrite the software to support multiple cryptographic toolkits later, using a plugin-based architecture.
 
-## 4.6 Only support a single transport (stdin/stdout)
-
-- To limit scope.
-- Supporting multiple transports, does not solve our problem-statement any better.
-- One is enough to prove the point.
-- One could rewrite the software to support multiple transports later, using a plugin-based architecture.
-
-## 4.7 Only support a single did-method (did-key)
-
-- To limit scope.
-- Supporting multiple did-methods, does not solve our problem-statement any better.
-- One is enough to prove the point.
-- One could rewrite the software to support multiple did-methods later, using a plugin-based architecture.
 
 ## 4.8 Source control (git + Github)
 
