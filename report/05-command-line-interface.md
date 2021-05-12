@@ -1,11 +1,11 @@
 
-## 3 The CLI - Command Line Interface
+## 5 The CLI - Command Line Interface
 
 - The main way to interact with the `did` executeable, is through it's CLI.
 - The `did`'s CLI follows principles laid out in the book `The Unix Programming environment` by `Brian W. Kernighan` and `Rob Pike`, 1984.
 - Each command follows the same pattern `did <command> <...args>`.
 
-### 4.1 Command: `did help`
+### 5.1 Command: `did help`
 
 - List all commands together with their command-signature. The commands are grouped together in 4 groups:
     * Basic
@@ -44,7 +44,7 @@
 
     ```
 
-### 4.2 Command: `did init`
+### 5.2 Command: `did init`
 
 - Initializes a did-agent in the working directory.
 - Run this command before running any other commands.
@@ -85,7 +85,7 @@
 - `did init` is intentionally almost identical to `git init`, to make it easier for new users to understand the CLI by reusing a good design-pattern from a well-known CLI like `git`-CLI.
 
 
-### 4.3 Command: `did doc`
+### 5.3 Command: `did doc`
 
 - Prints the did-document, controlled by the did agent.
 - Since the did-agent uses did-key as it's underlying did-method, the did-document is generated from the public-private keypair.
@@ -133,7 +133,7 @@
     }
     ```
 
-### 4.4 Command: `did connect <name> <did>`
+### 5.4 Command: `did connect <name> <did>`
 
 - `did connect` connects a `<name>` to `<did>`
 - `did connect` gives a `<did>` a `<name>`.
@@ -152,7 +152,7 @@
     $ did write police "What seems to be the officer, problem?"
     ```
 
-### 4.5 Command: `did write <name> <message>`
+### 5.5 Command: `did write <name> <message>`
 
 - Wraps a user defined message inside a `<dcem>`-envelope.
 - Sets the `to`-header of the `<dcem>` to the underlying `<did>` refered to by the `<name>`.
@@ -168,7 +168,7 @@
     $ did write police "What seems to be the officer problem?" > ../police.message.dcem
     ```
 
-### 4.6 Command: `did read <dcem>`
+### 5.6 Command: `did read <dcem>`
 
 - Unwraps an incomming `<dcem>` message.
 - Stores the message in the agent's wallet message history.
@@ -179,7 +179,7 @@
     10757017092234814547
     ```
 
-### 4.7 Command: `did issue <CredentialType> <connection id>`
+### 5.7 Command: `did issue <CredentialType> <connection id>`
 
 - Issues a verifiable credential addressed to the `did` of `<connection id>`:
 - Issues one of 4 `<CredentialType>`s
@@ -197,31 +197,31 @@
     $ did issue Passport tor > ../tor.passport.vc.dcem
     ```
 
-### 4.8 Command: `did hold <dcem>`
+### 5.8 Command: `did hold <dcem>`
 
-### 4.9 Command: `did present <credential id> <connection id>`
+### 5.9 Command: `did present <credential id> <connection id>`
 
-### 4.10 Command: `did verify <issuer connection id> <subject connection id> <dcem>`
+### 5.10 Command: `did verify <issuer connection id> <subject connection id> <dcem>`
 
-### 4.11 Command: `did messages`
+### 5.11 Command: `did messages`
 
 - List all didcomm messages stored in the wallet.
 - Messages are added to the wallet when using the `did write` and `did read` commands.
 
-### 4.12 Command: `did message <message id>`
+### 5.12 Command: `did message <message id>`
 
 - Show the contents of a single didcomm message based on the given `<message id>`.
 
-### 4.13 Command: `did connections`
+### 5.13 Command: `did connections`
 
 - List all did connections stored in the wallet.
 - Connections are added to the wallet when using the `did connect` command.
 
-### 4.14 Command: `did connection <connection id>`
+### 5.14 Command: `did connection <connection id>`
 
 - Show the did of a single did connection based on `<connection id>`.
 
-### 4.15 Intentional limitations of the CLI
+### 5.15 Intentional limitations of the CLI
 
 - None of the commands have any optional-arguments - e.g `--option=<arg>`. This is to keep program logic as simple as possible. If the CLI was intended for a broader audicene with multiple use-cases, options may be added. This CLI is a special purpose CLI, intended to solve a specific use-case, namely the specific proof-of-concept from the problem statement. This is why optional-arguments was not prioritized.
 - Options are much harder to parse correctly than fixed size positional arguments.
