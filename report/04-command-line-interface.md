@@ -149,7 +149,7 @@
 		$ did write police "What seems to be the officer, problem?"
 		```
 
-### 5.5 Command: `did write <name> <message>`
+### 4.5 Command: `did write <name> <message>`
 
 - Wraps a user defined message inside a `<dcem>`-envelope.
 - Sets the `to`-header of the `<dcem>` to the underlying `<did>` refered to by the `<name>`.
@@ -166,7 +166,7 @@
 	$ did write police "What seems to be the officer problem?" > ../police.message.dcem
 	```
 
-### 5.6 Command: `did read <dcem>`
+### 4.6 Command: `did read <dcem>`
 
 - Unwraps an incomming `<dcem>` message.
 - Stores the message in the agent's wallet message history.
@@ -178,7 +178,7 @@
     10757017092234814547
     ```
 
-### 5.7 Command: `did issue <CredentialType> <connection id>`
+### 4.7 Command: `did issue <CredentialType> <connection id>`
 
 - Issues a verifiable credential addressed to the `did` of `<connection id>`:
 - Issues one of 4 `<CredentialType>`s
@@ -197,31 +197,31 @@
 	$ did issue Passport tor > ../tor.passport.vc.dcem
 	```
 
-### 5.8 Command: `did hold <dcem>`
+### 4.8 Command: `did hold <dcem>`
 
-### 5.9 Command: `did present <credential id> <connection id>`
+### 4.9 Command: `did present <credential id> <connection id>`
 
-### 5.10 Command: `did verify <issuer connection id> <subject connection id> <dcem>`
+### 4.10 Command: `did verify <issuer connection id> <subject connection id> <dcem>`
 
-### 5.11 Command: `did messages`
+### 4.11 Command: `did messages`
 
 - List all didcomm messages stored in the wallet.
 - Messages are added to the wallet when using the `did write` and `did read` commands.
 
-### 5.12 Command: `did message <message id>`
+### 4.12 Command: `did message <message id>`
 
 - Show the contents of a single didcomm message based on the given `<message id>`.
 
-### 5.13 Command: `did connections`
+### 4.13 Command: `did connections`
 
 - List all did connections stored in the wallet.
 - Connections are added to the wallet when using the `did connect` command.
 
-### 5.14 Command: `did connection <connection id>`
+### 4.14 Command: `did connection <connection id>`
 
 - Show the did of a single did connection based on `<connection id>`.
 
-### 5.15 Intentional limitations of the CLI
+### 4.15 Intentional limitations of the CLI
 
 - None of the commands have any optional-arguments - e.g `--option=<arg>`. This is to keep program logic as simple as possible. If the CLI was intended for a broader audicene with multiple use-cases, options may be added. This CLI is a special purpose CLI, intended to solve a specific use-case, namely the specific proof-of-concept from the problem statement. This is why optional-arguments was not prioritized.
 - Options are much harder to parse correctly than fixed size positional arguments.
