@@ -1,7 +1,38 @@
+# 6 Source code
 
-# 5. Implementation
+## 6.1 Rust book guidelines
 
-## 5.1 Source code
+The implementation is following the "guidelines for binary projects", given by the Rust-book, quoted in full below:
+
+>### Separation of Concerns for Binary Projects
+>
+>The organizational problem of allocating responsibility for multiple tasks to the main function is common to many binary projects. As a result, the Rust community has developed a process to use as a guideline for splitting the separate concerns of a binary program when main starts getting large. The process has the following steps:
+>
+>* Split your program into a main.rs and a lib.rs and move your program’s logic to lib.rs.
+>* As long as your command line parsing logic is small, it can remain in main.rs.
+>* When the command line parsing logic starts getting complicated, extract it from main.rs and move it to lib.rs.
+>
+>The responsibilities that remain in the main function after this process should be limited to the following:
+>
+>* Calling the command line parsing logic with the argument values
+>* Setting up any other configuration
+>* Calling a run function in lib.rs
+>* Handling the error if run returns an error
+>
+>This pattern is about separating concerns: main.rs handles running the program, and lib.rs handles all the logic of the task at hand. Because you can’t test the main function directly, this structure lets you test all of your program’s logic by moving it into functions in lib.rs. The only code that remains in main.rs will be small enough to verify its correctness by reading it. Let’s rework our program by following this process.
+
+Ref: https://doc.rust-lang.org/book/ch12-03-improving-error-handling-and-modularity.html#separation-of-concerns-for-binary-projects
+
+
+### 6.2 File structure
+
+Here is a screenshot of the file-structure, which follows from the guidelines mentioned in 5.4:
+
+![](./images/code-organization.png)
+
+
+
+## 6.3  Cargo package
 
 - The source code is developed in the Rust programming language, as a Rust-package.
 - There are two kinds of Rust-packages - binary packages (standalone executeables) and library packages (meant to be reused in other packages).
@@ -23,7 +54,7 @@
 
 - The Rust-package's source code can be found in the [did-cli](https://github.com/DIN-Foundation/bcs-ntnu-2021/tree/main/did-cli) sub-folder of our [bachelor's Github project](https://github.com/DIN-Foundation/bcs-ntnu-2021).
 
-## 5.2 Build instructions
+## 6.4 Build instructions
 
 1. Make sure you have installed the latest rust toolchain on your machine.
 
@@ -57,37 +88,8 @@
     ```
 
 
-## 5.4 Rust book guidelines
 
-The implementation is following the "guidelines for binary projects", given by the Rust-book, quoted in full below:
-
->### Separation of Concerns for Binary Projects
->
->The organizational problem of allocating responsibility for multiple tasks to the main function is common to many binary projects. As a result, the Rust community has developed a process to use as a guideline for splitting the separate concerns of a binary program when main starts getting large. The process has the following steps:
->
->* Split your program into a main.rs and a lib.rs and move your program’s logic to lib.rs.
->* As long as your command line parsing logic is small, it can remain in main.rs.
->* When the command line parsing logic starts getting complicated, extract it from main.rs and move it to lib.rs.
->
->The responsibilities that remain in the main function after this process should be limited to the following:
->
->* Calling the command line parsing logic with the argument values
->* Setting up any other configuration
->* Calling a run function in lib.rs
->* Handling the error if run returns an error
->
->This pattern is about separating concerns: main.rs handles running the program, and lib.rs handles all the logic of the task at hand. Because you can’t test the main function directly, this structure lets you test all of your program’s logic by moving it into functions in lib.rs. The only code that remains in main.rs will be small enough to verify its correctness by reading it. Let’s rework our program by following this process.
-
-Ref: https://doc.rust-lang.org/book/ch12-03-improving-error-handling-and-modularity.html#separation-of-concerns-for-binary-projects
-
-### 5.5 File structure
-
-Here is a screenshot of the file-structure, which follows from the guidelines mentioned in 5.4:
-
-![](./images/code-organization.png)
-
-
-## 5.6 Usage of existing Rust libraries
+## 6.5 Usage of existing Rust libraries
 
 ### decentralized-identity/didcomm-rs
 
@@ -119,5 +121,3 @@ Here is a screenshot of the file-structure, which follows from the guidelines me
 - docs.rs: https://docs.rs/x25519-dalek/1.1.0/x25519_dalek/
 - crates.io: https://crates.io/crates/x25519-dalek
 
-
->@marni: Implementation - WHAT you have done, and how you have done it...

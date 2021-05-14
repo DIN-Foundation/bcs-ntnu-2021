@@ -1,4 +1,4 @@
-# 9.x Why BDD?
+## 9.x Why BDD?
 
 - Own experience from working with BDD out in the field
 
@@ -20,7 +20,7 @@
     then ensure some outcomes.
     ```
 
-# 9.x Why Rust?
+## 9.x Why Rust?
 
 - Multiple libraries in the SSI community written in Rust already
 - The only official implementation of DIDComm v2 is in Rust
@@ -35,3 +35,17 @@
 - Backed by industry champs like Mozilla, Microsoft, Linux Foundation
 
 
+
+## 9.x Why only support a single transport (stdin/stdout)
+
+- To limit scope.
+- Supporting multiple transports, does not solve our problem-statement any better.
+- One is enough to prove the point.
+- One could rewrite the software to support multiple transports later, using a plugin-based architecture.
+
+## 9.x Why only support a single did-method (did-key)
+
+- To limit scope.
+- Supporting multiple did-methods, does not solve our problem-statement any better.
+- One is enough to prove the point.
+- One could rewrite the software to support multiple did-methods later, using a plugin-based architecture.

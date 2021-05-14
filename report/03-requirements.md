@@ -1,4 +1,4 @@
-# 2 Requirements
+# 3 Requirements
 
 ## 2.x Non-functional Requirements
 
@@ -35,18 +35,19 @@ Each layer solves the problem on a different layer in the SSI-stack.
 
 **Scenario 1:**
 
-- **Given** I navigate to an empty directory
+- **Given** I am in an empty directory
 - **When** I run `did init`
+- **Then** my DID should be written to `stdout`.
 - **Then** the sub-directory `.did/` should be created
-- **And** my DID should be written to `stdout`.
+- **Then** I should be able to refer to my own DID by the name `self`
 
 
 **Scenario 2:**
 
-- **Given** I navigate to a directory where a `.did/` already exists
-- **When** I run `did init`
-- **Then** the existing sub-directory `.did/` should be left as is
-- **And** my DID should be written to `stdout`
+- **Given** I ran `did init`
+- **When** I run `did init` again
+- **Then** the nothing should happen to `.did/`
+- **Then** my DID should be written to `stdout`
 
 *Note: As a user I should never have to know the contents of `.did/`. The only thing I have to care about is that `.did/`, in practice, IS my agent. If I move `.did/` to a different location, it will be like moving my agent to a different location. This should be similar to how `git`-CLI works, which creates the `.git/`-directory when running `git init`.*
 
@@ -54,15 +55,16 @@ Each layer solves the problem on a different layer in the SSI-stack.
 
 **Scenario:**
 
-- **Given** there is a `.did/` in my working directory
+- **Given** I ran `did init`
 - **When** I run `did init`
+- **Or** I run `did did self` 
 - **Then** my DID should be written to `stdout`.
 
 ### 2.x.x As a user I want to view my DID document
 
 **Scenario:**
 
-- **Given** there is a `.did/` in my working directory
+- **Given** I ran `did init`
 - **When** I run `did doc`
 - **Then** my DID-document should be written to `stdout` as prettified JSON.
 
