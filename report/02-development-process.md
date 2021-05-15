@@ -11,13 +11,13 @@
 
 ### 2.2.x  Tuesdays @ 12:30 - Tech supervisors weekly
 
-*Screenshot of Tech Supervisor Weekly metting on Google Meet*
+*Screenshot of Jonas preparing for "Tech Supervisor Weekly"-meeting on Google Meet*
 
 ![](./images/googlemeet.png)
 
 ### 2.2.x Wednesdays @ 14:00 - Academic supervisor weekly
 
-*Screenshot of Academic supervisor weekly meeting on MSTeams*
+*Screenshot of "Academic supervisor weekly"-meeting-room on MSTeams*
 
 ![](./images/msteams-weekly.png)
 
@@ -41,7 +41,7 @@ All source code was kept in a public open-source Github-repo, during the entire 
 
 ### 2.3.x Playground mini-projects
 
-Before implementing the DID-CLI, a lot of experimentation had to be done. This was done to learn, and iterate on smaller projects, before beginning on the big one. Most of the projects in the playground-folder are useless, but they were very important for the learning, solving a big new problem in smaller pieces first.
+Before implementing the DID-CLI, a lot of experimentation had to be done. This was done to learn, and iterate on smaller projects, before beginning on the big one. Most of the projects in the playground-folder are useless, but they served an important role as learning exercises.
 
 *Screenshot of the Playground folder on Github. See: https://github.com/DIN-Foundation/bcs-ntnu-2021/tree/main/playground*
 
@@ -60,14 +60,14 @@ Tracking the hours was done in Toggl from day 1 (week 5), and throughout the pro
 
 
 
-*Example of toggl list view*
+*Example of toggl list view:*
 
 ![](./images/toggl-list-view.png)
 
-*Example of toggl calendar view*
+*Example of toggl calendar view:*
 
 ![](./images/toggl-calendar.png)
 
-*Example of toggl report from week 5 - 19*
+*Example of toggl report from week 5 - 19:*
 
 ![](./images/toggl-report.png)
