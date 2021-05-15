@@ -2,9 +2,45 @@
 
 ## 2.1 Development framework - Kanban
 
+The project was losely driven forward by the Kanban framework. To keep track of progress in a Kanban project the Kanban board is essential.
+
+
 *Kanban board on Github. See: https://github.com/DIN-Foundation/bcs-ntnu-2021/projects/1*
 
 ![](./images/github-kanban.png)
+
+
+### 2.1.x The 5 columns on the Kanban board
+
+**1. Inbox**
+
+List of tasks which have been thought of, but is lacking details like what needs to be done and when the implementation is supposed to happen.
+
+Tasks in backlog are created whenever someone feels like it. There are no requirements to put something in the backlog. The treshold should be as low as possible. Eqaully, the treshold for deleting a backlog-task should be equally low.
+
+**2. Backlog**
+
+List of tasks that are planned to be implemented in the near future, and have enough details ironed out to make it possible to start the implementation.
+
+Tasks are moved from `Backlog` to `Todo`:
+- After being discussed in the weekly domain-experts meeting.
+- **or** after an ad-hoc meeting dedicated to discussing a specific task.
+- **or** after the developer has researched/learned something which makes a task "obviously implementable". If a developer does this, it should be clearly communicated in the next weekly domain-experts meeting.
+
+**3. In Progress**
+
+List of tasks that are in progress. A developer have written words or code. These tasks should ideally be linked to an open Pull Request on Github with a WIP label on it.
+
+**4. In Review**
+
+List of tasks where the developer has implemented the task, and is waiting to get a stamp of approval from a second pair of eyes. Approval could be given by the client, supervisor or any of the domain experts. The developer will request review from the specific person which is considered best suited to review the pull request. This specific person will be notified about this on Discord, and via email if necessary.
+
+**5. Done**
+
+List of task where the pull request linked to the task has been approved and merged into the main branch of the git source tree.
+
+
+
 
 
 ## 2.2 Weekly meetings
