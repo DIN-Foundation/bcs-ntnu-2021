@@ -1,6 +1,6 @@
 # 2 Development Process
 
-## 2.1 Development framework - Kanban
+## 2.1 Kanban
 
 The project was losely driven forward by the Kanban framework. To keep track of progress in a Kanban project the Kanban board is essential.
 
@@ -65,6 +65,8 @@ List of task where the pull request linked to the task has been approved and mer
 ![](./images/github-meetings.png)
 
 
+
+
 ## 2.3 Github source control
 
 All source code was kept in a public open-source Github-repo, during the entire development. This made it easier to collaborate on the source code, because all participants had public access to all the work that was being done, from day one. 
@@ -75,7 +77,7 @@ All source code was kept in a public open-source Github-repo, during the entire 
 
 ![](./images/github-implementation.png)
 
-### 2.3.x Playground mini-projects
+### 2.3.x Playground mini-projects source code
 
 Before implementing the DID-CLI, a lot of experimentation had to be done. This was done to learn, and iterate on smaller projects, before beginning on the big one. Most of the projects in the playground-folder are useless, but they served an important role as learning exercises.
 
@@ -83,7 +85,17 @@ Before implementing the DID-CLI, a lot of experimentation had to be done. This w
 
 ![](./images/github-playground.png)
 
-## 2.5 Toggl Time Tracking
+
+### 2.3.x Report markdown source
+
+Even the report was developed on Github, in the same repo as the source code.
+
+*Screenshot of the Report folder on Github. See: https://github.com/DIN-Foundation/bcs-ntnu-2021/tree/main/report*
+
+![](./images/github-report.png)
+
+
+## 2.4 Toggl Time Tracking
 
 Tracking the hours was done in Toggl from day 1 (week 5), and throughout the project (end week 20). The hours were tagged with the following 6 categories:
 
