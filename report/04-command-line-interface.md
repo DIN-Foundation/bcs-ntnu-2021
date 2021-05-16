@@ -38,46 +38,11 @@
 - This is a limitation of the did-key method, and how it is specified.
 - Once created, the did-document pinned to a did-key did, is not possible to edit.
 
-**Example**:
+- **Example**:
 
-	```shell
-    $ did doc
-    {
-        "@context": "https://www.w3.org/ns/did/v1",
-        "id": "did:key:z6Mkt8M2q23yEZHqo8CGbngpTKBDvdf3EazphaJRqNP3kXft",
-        "assertionMethod": [
-            "did:key:z6Mkt8M2q23yEZHqo8CGbngpTKBDvdf3EazphaJRqNP3kXft#z6Mkt8M2q23yEZHqo8CGbngpTKBDvdf3EazphaJRqNP3kXft"
-        ],
-        "authentication": [
-            "did:key:z6Mkt8M2q23yEZHqo8CGbngpTKBDvdf3EazphaJRqNP3kXft#z6Mkt8M2q23yEZHqo8CGbngpTKBDvdf3EazphaJRqNP3kXft"
-        ],
-        "capabilityDelegation": [
-            "did:key:z6Mkt8M2q23yEZHqo8CGbngpTKBDvdf3EazphaJRqNP3kXft#z6Mkt8M2q23yEZHqo8CGbngpTKBDvdf3EazphaJRqNP3kXft"
-        ],
-        "capabilityInvocation": [
-            "did:key:z6Mkt8M2q23yEZHqo8CGbngpTKBDvdf3EazphaJRqNP3kXft#z6Mkt8M2q23yEZHqo8CGbngpTKBDvdf3EazphaJRqNP3kXft"
-        ],
-        "keyAgreement": [
-            "did:key:z6Mkt8M2q23yEZHqo8CGbngpTKBDvdf3EazphaJRqNP3kXft#z6LSgmL8J3rHZXBgcmmrv6DBoYXc86SgJeVzUdhtBKtv1L8a"
-        ],
-        "verificationMethod": [
-            {
-            "id": "did:key:z6Mkt8M2q23yEZHqo8CGbngpTKBDvdf3EazphaJRqNP3kXft#z6Mkt8M2q23yEZHqo8CGbngpTKBDvdf3EazphaJRqNP3kXft",
-            "type": "Ed25519VerificationKey2018",
-            "controller": "did:key:z6Mkt8M2q23yEZHqo8CGbngpTKBDvdf3EazphaJRqNP3kXft",
-            "publicKeyBase58": "Eg5zEmoXu1oNgdMZvDiycDdE74PBphkU1ZPW16R2qJtW",
-            "privateKeyBase58": "CNSxBbYwM1FDWdAsNq5ULLzQAbbxpVgH1hxx1HogomB7"
-            },
-            {
-            "id": "did:key:z6Mkt8M2q23yEZHqo8CGbngpTKBDvdf3EazphaJRqNP3kXft#z6LSgmL8J3rHZXBgcmmrv6DBoYXc86SgJeVzUdhtBKtv1L8a",
-            "type": "X25519KeyAgreementKey2019",
-            "controller": "did:key:z6Mkt8M2q23yEZHqo8CGbngpTKBDvdf3EazphaJRqNP3kXft",
-            "publicKeyBase58": "669xmk3RU4TwXPQ6PShEUxK8GwuZc3KqbezCgsFPHxMp",
-            "privateKeyBase58": "BEXLyKxoPBAVX2EoGkJ1RKYCrdvPpQQra1Xhg8JQBzZa"
-            }
-        ]
-    }
-    ```
+    ![](./images/cmd-doc.png)
+
+
 
 ### 4.4 Command: `did connect <name> <did>`
 
@@ -85,17 +50,9 @@
 - `did connect` gives a `<did>` a `<name>`.
 - The `<name>` is used in other commands, as an easy way to refer to another agent's `<did>`.
 
-**Example**:
-	1. Giving a `<did>` a `<name>`:
-		```shell
-		$ did connect police did:key:z6Mkt8M2q23yEZHqo8CGbngpTKBDvdf3EazphaJRqNP3kXft
-		./.did/connections/police.did
-		./.did/dids/did:key:z6Mkt8M2q23yEZHqo8CGbngpTKBDvdf3EazphaJRqNP3kXft
-		```
-	2. Using that `<name>` in a subsequent command as an alias for the `<did>`:
-		```shell
-		$ did write police "What seems to be the officer, problem?"
-		```
+- **Example**:
+
+    ![](./images/cmd-connect.png)
 
 ### 4.5 Command: `did write <name> <message>`
 
@@ -104,15 +61,9 @@
 - `did write` also stores the `<dcem>`-message in the agent's wallet message history.
 - Gives the message a new globally unique `id`.
 
-**Example**:
-	```shell
-	$ did write police "What seems to be the officer problem?"
-	{"typ":"JWM","enc":"XC20P","alg":"ECDH-ES+A256KW","iv":[134,248,143,87,90,74,69,229,36,243,233,26,193,215,193,137,174,135,176,13,57,86,229,147],"id":3873621411577106446,"type":"didcomm/unknown","to":["did:key:z6Mkt8M2q23yEZHqo8CGbngpTKBDvdf3EazphaJRqNP3kXft"],"from":"did:key:z6MkvXgAryPrx1ob7YPbbkArL55TUTnYuJ4dtRrD6ZPWepHA","created_time":1620059562,"expires_time":3600,"ciphertext":[.....,226,186,104,176]}
-	```
+- **Example**:
 
-	```shell
-	$ did write police "What seems to be the officer problem?" > ../police.message.dcem
-	```
+    ![](./images/cmd-write.png)
 
 ### 4.6 Command: `did read <dcem>`
 
@@ -120,11 +71,9 @@
 - Stores the message in the agent's wallet message history.
 - Returns the `id`, of the `<dcem>`'s `id`-header. This `id` may be used to read the contents of the message using `did message <message id>`
 
-**Example**:
-	```shell
-    $ did read $(cat ../hello.tor.dcem)
-    10757017092234814547
-    ```
+- **Example**:
+
+    ![](./images/cmd-read.png)
 
 ### 4.7 Command: `did issue <CredentialType> <connection id>`
 
