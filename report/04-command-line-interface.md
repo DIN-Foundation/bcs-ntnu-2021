@@ -7,42 +7,11 @@
 
 ### 4.1 Command: `did help`
 
-- List all commands together with their command-signature. The commands are grouped together in 4 groups:
-    * Basic
-    * DIDComm V2-messaging
-    * DIDComm V2 + Verifiable Credentials
-    * Wallet
+- List all available commands.
 
-**Example**:
+- **Example:**
 
-	```shell
-    $ did help
-
-        Basic:
-            did init
-            did doc
-            did connect <name> <did>
-
-        DIDComm v2 messaging:
-            did write  <subject name> <message>  -->  <dcem>
-            did hold   <dcem>                    -->  <dcem>
-            did read   <dcem>                    -->  <plaintext message>
-
-        DIDComm v2 + Verifiable Credentials:
-            did issue   Passport         <subject name>      -->  <dcem>
-            did issue   DriversLicense   <subject name>      -->  <dcem>
-            did issue   TrafficAuthority <subject name>      -->  <dcem>
-            did issue   LawEnforcer      <subject name>      -->  <dcem>
-
-            did present <verifier name>              <dcem>  -->  <dcem>
-            did verify  <issuer name> <subject name> <dcem>  -->  <dcem>
-
-        Wallet:
-            did messages
-            did message <message id>
-            did connections
-            did connection <name>
-		```
+    ![](./images/cmd-help.png)
 
 ### 4.2 Command: `did init`
 
@@ -53,33 +22,12 @@
 - All your agents wallet-data will be stored inside `.did/`.
 - Your agents `did` will be returned to `stdout` when running this command.
 - If a `.did/` already exists, this commands has no side-effects - the command is idempotent.
-
-**Example**:
-	1. Create empty folder and change working directory
-		```shell
-		$ mkdir ola
-		$ cd ola/
-		$ ls -a
-		.  ..
-		```
-	2. Create a new did-agent
-		```shell
-		$ did init
-		did:key:z6Mkt8M2q23yEZHqo8CGbngpTKBDvdf3EazphaJRqNP3kXft
-		```
-	3. Discover the new `.did/`-directory
-			```shell
-			$ ls -a
-			.  ..  .did
-			$ ls -a .did/
-			.  ..  connections  dids  key.jwk  messages
-			```
-	4. Print `did` from existing agent
-			```shell
-			$ did init
-			did:key:z6Mkt8M2q23yEZHqo8CGbngpTKBDvdf3EazphaJRqNP3kXft
-			```
 - `did init` is intentionally almost identical to `git init`, to make it easier for new users to understand the CLI by reusing a good design-pattern from a well-known CLI like `git`-CLI.
+
+- **Example**:
+
+    ![](./images/cmd-init.png)
+
 
 
 ### 4.3 Command: `did doc`
