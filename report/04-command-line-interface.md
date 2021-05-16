@@ -44,79 +44,117 @@
 
 
 
-### 4.4 Command: `did connect <name> <did>`
+### 4.4 Command: `did connect <didname> <did>`
 
-- `did connect` connects a `<name>` to `<did>`
-- `did connect` gives a `<did>` a `<name>`.
-- The `<name>` is used in other commands, as an easy way to refer to another agent's `<did>`.
+- `did connect` connects a `<didname>` to `<did>`
+- `did connect` gives a `<did>` a `<didname>`.
+- The `<didname>` is used in other commands, as an easy way to refer to another agent's `<did>`.
 
 - **Example**:
 
     ![](./images/cmd-connect.png)
 
-### 4.5 Command: `did write <name> <message>`
+### 4.5 Command: `did write <didname> <message>`
 
 - Wraps a user defined message inside a `<dcem>`-envelope.
-- Sets the `to`-header of the `<dcem>` to the underlying `<did>` refered to by the `<name>`.
-- `did write` also stores the `<dcem>`-message in the agent's wallet message history.
+- Sets the `to`-header of the `<dcem>` to the underlying `<did>` refered to by the `<didname>`.
 - Gives the message a new globally unique `id`.
 
 - **Example**:
 
     ![](./images/cmd-write.png)
 
+    ![](./images/cmd-write-alt.png)
+
 ### 4.6 Command: `did read <dcem>`
 
-- Unwraps an incomming `<dcem>` message.
-- Stores the message in the agent's wallet message history.
-- Returns the `id`, of the `<dcem>`'s `id`-header. This `id` may be used to read the contents of the message using `did message <message id>`
+- Unwraps an `<dcem>` message from `stdin` or from `<dcem>`-arg.
+- Prints the plaintext body of the message.
 
 - **Example**:
 
-    ![](./images/cmd-read.png)
+    ![](./images/cmd-read-message.png)
 
-### 4.7 Command: `did issue <CredentialType> <connection id>`
+    ![](./images/cmd-read-vc.png)
 
-- Issues a verifiable credential addressed to the `did` of `<connection id>`:
+    ![](./images/cmd-read-vp.png)
+
+
+### 4.7 Command: `did issue <CredentialType> <didname>`
+
+- Issues a verifiable credential addressed to the `did` of `<didname>`:
 - Issues one of 4 `<CredentialType>`s
     * Passport
     * DriversLicense
     * TrafficAuthority
     * LawEnforcer
 
-**Example**:
-	```shell
-	$ did issue Passport tor
-	{"typ":"JWM","enc":"XC20P","alg":"ECDH-ES+A256KW","iv":[245,193,71,215,42,199,187,139,24,252,177,47,67,183,44,194,54,135,53,178,42,20,101,226],"id":14914780140536880416,"type":"didcomm/unknown","to":["did:key:z6MkfPkLRLftwqUSjxPgJHiTAoSLE6WcBoeWMZJ2KD3j6CoM"],"from":"did:key:z6Mkt8M2q23yEZHqo8CGbngpTKBDvdf3EazphaJRqNP3kXft","created_time":1620060256,"expires_time":3600,"ciphertext":[....216,34,58,164,150]}
-	```
+- **Example**:
 
-	```shell
-	$ did issue Passport tor > ../tor.passport.vc.dcem
-	```
+    ![](./images/cmd-issue.png)
+
+    ![](./images/cmd-issue-alt.png)
+
 
 ### 4.8 Command: `did hold <dcem>`
 
-### 4.9 Command: `did present <credential id> <connection id>`
+- **Example:**
 
-### 4.10 Command: `did verify <issuer connection id> <subject connection id> <dcem>`
+    ![](./images/cmd-hold.png)
+
+### 4.9 Command: `did present <didname> <dcem>`
+
+- **Example:**
+
+    ![](./images/cmd-present.png)
+
+    ![](./images/cmd-present-alt.png)
+
+### 4.10 Command: `did verify <issuer didname> <subject didname> <dcem>`
+
+- Print `<dcem>` to `stdout`, if, and only if, verification succeeds.
+
+- **Example:**
+
+    ![](./images/cmd-verify.png)
+
+    ![](./images/cmd-verify-issuerfails.png)
+
+    ![](./images/cmd-verify-subjectfails.png)
 
 ### 4.11 Command: `did messages`
 
 - List all didcomm messages stored in the wallet.
-- Messages are added to the wallet when using the `did write` and `did read` commands.
+- Messages are added to the wallet when using the `did hold` command.
+
+- **Example:**
+
+    ![](./images/cmd-messages.png)
 
 ### 4.12 Command: `did message <message id>`
 
 - Show the contents of a single didcomm message based on the given `<message id>`.
 
-### 4.13 Command: `did connections`
+- **Example:**
 
-- List all did connections stored in the wallet.
-- Connections are added to the wallet when using the `did connect` command.
+    ![](./images/cmd-message.png)
 
-### 4.14 Command: `did connection <connection id>`
+### 4.13 Command: `did dids`
 
-- Show the did of a single did connection based on `<connection id>`.
+- List all dids stored in the agent.
+- Dids are added to the agent when running the `did connect` command.
+
+- **Example:**
+
+    ![](./images/cmd-dids.png)
+
+### 4.14 Command: `did did <didname>`
+
+- Show the did of a single `<didname>`.
+
+- **Example:**
+
+    ![](./images/cmd-did.png)
 
 ### 4.15 Intentional limitations of the CLI
 
@@ -124,4 +162,3 @@
 - Options are much harder to parse correctly than fixed size positional arguments.
 - None of the commands required variable length arguments, which made the implementation easier.
 - None of the commands have filepath arguments. The user is expected to use `cat <filepath>` to read the contents of a file, which is then fed into a positional argument of one of the commands. Example: `did read $(cat ../message.dcem)` vs `did read ../message.dcem`. This was done to simplify implementation.
-- None of the commands support pipes. This could have been useful as an alternative to the example from the previous point. Example: `cat ../message.dcem | did read`. Since positional arguments + `cat` already solves the problem of reading from file, support for pipes was not prioritized.
