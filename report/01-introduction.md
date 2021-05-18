@@ -17,11 +17,10 @@ The standards developed within the realm of SSI, are developed as open-source co
 
 To read on, it is highly recommended that you atleast have a surface-level understanding of the following three core SSI-specifications, and how they relate to one another:
 
-| Title | Description | Living Document |
-|-------|-------------|---------------|
-| **Descentralized Identifiers (DIDs) v1.0** | How to create and control decentralized, digital agents, represented by a globally unique identifier called a `DID`. | https://www.w3.org/TR/did-core/ |
-| **DIDComm messaging v2** | How `DID`-agents should communicate with each other. | https://identity.foundation/didcomm-messaging/spec/ |
-| **Verifiable Credentials Data Model 1.0** | How `DID`-agents issue verifiable claims about the attributes of each other and their relationships. | https://www.w3.org/TR/vc-data-model/ |
+
+- **Descentralized Identifiers (DIDs) v1.0** - How to create and control decentralized, digital agents, represented by a globally unique identifier called a `DID` - https://www.w3.org/TR/did-core/
+- **DIDComm messaging v2** - How `DID`-agents should communicate with each other - https://identity.foundation/didcomm-messaging/spec/ 
+- **Verifiable Credentials Data Model 1.0** - How `DID`-agents issue verifiable claims about the attributes of each other and their relationships - https://www.w3.org/TR/vc-data-model/ 
 
 All of these specifications are work-in-progress as of today - 2021-05-06 - and thus are subject to change, though they are considered stable enough for the SSI-community to have started developing serious applications based on them.
 
