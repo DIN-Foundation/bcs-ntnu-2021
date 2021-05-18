@@ -105,31 +105,34 @@ cat ../lisa.did | did connect lisa
 
 ### 5.3.1 The Government Issues credentials to it's citizens
 
+
+![](./images/scenario-1-2.png)
+
 1. **Issue** - The Government-agent issues 3 passport as Verifiable Credentials, to the 3 different citizen-agents - Jonas, Snorre and Abylay.
 2. **Hold** - The 3 citizen agents each hold the one passport issued to them.
 
 
-![](./images/scenario-1-2.png)
+![](./images/scenario-3-4.png)
 
 3. **Issue** - The Govenment-agent issues a Traffic Authority and a Law Enforcer credential, to two different agents. This, in practice, creates the "Vegvesen" and the Police.
 4. **Hold** - The "Vegvesen"-agent and the Police-agent holds their respective credentials issued to them.
- 
-![](./images/scenario-3-4.png)
 
 
 ### 5.3.2 Jonas gets a Drivers License from Vegvesen
 
+![](./images/scenario-part2.png)
+
 1. **Present** - Vegvesen presents it's "Traffic Authority"-credential to Jonas,.
 2.  **Verify** - Jonas verifies that the presentation has a valid signature, and makes sure that the "Traffic Authority"-credential was signed by the Government.
 3. **Present** - Jonas presents his "Passport"-credential to Vegvesen.
-4. **Verify** - Vegvesen verifies that the presentation is valid, and makes sure the passport credential was signed by the Government. 
+4. **Verify** - Vegvesen verifies that the presentation is valid, and makes sure the passport credential was signed by the Government.
 5. **Proove** - Jonas somehow proves to Vegvesen that he know how to drive a car. This is out of scope of any of the SSI-protocols.
 6. **Issue** - Vegvesen issues a Drivers License as a Verifiable Credential to Jonas.
 7.  **Hold** - Jonas holds the Drivers License issued to him.
 
-![](./images/scenario-part2.png)
-
 ### 5.3.3 Jonas presents his Drivers License to Police
+
+![](./images/scenario-part3.png)
 
 1. **Present** - Police presents it's "Law Enforcer"-credential to Jonas.
 2. **Verify** - Jonas verifies that the presentation has a valid signature, and makes sure that the "Traffic Authority"-credential is issued by the Government.
@@ -137,5 +140,3 @@ cat ../lisa.did | did connect lisa
 4. **Verify** - Police verifies that the presentation has a valid signature, and makes sure that the Passport-credential is issued by the Government.
 5. **Present** - Finally Jonas presents his Drivers License.
 6. **Verify** - Police verifies that the Drivers License is valid, and issued by the Government.
-
-![](./images/scenario-part3.png)
