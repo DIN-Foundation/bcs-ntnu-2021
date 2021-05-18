@@ -22,14 +22,14 @@ Tasks in backlog are created whenever someone feels like it. There are no requir
 
 List of tasks that are planned to be implemented in the near future, and have enough details ironed out to make it possible to start the implementation.
 
-Tasks are moved from `Backlog` to `Todo`:
+Tasks are moved from `Inbox` to `Todo`:
 - After being discussed in the weekly domain-experts meeting.
 - **or** after an ad-hoc meeting dedicated to discussing a specific task.
 - **or** after the developer has researched/learned something which makes a task "obviously implementable". If a developer does this, it should be clearly communicated in the next weekly domain-experts meeting.
 
 **3. In Progress**
 
-List of tasks that are in progress. A developer have written words or code. These tasks should ideally be linked to an open Pull Request on Github with a WIP label on it.
+List of tasks that are in progress. A developer have written words, code or done something else. These tasks should ideally be linked to an open Pull Request on Github with a WIP label on it.
 
 **4. In Review**
 
@@ -42,42 +42,17 @@ List of task where the pull request linked to the task has been approved and mer
 
 
 
-
-## 2.2 Weekly meetings
-
-### 2.2.x  Tuesdays @ 12:30 - Tech supervisors weekly
-
-*Screenshot of Jonas preparing for "Tech Supervisor Weekly"-meeting on Google Meet*
-
-![](./images/googlemeet.png)
-
-### 2.2.x Wednesdays @ 14:00 - Academic supervisor weekly
-
-*Screenshot of "Academic supervisor weekly"-meeting-room on MSTeams*
-
-![](./images/msteams-weekly.png)
-
-
-### 2.2.x Meeting notes on Github
-
-*Screenshot of Meeting notes folder on Github. See: https://github.com/DIN-Foundation/bcs-ntnu-2021/tree/main/meetings*
-
-![](./images/github-meetings.png)
-
-
-
-
-## 2.3 Github source control
+## 2.2 Github source control
 
 All source code was kept in a public open-source Github-repo, during the entire development. This made it easier to collaborate on the source code, because all participants had public access to all the work that was being done, from day one. 
 
-### 2.3.x DID-CLI source code
+### 2.2.x DID-CLI source code
 
 *Screenshot of source code folder on Github. See: https://github.com/DIN-Foundation/bcs-ntnu-2021/tree/main/did-cli*
 
 ![](./images/github-implementation.png)
 
-### 2.3.x Playground mini-projects source code
+### 2.2.x Playground mini-projects source code
 
 Before implementing the DID-CLI, a lot of experimentation had to be done. This was done to learn, and iterate on smaller projects, before beginning on the big one. Most of the projects in the playground-folder are useless, but they served an important role as learning exercises.
 
@@ -86,13 +61,47 @@ Before implementing the DID-CLI, a lot of experimentation had to be done. This w
 ![](./images/github-playground.png)
 
 
-### 2.3.x Report markdown source
+### 2.2.x Report markdown source
 
 Even the report was developed on Github, in the same repo as the source code.
 
 *Screenshot of the Report folder on Github. See: https://github.com/DIN-Foundation/bcs-ntnu-2021/tree/main/report*
 
 ![](./images/github-report.png)
+
+
+
+
+## 2.3 Weekly meetings
+ 
+### 2.3.1 Meeting notes on Github
+
+Each meeting has a meeting note document attached to it, noting down the attendees 
+and a log of what was discussed during the meeting.
+
+*Screenshot of Meeting notes folder on Github. See: https://github.com/DIN-Foundation/bcs-ntnu-2021/tree/main/meetings*
+
+![](./images/github-meetings.png)
+
+
+### 2.3.2  Domain experts Weekly - Tuesdays @ 12:30 
+
+- **Agenda**: Everything related to the problem domain - SSI. Technincal questions. Engineering questions. Community questions. 
+- **Attendees:** Jonas, Snorre, Mariusz, Abylay
+
+*Screenshot of Jonas preparing for "Domain Experts Weekly"-meeting on Google Meet:*
+	![](./images/googlemeet.png)
+
+### 2.3.3 Academic supervisor weekly - Wednesdays @ 14:00
+
+- **Agenda:** Everything related to academic writing and organizing the bachelor in general.
+ - **Attendees:** Jonas, Deepti
+
+*Screenshot of the "Academic supervisor weekly"-meeting-room on MSTeams:*
+	![](./images/msteams-weekly.png)
+
+
+
 
 
 ## 2.4 Toggl Time Tracking
@@ -109,13 +118,11 @@ Tracking the hours was done in Toggl from day 1 (week 5), and throughout the pro
 
 
 *Example of toggl list view:*
-
+	
 ![](./images/toggl-list-view.png)
 
 *Example of toggl calendar view:*
-
 ![](./images/toggl-calendar.png)
 
 *Example of toggl report from week 5 - 19:*
-
 ![](./images/toggl-report.png)
