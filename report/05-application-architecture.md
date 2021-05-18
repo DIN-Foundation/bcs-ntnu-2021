@@ -47,14 +47,14 @@ All presentations of Verifiable Credentials are serialized as Verifiable Present
 
 ### 5.1.x DIDName
 - DIDName is a way of refering to a DID in a local DID-CLI command, because it is impossible to remember the full DID.
-- DIDName is the only part of DID-CLI's data-model which is not part of an SSI-standard. 
+- DIDName is the only part of DID-CLI's data-model which is not part of an SSI-standard.
 - Each DIDName is stored as a file `<DIDName>.did`, and the full DID as the content.
 - Example: `self.did` or `jonas.did`.
 
 
 
 
-## 5.2 File storage 
+## 5.2 File Storage
 
 ### 5.2.x The `.did/` directory
 
@@ -97,3 +97,45 @@ cat ../lisa.did | did connect lisa
 ```
 
 
+
+
+
+## 5.3 High-level solution to scenario
+
+
+### 5.3.1 The Government Issues credentials to it's citizens
+
+1. **Issue** - The Government-agent issues 3 passport as Verifiable Credentials, to the 3 different citizen-agents - Jonas, Snorre and Abylay.
+2. **Hold** - The 3 citizen agents each hold the one passport issued to them.
+
+
+![](./images/scenario-1-2.png)
+
+3. **Issue** - The Govenment-agent issues a Traffic Authority and a Law Enforcer credential, to two different agents. This, in practice, creates the "Vegvesen" and the Police.
+4. **Hold** - The "Vegvesen"-agent and the Police-agent holds their respective credentials issued to them.
+ 
+![](./images/scenario-3-4.png)
+
+
+### 5.3.2 Jonas gets a Drivers License from Vegvesen
+
+1. **Present** - Vegvesen presents it's "Traffic Authority"-credential to Jonas,.
+2.  **Verify** - Jonas verifies that the presentation has a valid signature, and makes sure that the "Traffic Authority"-credential was signed by the Government.
+3. **Present** - Jonas presents his "Passport"-credential to Vegvesen.
+4. **Verify** - Vegvesen verifies that the presentation is valid, and makes sure the passport credential was signed by the Government. 
+5. **Proove** - Jonas somehow proves to Vegvesen that he know how to drive a car. This is out of scope of any of the SSI-protocols.
+6. **Issue** - Vegvesen issues a Drivers License as a Verifiable Credential to Jonas.
+7.  **Hold** - Jonas holds the Drivers License issued to him.
+
+![](./images/scenario-part2.png)
+
+### 5.3.3 Jonas presents his Drivers License to Police
+
+1. **Present** - Police presents it's "Law Enforcer"-credential to Jonas.
+2. **Verify** - Jonas verifies that the presentation has a valid signature, and makes sure that the "Traffic Authority"-credential is issued by the Government.
+3. **Present** - Jonas presents it's Passport-credential to the Police.
+4. **Verify** - Police verifies that the presentation has a valid signature, and makes sure that the Passport-credential is issued by the Government.
+5. **Present** - Finally Jonas presents his Drivers License.
+6. **Verify** - Police verifies that the Drivers License is valid, and issued by the Government.
+
+![](./images/scenario-part3.png)
