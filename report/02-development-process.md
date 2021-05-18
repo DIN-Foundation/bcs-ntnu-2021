@@ -10,7 +10,7 @@ The project was losely driven forward by the Kanban framework. To keep track of 
 ![](./images/github-kanban.png)
 
 
-### 2.1.x The 5 columns on the Kanban board
+### 2.1.1 The 5 columns on the Kanban board
 
 **1. Inbox**
 
@@ -46,13 +46,13 @@ List of task where the pull request linked to the task has been approved and mer
 
 All source code was kept in a public open-source Github-repo, during the entire development. This made it easier to collaborate on the source code, because all participants had public access to all the work that was being done, from day one. 
 
-### 2.2.x DID-CLI source code
+### 2.2.1 DID-CLI source code
 
 *Screenshot of source code folder on Github. See: https://github.com/DIN-Foundation/bcs-ntnu-2021/tree/main/did-cli*
 
 ![](./images/github-implementation.png)
 
-### 2.2.x Playground mini-projects source code
+### 2.2.2 Playground mini-projects source code
 
 Before implementing the DID-CLI, a lot of experimentation had to be done. This was done to learn, and iterate on smaller projects, before beginning on the big one. Most of the projects in the playground-folder are useless, but they served an important role as learning exercises.
 
@@ -61,7 +61,7 @@ Before implementing the DID-CLI, a lot of experimentation had to be done. This w
 ![](./images/github-playground.png)
 
 
-### 2.2.x Report markdown source
+### 2.2.3 Report markdown source
 
 Even the report was developed on Github, in the same repo as the source code.
 
