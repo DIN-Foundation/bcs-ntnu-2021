@@ -22,7 +22,7 @@ Tasks in backlog are created whenever someone feels like it. There are no requir
 
 List of tasks that are planned to be implemented in the near future, and have enough details ironed out to make it possible to start the implementation.
 
-Tasks are moved from `Inbox` to `Todo`:
+Tasks are moved from `Inbox` to `Backlog`:
 - After being discussed in the weekly domain-experts meeting.
 - **or** after an ad-hoc meeting dedicated to discussing a specific task.
 - **or** after the developer has researched/learned something which makes a task "obviously implementable". If a developer does this, it should be clearly communicated in the next weekly domain-experts meeting.
@@ -44,7 +44,7 @@ List of task where the pull request linked to the task has been approved and mer
 
 ## 2.2 Github source control
 
-All source code was kept in a public open-source Github-repo, during the entire development. This made it easier to collaborate on the source code, because all participants had public access to all the work that was being done, from day one. 
+All source code was kept in a public open-source Github-repo, during the entire development. This made it easier to collaborate on the source code, because all participants had public access to all the work that was being done, from day one.
 
 ### 2.2.1 DID-CLI source code
 
@@ -73,10 +73,10 @@ Even the report was developed on Github, in the same repo as the source code.
 
 
 ## 2.3 Weekly meetings
- 
+
 ### 2.3.1 Meeting notes on Github
 
-Each meeting has a meeting note document attached to it, noting down the attendees 
+Each meeting has a meeting note document attached to it, noting down the attendees
 and a log of what was discussed during the meeting.
 
 *Screenshot of Meeting notes folder on Github. See: https://github.com/DIN-Foundation/bcs-ntnu-2021/tree/main/meetings*
@@ -84,9 +84,9 @@ and a log of what was discussed during the meeting.
 ![](./images/github-meetings.png)
 
 
-### 2.3.2  Domain experts Weekly - Tuesdays @ 12:30 
+### 2.3.2  Domain experts Weekly - Tuesdays @ 12:30
 
-- **Agenda**: Everything related to the problem domain - SSI. Technincal questions. Engineering questions. Community questions. 
+- **Agenda**: Everything related to the problem domain - SSI. Technincal questions. Engineering questions. Community questions.
 - **Attendees:** Jonas, Snorre, Mariusz, Abylay
 
 *Screenshot of Jonas preparing for "Domain Experts Weekly"-meeting on Google Meet:*
@@ -118,7 +118,7 @@ Tracking the hours was done in Toggl from day 1 (week 5), and throughout the pro
 
 
 *Example of toggl list view:*
-	
+
 ![](./images/toggl-list-view.png)
 
 *Example of toggl calendar view:*

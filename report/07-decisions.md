@@ -1,4 +1,6 @@
-## 7.x Why BDD?
+# 7 Decisions
+
+## 7.x Why behaviour-driven-development BDD?
 
 - Own experience from working with BDD out in the field.
 
@@ -36,7 +38,7 @@
 
 
 
-## 7.x Re-using existing work as much as possible
+## 7.x Why re-use existing work as much as possible
 
 Very often, a specific programming language is chosen, because we want to re-use as much as possible of existing code. This is the main reason Rust was chosen. It has an existing library for all the standards we want to comply with.
 
@@ -45,16 +47,20 @@ Using existing libraries, makes it easier to comply with standards:
 - didcomm-rs - Implements the `didcomm-v2`-standards.
 - spruceid/ssi - Implements the `vc`-standards.
 
-## 7.x A command line interface (Instead of a GUI)
+## 7.x Why a command line interface - no GUI?
 
 - GUI does not solve our problem statement any better.
 - A degree in Programming, does not get extra points for design.
 - Time considered better spent on lower-level stuff.
 
-## 7.x Only support a single cryptographic toolkit for signing and encryption (ed25519/x25519)
+## 7.x Why only support a single cryptographic toolkit?
 
+- Why only support ed25519/x25519 for signing and encryption?
 - To limit scope.
 - Supporting multiple toolkits, does not solve our problem-statement any better.
 - One is enough to prove the point.
 - One could rewrite the software to support multiple cryptographic toolkits later, using a plugin-based architecture.
 
+## 7.x Why only support a single DIDComm transport?
+
+- To limit scope.

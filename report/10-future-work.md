@@ -6,3 +6,4 @@
 
 ## 10.x support multiple DIDComm transports
 
+## 10.x Investigate selective disclosure methods
