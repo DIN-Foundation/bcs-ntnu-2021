@@ -6,15 +6,20 @@
 
 @Screenshot
 
-### 5.1.x DID
+### 5.1.1 DID, DID Document and DID-methods
 
-A DID is the unique identifier of an agent.
+- A DID is the unique identifier of an agent.
+- DID's can resolve to a DID Document.
+- The DID-method decides the details on how to resolve the DID-document.
+- DID data model -> https://www.w3.org/TR/did-core/#data-model
 
-### 5.1.x DIDKey
+### 5.1.2 DIDKey method
 
 DIDKey is the only DID-method we are supporting.
 
-### 5.1.x ed25519-JWK
+DID method key format -> https://w3c-ccg.github.io/did-method-key/#format
+
+### 5.1.3 ed25519-JWK
 
 The JWK DID-CLI is supporting, is a `ed25519/x25519` cryptographic public-private keypair, underpinning the DIDKey-method. The `jwk` is used for many things:
 - Each unique `jwk` maps to a unique DID in the DIDKey-method.
@@ -33,19 +38,32 @@ The JWK DID-CLI is supporting, is a `ed25519/x25519` cryptographic public-privat
 }
 ```
 
-### 5.1.x DCEM - DIDComm Encrypted Message
+JWK format -> https://datatracker.ietf.org/doc/html/rfc7517#section-4.1
+
+### 5.1.4 DCEM - DIDComm Encrypted Message
 
 All messages read and written by the agent, are serialized as DIDComm Encrypted Messages, both in transit, and when at stored at rest inside the agent, as files.
 
-### 5.1.x Verifiable Credentials
+DCEM spec -> https://identity.foundation/didcomm-messaging/spec/#didcomm-encrypted-message
+
+### 5.1.5 Verifiable Credentials
 
 All credentials issued by the agent are serialized as Verifiable Credentials.
 
-### 5.1.x Verifiable Presentations
+![](./images/credential.svg)
+
+VC data model -> https://www.w3.org/TR/vc-data-model/#credentials
+
+### 5.1.6 Verifiable Presentations
 
 All presentations of Verifiable Credentials are serialized as Verifiable Presentations.
 
-### 5.1.x DIDName
+![](./images/presentation.svg)
+
+VC data model -> https://www.w3.org/TR/vc-data-model/#presentations
+
+### 5.1.7 DIDName
+
 - DIDName is a way of refering to a DID in a local DID-CLI command, because it is impossible to remember the full DID.
 - DIDName is the only part of DID-CLI's data-model which is not part of an SSI-standard.
 - Each DIDName is stored as a file `<DIDName>.did`, and the full DID as the content.
