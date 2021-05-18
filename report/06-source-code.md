@@ -1,8 +1,8 @@
 # 6 Source code
 
-## 6.1 Rust book guidelines
+## 6.1 Code organization
 
-The implementation is following the "guidelines for binary projects", given by the Rust-book, quoted in full below:
+The source code is following the "guidelines for binary projects", given by the Rust-book, quoted in full below:
 
 >### Separation of Concerns for Binary Projects
 >
@@ -26,7 +26,7 @@ Ref: https://doc.rust-lang.org/book/ch12-03-improving-error-handling-and-modular
 
 ### 6.2 File structure
 
-Here is a screenshot of the file-structure, which follows from the guidelines mentioned in 5.4:
+Here is a screenshot of the file-structure, which follows from the code organization:
 
 ![](./images/code-organization.png)
 

@@ -1,6 +1,6 @@
-## 9.x Why BDD?
+## 7.x Why BDD?
 
-- Own experience from working with BDD out in the field
+- Own experience from working with BDD out in the field.
 
 - Dan North, Introduction to BDD, https://dannorth.net/introducing-bdd/
     + >If we could develop a consistent vocabulary for analysts, testers, developers, and the business, then we would be well on the way to eliminating some of the ambiguity and miscommunication that occur when technical people talk to business people.
@@ -20,7 +20,7 @@
     then ensure some outcomes.
     ```
 
-## 9.x Why Rust?
+## 7.x Why Rust?
 
 - Multiple libraries in the SSI community written in Rust already
 - The only official implementation of DIDComm v2 is in Rust
@@ -36,16 +36,25 @@
 
 
 
-## 9.x Why only support a single transport (stdin/stdout)
+## 7.x Re-using existing work as much as possible
+
+Very often, a specific programming language is chosen, because we want to re-use as much as possible of existing code. This is the main reason Rust was chosen. It has an existing library for all the standards we want to comply with.
+
+Using existing libraries, makes it easier to comply with standards:
+- did-key-rs - Implements the `did`-standards.
+- didcomm-rs - Implements the `didcomm-v2`-standards.
+- spruceid/ssi - Implements the `vc`-standards.
+
+## 7.x A command line interface (Instead of a GUI)
+
+- GUI does not solve our problem statement any better.
+- A degree in Programming, does not get extra points for design.
+- Time considered better spent on lower-level stuff.
+
+## 7.x Only support a single cryptographic toolkit for signing and encryption (ed25519/x25519)
 
 - To limit scope.
-- Supporting multiple transports, does not solve our problem-statement any better.
+- Supporting multiple toolkits, does not solve our problem-statement any better.
 - One is enough to prove the point.
-- One could rewrite the software to support multiple transports later, using a plugin-based architecture.
+- One could rewrite the software to support multiple cryptographic toolkits later, using a plugin-based architecture.
 
-## 9.x Why only support a single did-method (did-key)
-
-- To limit scope.
-- Supporting multiple did-methods, does not solve our problem-statement any better.
-- One is enough to prove the point.
-- One could rewrite the software to support multiple did-methods later, using a plugin-based architecture.
