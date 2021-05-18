@@ -1,11 +1,24 @@
 
-## 4 The CLI - Command Line Interface
+## 4  Command Line Interface
 
-- The main way to interact with the `did` executeable, is through it's CLI.
-- The `did`'s CLI follows principles laid out in the book `The Unix Programming environment` by `Brian W. Kernighan` and `Rob Pike`, 1984.
+- The main way to interact with `did` executeable, is through it's CLI.
 - Each command follows the same pattern `did <command> <...args>`.
+- The DID-CLI draws inspiration from the book `The Unix Programming environment` by `Brian W. Kernighan` and `Rob Pike`, 1984.
 
-### 4.1 Command: `did help`
+
+### 4.1 Unix Pipelines Integration
+
+Many of the commands in the DID-CLI, is designed in a way to easily integrate with existing Unix tools. The most important part of this integration, is to support optionally reading input from `stdin`. Also it is important to take care in how output is written to `stdout`, to make it possible to chain commands together. This is the reason you will see that most of commands are standardized to write full DCEM-messages to `stdout`, for easy consumption by the next command in the pipeline.
+
+*Example:*
+```
+cat message.dcem | did read | grep jonas 
+```
+
+
+### 4.2 Commands
+
+#### `did help`
 
 - List all available commands.
 
@@ -13,7 +26,7 @@
 
     ![](./images/cmd-help.png)
 
-### 4.2 Command: `did init`
+#### `did init`
 
 - Initializes a did-agent in the working directory.
 - Run this command before running any other commands.
@@ -29,7 +42,7 @@
     ![](./images/cmd-init.png)
 
 
-### 4.3 Command: `did doc`
+#### `did doc`
 
 - Prints the did-document, controlled by the did agent.
 - Since the did-agent uses did-key as it's underlying did-method, the did-document is generated from the public-private keypair.
@@ -42,7 +55,7 @@
     ![](./images/cmd-doc.png)
 
 
-### 4.4 Command: `did dids`
+#### `did dids`
 
 - List all dids stored in the agent.
 - Dids are added to the agent when running the `did connect` command.
@@ -51,7 +64,7 @@
 
     ![](./images/cmd-dids.png)
 
-### 4.5 Command: `did did <didname>`
+#### `did did <didname>`
 
 - Show the did of a single `<didname>`.
 
@@ -60,7 +73,7 @@
     ![](./images/cmd-did.png)
 
 
-### 4.6 Command: `did connect <didname> <did>`
+#### `did connect <didname> <did>`
 
 - `did connect` connects a `<didname>` to `<did>`
 - `did connect` gives a `<did>` a `<didname>`.
@@ -70,7 +83,7 @@
 
     ![](./images/cmd-connect.png)
 
-### 4.7 Command: `did write <didname> <message>`
+#### `did write <didname> <message>`
 
 - Wraps a user defined message inside a `<dcem>`-envelope.
 - Sets the `to`-header of the `<dcem>` to the underlying `<did>` refered to by the `<didname>`.
@@ -82,7 +95,7 @@
 
     ![](./images/cmd-write-alt.png)
 
-### 4.8 Command: `did read <dcem>`
+#### `did read <dcem>`
 
 - Unwraps an `<dcem>` message from `stdin` or from `<dcem>`-arg.
 - Prints the plaintext body of the message.
@@ -96,7 +109,7 @@
     ![](./images/cmd-read-vp.png)
 
 
-### 4.9 Command: `did issue <CredentialType> <didname>`
+#### `did issue <CredentialType> <didname>`
 
 - Issues a verifiable credential addressed to the `did` of `<didname>`:
 - Issues one of 4 `<CredentialType>`s
@@ -112,13 +125,13 @@
     ![](./images/cmd-issue-alt.png)
 
 
-### 4.10 Command: `did hold <dcem>`
+#### `did hold <dcem>`
 
 - **Example:**
 
     ![](./images/cmd-hold.png)
 
-### 4.11 Command: `did present <didname> <dcem>`
+#### `did present <didname> <dcem>`
 
 - **Example:**
 
@@ -126,7 +139,7 @@
 
     ![](./images/cmd-present-alt.png)
 
-### 4.12 Command: `did verify <issuer didname> <subject didname> <dcem>`
+#### `did verify <issuer didname> <subject didname> <dcem>`
 
 - Print `<dcem>` to `stdout`, if, and only if, verification succeeds.
 
@@ -138,7 +151,7 @@
 
     ![](./images/cmd-verify-subjectfails.png)
 
-### 4.13 Command: `did messages`
+#### `did messages`
 
 - List all didcomm messages stored in the wallet.
 - Messages are added to the wallet when using the `did hold` command.
@@ -147,7 +160,7 @@
 
     ![](./images/cmd-messages.png)
 
-### 4.14 Command: `did message <message id>`
+#### `did message <message id>`
 
 - Show the contents of a single didcomm message based on the given `<message id>`.
 
@@ -156,7 +169,7 @@
     ![](./images/cmd-message.png)
 
 
-### 4.15 Intentional limitations of the CLI
+### 4.3 Intentional limitations of the CLI
 
 - None of the commands have any optional-arguments - e.g `--option=<arg>`. This is to keep program logic as simple as possible. If the CLI was intended for a broader audicene with multiple use-cases, options may be added. This CLI is a special purpose CLI, intended to solve a specific use-case, namely the specific proof-of-concept from the problem statement. This is why optional-arguments was not prioritized.
 - Options are much harder to parse correctly than fixed size positional arguments.
