@@ -7,42 +7,11 @@
 
 ### 4.1 Command: `did help`
 
-- List all commands together with their command-signature. The commands are grouped together in 4 groups:
-    * Basic
-    * DIDComm V2-messaging
-    * DIDComm V2 + Verifiable Credentials
-    * Wallet
+- List all available commands.
 
-**Example**:
+- **Example:**
 
-	```shell
-    $ did help
-
-        Basic:
-            did init
-            did doc
-            did connect <name> <did>
-
-        DIDComm v2 messaging:
-            did write  <subject name> <message>  -->  <dcem>
-            did hold   <dcem>                    -->  <dcem>
-            did read   <dcem>                    -->  <plaintext message>
-
-        DIDComm v2 + Verifiable Credentials:
-            did issue   Passport         <subject name>      -->  <dcem>
-            did issue   DriversLicense   <subject name>      -->  <dcem>
-            did issue   TrafficAuthority <subject name>      -->  <dcem>
-            did issue   LawEnforcer      <subject name>      -->  <dcem>
-
-            did present <verifier name>              <dcem>  -->  <dcem>
-            did verify  <issuer name> <subject name> <dcem>  -->  <dcem>
-
-        Wallet:
-            did messages
-            did message <message id>
-            did connections
-            did connection <name>
-		```
+    ![](./images/cmd-help.png)
 
 ### 4.2 Command: `did init`
 
@@ -53,33 +22,12 @@
 - All your agents wallet-data will be stored inside `.did/`.
 - Your agents `did` will be returned to `stdout` when running this command.
 - If a `.did/` already exists, this commands has no side-effects - the command is idempotent.
-
-**Example**:
-	1. Create empty folder and change working directory
-		```shell
-		$ mkdir ola
-		$ cd ola/
-		$ ls -a
-		.  ..
-		```
-	2. Create a new did-agent
-		```shell
-		$ did init
-		did:key:z6Mkt8M2q23yEZHqo8CGbngpTKBDvdf3EazphaJRqNP3kXft
-		```
-	3. Discover the new `.did/`-directory
-			```shell
-			$ ls -a
-			.  ..  .did
-			$ ls -a .did/
-			.  ..  connections  dids  key.jwk  messages
-			```
-	4. Print `did` from existing agent
-			```shell
-			$ did init
-			did:key:z6Mkt8M2q23yEZHqo8CGbngpTKBDvdf3EazphaJRqNP3kXft
-			```
 - `did init` is intentionally almost identical to `git init`, to make it easier for new users to understand the CLI by reusing a good design-pattern from a well-known CLI like `git`-CLI.
+
+- **Example**:
+
+    ![](./images/cmd-init.png)
+
 
 
 ### 4.3 Command: `did doc`
@@ -90,136 +38,123 @@
 - This is a limitation of the did-key method, and how it is specified.
 - Once created, the did-document pinned to a did-key did, is not possible to edit.
 
-**Example**:
+- **Example**:
 
-	```shell
-    $ did doc
-    {
-        "@context": "https://www.w3.org/ns/did/v1",
-        "id": "did:key:z6Mkt8M2q23yEZHqo8CGbngpTKBDvdf3EazphaJRqNP3kXft",
-        "assertionMethod": [
-            "did:key:z6Mkt8M2q23yEZHqo8CGbngpTKBDvdf3EazphaJRqNP3kXft#z6Mkt8M2q23yEZHqo8CGbngpTKBDvdf3EazphaJRqNP3kXft"
-        ],
-        "authentication": [
-            "did:key:z6Mkt8M2q23yEZHqo8CGbngpTKBDvdf3EazphaJRqNP3kXft#z6Mkt8M2q23yEZHqo8CGbngpTKBDvdf3EazphaJRqNP3kXft"
-        ],
-        "capabilityDelegation": [
-            "did:key:z6Mkt8M2q23yEZHqo8CGbngpTKBDvdf3EazphaJRqNP3kXft#z6Mkt8M2q23yEZHqo8CGbngpTKBDvdf3EazphaJRqNP3kXft"
-        ],
-        "capabilityInvocation": [
-            "did:key:z6Mkt8M2q23yEZHqo8CGbngpTKBDvdf3EazphaJRqNP3kXft#z6Mkt8M2q23yEZHqo8CGbngpTKBDvdf3EazphaJRqNP3kXft"
-        ],
-        "keyAgreement": [
-            "did:key:z6Mkt8M2q23yEZHqo8CGbngpTKBDvdf3EazphaJRqNP3kXft#z6LSgmL8J3rHZXBgcmmrv6DBoYXc86SgJeVzUdhtBKtv1L8a"
-        ],
-        "verificationMethod": [
-            {
-            "id": "did:key:z6Mkt8M2q23yEZHqo8CGbngpTKBDvdf3EazphaJRqNP3kXft#z6Mkt8M2q23yEZHqo8CGbngpTKBDvdf3EazphaJRqNP3kXft",
-            "type": "Ed25519VerificationKey2018",
-            "controller": "did:key:z6Mkt8M2q23yEZHqo8CGbngpTKBDvdf3EazphaJRqNP3kXft",
-            "publicKeyBase58": "Eg5zEmoXu1oNgdMZvDiycDdE74PBphkU1ZPW16R2qJtW",
-            "privateKeyBase58": "CNSxBbYwM1FDWdAsNq5ULLzQAbbxpVgH1hxx1HogomB7"
-            },
-            {
-            "id": "did:key:z6Mkt8M2q23yEZHqo8CGbngpTKBDvdf3EazphaJRqNP3kXft#z6LSgmL8J3rHZXBgcmmrv6DBoYXc86SgJeVzUdhtBKtv1L8a",
-            "type": "X25519KeyAgreementKey2019",
-            "controller": "did:key:z6Mkt8M2q23yEZHqo8CGbngpTKBDvdf3EazphaJRqNP3kXft",
-            "publicKeyBase58": "669xmk3RU4TwXPQ6PShEUxK8GwuZc3KqbezCgsFPHxMp",
-            "privateKeyBase58": "BEXLyKxoPBAVX2EoGkJ1RKYCrdvPpQQra1Xhg8JQBzZa"
-            }
-        ]
-    }
-    ```
+    ![](./images/cmd-doc.png)
 
-### 4.4 Command: `did connect <name> <did>`
 
-- `did connect` connects a `<name>` to `<did>`
-- `did connect` gives a `<did>` a `<name>`.
-- The `<name>` is used in other commands, as an easy way to refer to another agent's `<did>`.
 
-**Example**:
-	1. Giving a `<did>` a `<name>`:
-		```shell
-		$ did connect police did:key:z6Mkt8M2q23yEZHqo8CGbngpTKBDvdf3EazphaJRqNP3kXft
-		./.did/connections/police.did
-		./.did/dids/did:key:z6Mkt8M2q23yEZHqo8CGbngpTKBDvdf3EazphaJRqNP3kXft
-		```
-	2. Using that `<name>` in a subsequent command as an alias for the `<did>`:
-		```shell
-		$ did write police "What seems to be the officer, problem?"
-		```
+### 4.4 Command: `did connect <didname> <did>`
 
-### 4.5 Command: `did write <name> <message>`
+- `did connect` connects a `<didname>` to `<did>`
+- `did connect` gives a `<did>` a `<didname>`.
+- The `<didname>` is used in other commands, as an easy way to refer to another agent's `<did>`.
+
+- **Example**:
+
+    ![](./images/cmd-connect.png)
+
+### 4.5 Command: `did write <didname> <message>`
 
 - Wraps a user defined message inside a `<dcem>`-envelope.
-- Sets the `to`-header of the `<dcem>` to the underlying `<did>` refered to by the `<name>`.
-- `did write` also stores the `<dcem>`-message in the agent's wallet message history.
+- Sets the `to`-header of the `<dcem>` to the underlying `<did>` refered to by the `<didname>`.
 - Gives the message a new globally unique `id`.
 
-**Example**:
-	```shell
-	$ did write police "What seems to be the officer problem?"
-	{"typ":"JWM","enc":"XC20P","alg":"ECDH-ES+A256KW","iv":[134,248,143,87,90,74,69,229,36,243,233,26,193,215,193,137,174,135,176,13,57,86,229,147],"id":3873621411577106446,"type":"didcomm/unknown","to":["did:key:z6Mkt8M2q23yEZHqo8CGbngpTKBDvdf3EazphaJRqNP3kXft"],"from":"did:key:z6MkvXgAryPrx1ob7YPbbkArL55TUTnYuJ4dtRrD6ZPWepHA","created_time":1620059562,"expires_time":3600,"ciphertext":[.....,226,186,104,176]}
-	```
+- **Example**:
 
-	```shell
-	$ did write police "What seems to be the officer problem?" > ../police.message.dcem
-	```
+    ![](./images/cmd-write.png)
+
+    ![](./images/cmd-write-alt.png)
 
 ### 4.6 Command: `did read <dcem>`
 
-- Unwraps an incomming `<dcem>` message.
-- Stores the message in the agent's wallet message history.
-- Returns the `id`, of the `<dcem>`'s `id`-header. This `id` may be used to read the contents of the message using `did message <message id>`
+- Unwraps an `<dcem>` message from `stdin` or from `<dcem>`-arg.
+- Prints the plaintext body of the message.
 
-**Example**:
-	```shell
-    $ did read $(cat ../hello.tor.dcem)
-    10757017092234814547
-    ```
+- **Example**:
 
-### 4.7 Command: `did issue <CredentialType> <connection id>`
+    ![](./images/cmd-read-message.png)
 
-- Issues a verifiable credential addressed to the `did` of `<connection id>`:
+    ![](./images/cmd-read-vc.png)
+
+    ![](./images/cmd-read-vp.png)
+
+
+### 4.7 Command: `did issue <CredentialType> <didname>`
+
+- Issues a verifiable credential addressed to the `did` of `<didname>`:
 - Issues one of 4 `<CredentialType>`s
     * Passport
     * DriversLicense
     * TrafficAuthority
     * LawEnforcer
 
-**Example**:
-	```shell
-	$ did issue Passport tor
-	{"typ":"JWM","enc":"XC20P","alg":"ECDH-ES+A256KW","iv":[245,193,71,215,42,199,187,139,24,252,177,47,67,183,44,194,54,135,53,178,42,20,101,226],"id":14914780140536880416,"type":"didcomm/unknown","to":["did:key:z6MkfPkLRLftwqUSjxPgJHiTAoSLE6WcBoeWMZJ2KD3j6CoM"],"from":"did:key:z6Mkt8M2q23yEZHqo8CGbngpTKBDvdf3EazphaJRqNP3kXft","created_time":1620060256,"expires_time":3600,"ciphertext":[....216,34,58,164,150]}
-	```
+- **Example**:
 
-	```shell
-	$ did issue Passport tor > ../tor.passport.vc.dcem
-	```
+    ![](./images/cmd-issue.png)
+
+    ![](./images/cmd-issue-alt.png)
+
 
 ### 4.8 Command: `did hold <dcem>`
 
-### 4.9 Command: `did present <credential id> <connection id>`
+- **Example:**
 
-### 4.10 Command: `did verify <issuer connection id> <subject connection id> <dcem>`
+    ![](./images/cmd-hold.png)
+
+### 4.9 Command: `did present <didname> <dcem>`
+
+- **Example:**
+
+    ![](./images/cmd-present.png)
+
+    ![](./images/cmd-present-alt.png)
+
+### 4.10 Command: `did verify <issuer didname> <subject didname> <dcem>`
+
+- Print `<dcem>` to `stdout`, if, and only if, verification succeeds.
+
+- **Example:**
+
+    ![](./images/cmd-verify.png)
+
+    ![](./images/cmd-verify-issuerfails.png)
+
+    ![](./images/cmd-verify-subjectfails.png)
 
 ### 4.11 Command: `did messages`
 
 - List all didcomm messages stored in the wallet.
-- Messages are added to the wallet when using the `did write` and `did read` commands.
+- Messages are added to the wallet when using the `did hold` command.
+
+- **Example:**
+
+    ![](./images/cmd-messages.png)
 
 ### 4.12 Command: `did message <message id>`
 
 - Show the contents of a single didcomm message based on the given `<message id>`.
 
-### 4.13 Command: `did connections`
+- **Example:**
 
-- List all did connections stored in the wallet.
-- Connections are added to the wallet when using the `did connect` command.
+    ![](./images/cmd-message.png)
 
-### 4.14 Command: `did connection <connection id>`
+### 4.13 Command: `did dids`
 
-- Show the did of a single did connection based on `<connection id>`.
+- List all dids stored in the agent.
+- Dids are added to the agent when running the `did connect` command.
+
+- **Example:**
+
+    ![](./images/cmd-dids.png)
+
+### 4.14 Command: `did did <didname>`
+
+- Show the did of a single `<didname>`.
+
+- **Example:**
+
+    ![](./images/cmd-did.png)
 
 ### 4.15 Intentional limitations of the CLI
 
@@ -227,4 +162,3 @@
 - Options are much harder to parse correctly than fixed size positional arguments.
 - None of the commands required variable length arguments, which made the implementation easier.
 - None of the commands have filepath arguments. The user is expected to use `cat <filepath>` to read the contents of a file, which is then fed into a positional argument of one of the commands. Example: `did read $(cat ../message.dcem)` vs `did read ../message.dcem`. This was done to simplify implementation.
-- None of the commands support pipes. This could have been useful as an alternative to the example from the previous point. Example: `cat ../message.dcem | did read`. Since positional arguments + `cat` already solves the problem of reading from file, support for pipes was not prioritized.
