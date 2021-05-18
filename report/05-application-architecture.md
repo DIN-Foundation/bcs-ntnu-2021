@@ -60,7 +60,7 @@ All presentations of Verifiable Credentials are serialized as Verifiable Present
 
 ![](./images/presentation.svg)
 
-VC data model -> https://www.w3.org/TR/vc-data-model/#presentations
+VP data model -> https://www.w3.org/TR/vc-data-model/#presentations
 
 ### 5.1.7 DIDName
 
