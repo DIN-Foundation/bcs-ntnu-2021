@@ -29,7 +29,6 @@
     ![](./images/cmd-init.png)
 
 
-
 ### 4.3 Command: `did doc`
 
 - Prints the did-document, controlled by the did agent.
@@ -43,8 +42,25 @@
     ![](./images/cmd-doc.png)
 
 
+### 4.4 Command: `did dids`
 
-### 4.4 Command: `did connect <didname> <did>`
+- List all dids stored in the agent.
+- Dids are added to the agent when running the `did connect` command.
+
+- **Example:**
+
+    ![](./images/cmd-dids.png)
+
+### 4.5 Command: `did did <didname>`
+
+- Show the did of a single `<didname>`.
+
+- **Example:**
+
+    ![](./images/cmd-did.png)
+
+
+### 4.6 Command: `did connect <didname> <did>`
 
 - `did connect` connects a `<didname>` to `<did>`
 - `did connect` gives a `<did>` a `<didname>`.
@@ -54,7 +70,7 @@
 
     ![](./images/cmd-connect.png)
 
-### 4.5 Command: `did write <didname> <message>`
+### 4.7 Command: `did write <didname> <message>`
 
 - Wraps a user defined message inside a `<dcem>`-envelope.
 - Sets the `to`-header of the `<dcem>` to the underlying `<did>` refered to by the `<didname>`.
@@ -66,7 +82,7 @@
 
     ![](./images/cmd-write-alt.png)
 
-### 4.6 Command: `did read <dcem>`
+### 4.8 Command: `did read <dcem>`
 
 - Unwraps an `<dcem>` message from `stdin` or from `<dcem>`-arg.
 - Prints the plaintext body of the message.
@@ -80,7 +96,7 @@
     ![](./images/cmd-read-vp.png)
 
 
-### 4.7 Command: `did issue <CredentialType> <didname>`
+### 4.9 Command: `did issue <CredentialType> <didname>`
 
 - Issues a verifiable credential addressed to the `did` of `<didname>`:
 - Issues one of 4 `<CredentialType>`s
@@ -96,13 +112,13 @@
     ![](./images/cmd-issue-alt.png)
 
 
-### 4.8 Command: `did hold <dcem>`
+### 4.10 Command: `did hold <dcem>`
 
 - **Example:**
 
     ![](./images/cmd-hold.png)
 
-### 4.9 Command: `did present <didname> <dcem>`
+### 4.11 Command: `did present <didname> <dcem>`
 
 - **Example:**
 
@@ -110,7 +126,7 @@
 
     ![](./images/cmd-present-alt.png)
 
-### 4.10 Command: `did verify <issuer didname> <subject didname> <dcem>`
+### 4.12 Command: `did verify <issuer didname> <subject didname> <dcem>`
 
 - Print `<dcem>` to `stdout`, if, and only if, verification succeeds.
 
@@ -122,7 +138,7 @@
 
     ![](./images/cmd-verify-subjectfails.png)
 
-### 4.11 Command: `did messages`
+### 4.13 Command: `did messages`
 
 - List all didcomm messages stored in the wallet.
 - Messages are added to the wallet when using the `did hold` command.
@@ -131,7 +147,7 @@
 
     ![](./images/cmd-messages.png)
 
-### 4.12 Command: `did message <message id>`
+### 4.14 Command: `did message <message id>`
 
 - Show the contents of a single didcomm message based on the given `<message id>`.
 
@@ -139,22 +155,6 @@
 
     ![](./images/cmd-message.png)
 
-### 4.13 Command: `did dids`
-
-- List all dids stored in the agent.
-- Dids are added to the agent when running the `did connect` command.
-
-- **Example:**
-
-    ![](./images/cmd-dids.png)
-
-### 4.14 Command: `did did <didname>`
-
-- Show the did of a single `<didname>`.
-
-- **Example:**
-
-    ![](./images/cmd-did.png)
 
 ### 4.15 Intentional limitations of the CLI
 
